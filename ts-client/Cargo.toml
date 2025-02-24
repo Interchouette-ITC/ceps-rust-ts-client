@@ -8,15 +8,13 @@ crate-type = ["cdylib", "rlib"]
 name = "ts_client"
 path = "src/lib.rs"
 
-[[bin]]
-name = "ts_client"
-path = "src/main.rs"
-doc = false
-
 [dependencies]
-casper-rust-wasm-sdk = { version = "2.0.0", git = "https://github.com/casper-ecosystem/rustSDK", branch = "dev" }
+casper-rust-wasm-sdk.workspace = true
 wasm-bindgen = "*"
 js-sys = "*"
 gloo-utils = { version = "0.2", default-features = false, features = ["serde"] }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 serde_json = "1.0"
+
+[dev-dependencies]
+ts-client-tests = { path = "tests" }

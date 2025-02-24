@@ -21,13 +21,16 @@ clean:
 	rm -rf $(WEB_OUT_DIR) $(NODEJS_OUT_DIR)
 	cargo clean
 
+wasm-bindgen-test:
+	cd ts-client/tests && wasm-pack test --headless --chrome
+
 unit-test:
 	cargo test -- --test-threads=1 --nocapture
 
 integration-test:
 	cd tests/rust && cargo test -- --test-threads=1 --nocapture
 
-test: unit-test integration-test
+test: unit-test integration-test wasm-bindgen-test
 
 doc:
 

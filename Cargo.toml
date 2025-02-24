@@ -1,5 +1,5 @@
 [workspace]
-members = ["common", "console", "ts-client", "tests/rust"]
+members = ["common", "console", "ts-client", "ts-client/tests", "tests/rust"]
 
 default-members = ["console", "ts-client"]
 resolver = "2"
@@ -14,9 +14,9 @@ repository = "https://github.com/gRoussac/ceps-rust-ts-client.git"
 authors = ["3099551+gRoussac@users.noreply.github.com"]
 license-file = "LICENSE"
 
-[workspace.dev-dependencies]
-sdk_tests = { path = "tests/rust" }
-tokio = { version = "1", features = ["full"] }
+
+[workspace.dependencies]
+casper-rust-wasm-sdk = { version = "2.0.0", git = "https://github.com/casper-ecosystem/rustSDK", branch = "dev" }
 
 [profile.release]
 codegen-units = 1

@@ -30,11 +30,10 @@ impl Client {
     }
 
     #[wasm_bindgen(js_name = "getRPCAddress")]
-    pub fn get_rpc_address(&self, rpc_address: Option<String>) -> String {
-        rpc_address
+    pub fn get_rpc_address(&self) -> String {
+        self.rpc_address
             .as_ref()
-            .cloned()
-            .or_else(|| self.rpc_address.as_ref().map(String::to_owned))
+            .map(String::to_owned)
             .unwrap_or_default()
     }
 
@@ -45,11 +44,10 @@ impl Client {
     }
 
     #[wasm_bindgen(js_name = "getNodeAddress")]
-    pub fn get_node_address(&self, node_address: Option<String>) -> String {
-        node_address
+    pub fn get_node_address(&self) -> String {
+        self.node_address
             .as_ref()
-            .cloned()
-            .or_else(|| self.node_address.as_ref().map(String::to_owned))
+            .map(String::to_owned)
             .unwrap_or_default()
     }
 
@@ -60,8 +58,8 @@ impl Client {
     }
 
     #[wasm_bindgen(js_name = "getVerbosity")]
-    pub fn get_verbosity(&self, verbosity: Option<Verbosity>) -> Verbosity {
-        verbosity.unwrap_or(self.verbosity.unwrap_or(Verbosity::Low))
+    pub fn get_verbosity(&self) -> Verbosity {
+        self.verbosity.unwrap_or(Verbosity::Low)
     }
 
     #[wasm_bindgen(js_name = "setVerbosity")]
