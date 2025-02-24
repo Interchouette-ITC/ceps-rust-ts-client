@@ -1,5 +1,5 @@
 pub(crate) mod client;
-pub use client::Client;
+pub use client::TSClient;
 
 #[cfg(test)]
 mod tests;

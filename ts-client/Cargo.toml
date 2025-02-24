@@ -10,6 +10,7 @@ path = "src/lib.rs"
 
 [dependencies]
 casper-rust-wasm-sdk.workspace = true
+common = { path = "../common" }
 wasm-bindgen = "*"
 js-sys = "*"
 gloo-utils = { version = "0.2", default-features = false, features = ["serde"] }

@@ -1,70 +1,71 @@
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
+use common::{Cep as _Cep, Client};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub struct Client {
-    rpc_address: Option<String>,
-    node_address: Option<String>,
-    verbosity: Option<Verbosity>,
-}
-
-impl Default for Client {
-    fn default() -> Self {
-        Self::new(None, None, None)
-    }
+#[derive(Default)]
+pub struct TSClient {
+    client: Client,
 }
 
 #[wasm_bindgen]
-impl Client {
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Cep {
+    inner: _Cep,
+}
+
+#[wasm_bindgen]
+impl TSClient {
     #[wasm_bindgen(constructor)]
     pub fn new(
         rpc_address: Option<String>,
         node_address: Option<String>,
         verbosity: Option<Verbosity>,
-    ) -> Self {
-        Client {
-            rpc_address,
-            node_address,
-            verbosity,
+        cep: Option<Cep>,
+    ) -> TSClient {
+        TSClient {
+            client: Client::new(rpc_address, node_address, verbosity, cep.map(|c| c.inner)),
         }
     }
 
     #[wasm_bindgen(js_name = "getRPCAddress")]
     pub fn get_rpc_address(&self) -> String {
-        self.rpc_address
-            .as_ref()
-            .map(String::to_owned)
-            .unwrap_or_default()
+        self.client.get_rpc_address()
     }
 
     #[wasm_bindgen(js_name = "setRPCAddress")]
-    pub fn set_rpc_address(&mut self, rpc_address: Option<String>) -> Result<(), String> {
-        self.rpc_address = rpc_address;
-        Ok(())
+    pub fn set_rpc_address(&mut self, rpc_address: String) {
+        self.client.set_rpc_address(rpc_address);
     }
 
     #[wasm_bindgen(js_name = "getNodeAddress")]
     pub fn get_node_address(&self) -> String {
-        self.node_address
-            .as_ref()
-            .map(String::to_owned)
-            .unwrap_or_default()
+        self.client.get_node_address()
     }
 
     #[wasm_bindgen(js_name = "setNodeAddress")]
-    pub fn set_node_address(&mut self, node_address: Option<String>) -> Result<(), String> {
-        self.node_address = node_address;
-        Ok(())
+    pub fn set_node_address(&mut self, node_address: String) {
+        self.client.set_node_address(node_address);
     }
 
     #[wasm_bindgen(js_name = "getVerbosity")]
     pub fn get_verbosity(&self) -> Verbosity {
-        self.verbosity.unwrap_or(Verbosity::Low)
+        self.client.get_verbosity()
     }
 
     #[wasm_bindgen(js_name = "setVerbosity")]
-    pub fn set_verbosity(&mut self, verbosity: Option<Verbosity>) -> Result<(), String> {
-        self.verbosity = verbosity;
-        Ok(())
+    pub fn set_verbosity(&mut self, verbosity: Verbosity) {
+        self.client.set_verbosity(verbosity);
+    }
+
+    #[wasm_bindgen(js_name = "getCEP")]
+    pub fn get_cep(&self) -> Cep {
+        Cep {
+            inner: self.client.get_cep(),
+        }
+    }
+    #[wasm_bindgen(js_name = "setCEP")]
+    pub fn set_cep(&mut self, cep: Cep) {
+        self.client.set_cep(cep.inner);
     }
 }

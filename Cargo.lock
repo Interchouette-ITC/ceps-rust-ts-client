@@ -346,6 +346,9 @@ dependencies = [
 [[package]]
 name = "common"
 version = "1.0.0"
+dependencies = [
+ "casper-rust-wasm-sdk",
+]
 
 [[package]]
 name = "console"
@@ -2381,6 +2384,7 @@ name = "ts-client"
 version = "0.1.0"
 dependencies = [
  "casper-rust-wasm-sdk",
+ "common",
  "gloo-utils",
  "js-sys",
  "serde",
