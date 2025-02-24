@@ -1,0 +1,11 @@
+{
+  "name": "ts-client",
+  "version": "0.1.0",
+  "files": [
+    "ts_client_bg.wasm",
+    "ts_client.js",
+    "ts_client.d.ts"
+  ],
+  "main": "ts_client.js",
+  "types": "ts_client.d.ts"
+}
