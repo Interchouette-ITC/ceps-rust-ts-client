@@ -22,7 +22,7 @@ clean:
 	cargo clean
 
 wasm-bindgen-test:
-	cd ts-client/tests && wasm-pack test --headless --chrome
+	cd ts-client && wasm-pack test --headless --chrome
 
 unit-test:
 	cargo test -- --test-threads=1 --nocapture

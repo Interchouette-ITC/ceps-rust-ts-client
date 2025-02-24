@@ -1,5 +1,5 @@
 [workspace]
-members = ["common", "console", "ts-client", "ts-client/tests", "tests/rust"]
+members = ["common", "console", "ts-client", "tests/rust"]
 
 default-members = ["console", "ts-client"]
 resolver = "2"
