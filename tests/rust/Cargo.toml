@@ -1,0 +1,9 @@
+[package]
+name = "integration-tests"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+name = "integration_tests"
+bench = false
+doctest = false

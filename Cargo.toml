@@ -1,0 +1,21 @@
+[workspace]
+members = ["common", "console", "ts-client", "tests/rust"]
+
+default-members = ["console", "ts-client"]
+resolver = "2"
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+description = "A library for interacting with Casper CEPs for the Casper network."
+readme = "README.md"
+homepage = "https://github.com/gRoussac/ceps-rust-ts-client.git"
+repository = "https://github.com/gRoussac/ceps-rust-ts-client.git"
+authors = ["3099551+gRoussac@users.noreply.github.com"]
+license-file = "LICENSE"
+
+[workspace.dependencies]
+
+[profile.release]
+codegen-units = 1
+lto = true
