@@ -1,7 +1,7 @@
 [workspace]
-members = ["common", "console", "ts-client", "tests/rust"]
+members = ["common", "console", "ceps-ts-client", "tests/rust"]
 
-default-members = ["console", "ts-client"]
+default-members = ["console", "ceps-ts-client"]
 resolver = "2"
 
 [workspace.package]

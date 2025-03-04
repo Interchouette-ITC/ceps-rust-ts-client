@@ -1,0 +1,15 @@
+{
+  "name": "tests",
+  "version": "1.0.0",
+  "description": "tests for ts-client",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest --run"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vitest": "^3.0.7",
+    "ceps-ts-client": "../../ceps-ts-client/pkg-nodejs"
+  }
+}

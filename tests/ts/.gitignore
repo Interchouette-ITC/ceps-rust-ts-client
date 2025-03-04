@@ -1,0 +1,23 @@
+# Node.js dependencies
+node_modules/
+
+# Build output
+dist/
+*.log
+
+# TypeScript build files
+*.tsbuildinfo
+*.d.ts
+
+# Package-lock and other npm-related files
+package-lock.json
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# IDE and editor folders
+.vscode/
+.idea/
+*.swp
+*.swo

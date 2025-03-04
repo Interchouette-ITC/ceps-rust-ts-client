@@ -7,3 +7,6 @@ edition.workspace = true
 name = "integration_tests"
 bench = false
 doctest = false
+
+[dependencies]
+common = { path = "../../common" }

@@ -5,3 +5,4 @@ edition.workspace = true
 
 [dependencies]
 casper-rust-wasm-sdk.workspace = true
+url = "*"
