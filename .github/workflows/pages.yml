@@ -3,7 +3,7 @@ name: pages
 
 on:
   push:
-    branches: [dev, ceps-client-test]
+    branches: [dev]
   workflow_dispatch:
 
 permissions:

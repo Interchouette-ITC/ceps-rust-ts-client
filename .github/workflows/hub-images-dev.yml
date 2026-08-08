@@ -1,11 +1,11 @@
-# Tip CLI image (:dev). Push Hub + GHCR on every push to ceps-client-test (and manual Run).
+# Tip CLI image (:dev). Push Hub + GHCR on every push to dev (and manual Run).
 name: hub-images-dev
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - ceps-client-test
+      - dev
     paths-ignore:
       - "**/*.md"
       - "docs/**"

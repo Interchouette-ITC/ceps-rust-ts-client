@@ -1,6 +1,6 @@
 # Docker (CLI image)
 
-Thin runtime image: Debian slim + stripped `ceps` binary. The SDK is **not** copied into the image; CI builds the binary with the SDK path/git dep first, then [`docker/Dockerfile`](../docker/Dockerfile) packs only `ceps`.
+Runtime image: Debian slim + stripped `ceps` binary. The SDK is **not** copied into the image; CI builds the binary with the SDK path/git dep first, then [`docker/Dockerfile`](../docker/Dockerfile) packs only `ceps`.
 
 ## Local build
 
@@ -24,7 +24,7 @@ docker run --rm ceps-rust-ts-client:local status \
 
 | Tag | Meaning |
 | --- | --- |
-| `:dev` | Tip of `ceps-client-test` (hub-images-dev) |
+| `:dev` | Tip of `dev` (hub-images-dev) |
 | `:X.Y.Z` | Stable GitHub Release matching workspace version |
 | `:latest` | Same digest as the latest stable semver |
 

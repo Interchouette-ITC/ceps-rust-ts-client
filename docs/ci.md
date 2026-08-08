@@ -5,7 +5,7 @@ Quality gate on NCTL live tests; release ships the `ceps` CLI image and GitHub R
 ## Flow
 
 ```text
-push ceps-client-test  →  ci-test (+ hub-images-dev :dev)
+push to `dev`         →  ci-test (+ hub-images-dev :dev)
 nightly-test green     →  release-github-preview (dev-preview Pre-release + assets)
 GitHub Release vX.Y.Z  →  release-github-stable (assets) + hub-images-release (:X.Y.Z :latest :dev)
 push tip docs          →  pages
@@ -15,10 +15,10 @@ push tip docs          →  pages
 
 | Workflow                     | Trigger                                                  | Role                                               |
 | ---------------------------- | -------------------------------------------------------- | -------------------------------------------------- |
-| `ci-test.yml`                | push / PR to `dev`, `ceps-client-test`, `main`           | Lint, unit, NCTL live integration, CLI smoke       |
+| `ci-test.yml`                | push / PR to `dev`, `main`                               | Lint, unit, NCTL live integration, CLI smoke       |
 | `nightly-test.yml`           | cron `0 3 * * *` + `workflow_dispatch`                   | Same gate + `cargo audit` + `make nodejs` + Vitest |
-| `pages.yml`                  | push to `dev` / `ceps-client-test` + `workflow_dispatch` | `make doc` → GitHub Pages (`docs/`)                |
-| `hub-images-dev.yml`         | push `ceps-client-test` + `workflow_dispatch`            | CLI image `:dev` → Hub + GHCR                      |
+| `pages.yml`                  | push to `dev` + `workflow_dispatch`                      | `make doc` → GitHub Pages (`docs/`)                |
+| `hub-images-dev.yml`         | push `dev` + `workflow_dispatch`                         | CLI image `:dev` → Hub + GHCR                      |
 | `hub-images-release.yml`     | stable Release published + `workflow_dispatch`           | `:semver` `:latest` `:dev`                         |
 | `release-github-assets.yml`  | `workflow_call`                                          | CLI + client WASM tarballs + demo contracts + `SHA256SUMS` |
 | `release-github-stable.yml`  | Release published (not prerelease)                       | Attach assets to Latest                            |
@@ -45,7 +45,7 @@ make docker-push IMAGE_TAG=dev
 
 | Event                       | Tags                        |
 | --------------------------- | --------------------------- |
-| Tip push `ceps-client-test` | `:dev`                      |
+| Tip push `dev`              | `:dev`                      |
 | Stable Release `vX.Y.Z`     | `:X.Y.Z`, `:latest`, `:dev` |
 
 Stable tag (without `v`) **must** equal `[workspace.package].version` in root `Cargo.toml` or the release image job fails.

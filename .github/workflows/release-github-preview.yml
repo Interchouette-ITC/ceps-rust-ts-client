@@ -47,7 +47,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           SHORT=$(git rev-parse --short "$SHA")
-          NOTES="Nightly-green tip of \`ceps-client-test\` @ \`${SHORT}\` (\`${SHA}\`).
+          NOTES="Nightly-green tip of \`dev\` @ \`${SHORT}\` (\`${SHA}\`).
 
           Overwritten on each successful [nightly-test](https://github.com/${{ github.repository }}/actions/workflows/nightly-test.yml). Not Latest - that remains the semver release (e.g. v1.0.0).
 
