@@ -3,18 +3,9 @@ target/
 **/target/
 debug/
 
-# wasm-pack outputs (build with `make pack`)
-ceps-wasm/pkg/
-ceps-wasm/pkg-nodejs/
-**/pkg/
-**/pkg-nodejs/
-
 # Node
 node_modules/
 tests/ts/node_modules/
-
-# Staged contract WASMs (build siblings + make wasm-from-ceps)
-tests/wasm/**/*.wasm
 
 # Local tools (Binaryen pin)
 .tools/
@@ -36,3 +27,6 @@ docs/api-rust/index.html
 assets/
 docker/ceps
 
+# Client JS packs (ceps-client-wasm/pkg, pkg-nodejs) and demo contract
+# WASMs (tests/wasm/**/*.wasm) are committed so consumers can use them
+# without building (same idea as rustSDK in-tree pkg/).

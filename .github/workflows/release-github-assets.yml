@@ -125,8 +125,8 @@ jobs:
           cp target/release/ceps "$CLI_DST"
           chmod +x "$CLI_DST"
 
-          tar -czf "$STAGE/ceps-wasm-nodejs-${LABEL}.tgz" -C ceps-wasm pkg-nodejs
-          tar -czf "$STAGE/ceps-wasm-web-${LABEL}.tgz" -C ceps-wasm pkg
+          tar -czf "$STAGE/ceps-client-wasm-nodejs-${LABEL}.tgz" -C ceps-client-wasm pkg-nodejs
+          tar -czf "$STAGE/ceps-client-wasm-web-${LABEL}.tgz" -C ceps-client-wasm pkg
 
           # Demo on-chain contracts (cep18 / cep78 / cep85); not rebuilt here, copied from tip tests/wasm.
           test -d tests/wasm/cep18
@@ -146,8 +146,8 @@ jobs:
             cd "$STAGE"
             sha256sum \
               "ceps-${LABEL}-linux-x86_64" \
-              "ceps-wasm-nodejs-${LABEL}.tgz" \
-              "ceps-wasm-web-${LABEL}.tgz" \
+              "ceps-client-wasm-nodejs-${LABEL}.tgz" \
+              "ceps-client-wasm-web-${LABEL}.tgz" \
               "ceps-contracts-${LABEL}.tgz" \
               "ceps-contracts-${LABEL}.MANIFEST.txt" \
               > SHA256SUMS
@@ -166,8 +166,8 @@ jobs:
           set -euo pipefail
           gh release upload "$TAG" \
             "$STAGE/ceps-${LABEL}-linux-x86_64" \
-            "$STAGE/ceps-wasm-nodejs-${LABEL}.tgz" \
-            "$STAGE/ceps-wasm-web-${LABEL}.tgz" \
+            "$STAGE/ceps-client-wasm-nodejs-${LABEL}.tgz" \
+            "$STAGE/ceps-client-wasm-web-${LABEL}.tgz" \
             "$STAGE/ceps-contracts-${LABEL}.tgz" \
             "$STAGE/ceps-contracts-${LABEL}.MANIFEST.txt" \
             "$STAGE/SHA256SUMS" \

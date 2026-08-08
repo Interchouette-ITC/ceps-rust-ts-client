@@ -1,5 +1,5 @@
 [workspace]
-members = ["ceps-client", "cli", "ceps-wasm", "tests/rust"]
+members = ["ceps-client", "cli", "ceps-client-wasm", "tests/rust"]
 default-members = ["cli", "ceps-client"]
 resolver = "2"
 

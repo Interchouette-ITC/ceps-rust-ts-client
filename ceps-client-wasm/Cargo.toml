@@ -1,8 +1,8 @@
 [package]
-name = "ceps-wasm"
+name = "ceps-client-wasm"
 version.workspace = true
 edition.workspace = true
-description = "Thin wasm-bindgen bindings over ceps-client (CEP APIs only)."
+description = "wasm-bindgen CEP client for Node and browsers (same API as ceps-client; replaces per-CEP client-js)."
 readme.workspace = true
 homepage.workspace = true
 repository.workspace = true
@@ -11,7 +11,7 @@ license-file.workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
-name = "ceps_wasm"
+name = "ceps_client_wasm"
 path = "src/lib.rs"
 
 [dependencies]

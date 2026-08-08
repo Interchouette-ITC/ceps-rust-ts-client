@@ -57,8 +57,8 @@ Attached to each GitHub Release (stable or `dev-preview`). Full fetch guide: [re
 | Asset | Contents |
 | --- | --- |
 | `ceps-{label}-linux-x86_64` | Stripped CLI |
-| `ceps-wasm-nodejs-{label}.tgz` | Client pack for Node (`pkg-nodejs`) |
-| `ceps-wasm-web-{label}.tgz` | Client pack for browsers (`pkg`) |
+| `ceps-client-wasm-nodejs-{label}.tgz` | Client pack for Node (`pkg-nodejs`) |
+| `ceps-client-wasm-web-{label}.tgz` | Client pack for browsers (`pkg`) |
 | `ceps-contracts-{label}.tgz` | Demo tip on-chain WASMs (`cep18` / `cep78` / `cep85`) |
 | `ceps-contracts-{label}.MANIFEST.txt` | Manifest |
 | `SHA256SUMS` | Checksums |

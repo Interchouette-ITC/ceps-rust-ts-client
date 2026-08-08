@@ -22,7 +22,7 @@ Point `path` at your SDK checkout (or set `RUSTSDK_PRODUCT` for Make wrappers). 
 
 GitHub Actions check out `casper-ecosystem/casper-rust-wasm-sdk` at tag **`2.2.0`** so the path dependency resolves. Bump that ref when you upgrade the SDK (see [ci.md](ci.md)).
 
-Release artefacts (CLI binary, `ceps-wasm` packs) build against that pin. The Docker image ships only the stripped `ceps` binary.
+Release artefacts (CLI binary, `ceps-client-wasm` packs) build against that pin. The Docker image ships only the stripped `ceps` binary.
 
 ## Upgrade checklist
 
@@ -32,6 +32,6 @@ Release artefacts (CLI binary, `ceps-wasm` packs) build against that pin. The Do
 4. Update the pin table in [ci.md](ci.md) / [contributing.md](contributing.md).
 5. `make pack && make ts-test` if the bindgen surface shifted.
 
-## `ceps-wasm`
+## `ceps-client-wasm`
 
-`make nodejs` / `make web` produce CEP-facing bindings. Generated `.d.ts` may also list transitive SDK symbols from `wasm-bindgen`; those are not a supported re-export. Import `casper-rust-wasm-sdk` directly when you need raw RPC helpers.
+JS packs for the CEP **client** (not contracts). Committed under `ceps-client-wasm/pkg` and `pkg-nodejs`; rebuild with `make nodejs` / `make web`. Generated `.d.ts` may also list transitive SDK symbols from `wasm-bindgen`; those are not a supported re-export. Import `casper-rust-wasm-sdk` directly when you need raw RPC helpers.

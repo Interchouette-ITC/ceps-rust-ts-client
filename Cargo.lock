@@ -368,7 +368,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ceps-wasm"
+name = "ceps-client-wasm"
 version = "1.0.0"
 dependencies = [
  "ceps-client",

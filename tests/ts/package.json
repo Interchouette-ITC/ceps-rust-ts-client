@@ -1,15 +1,16 @@
 {
-  "name": "ceps-wasm-tests",
+  "name": "ceps-client-wasm-tests",
   "version": "1.0.0",
   "private": true,
-  "description": "Vitest smoke tests for ceps-wasm pkg-nodejs",
+  "type": "module",
+  "description": "Vitest smoke tests for ceps-client-wasm pkg-nodejs",
   "scripts": {
-    "test": "vitest --run"
+    "test": "vitest run"
   },
   "devDependencies": {
-    "vitest": "^3.0.7"
+    "vitest": "^3.0.0"
   },
   "dependencies": {
-    "ceps-wasm": "file:../../ceps-wasm/pkg-nodejs"
+    "ceps-client-wasm": "file:../../ceps-client-wasm/pkg-nodejs"
   }
 }

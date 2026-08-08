@@ -2,7 +2,7 @@
 
 ## Product scope
 
-**ceps-rust-ts-client** is a Rust library, clap CLI (`ceps`), and thin WASM package for driving Casper **CEP-18 / CEP-78 / CEP-85** contracts via [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
+**ceps-rust-ts-client** is a Rust library, clap CLI (`ceps`), and JS packs (`ceps-client-wasm`) for driving Casper **CEP-18 / CEP-78 / CEP-85** contracts via [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
 
 This repository is **not** a custodian, wallet, or hosted signing service. Callers supply keys and network endpoints.
 
@@ -13,7 +13,7 @@ This repository is **not** a custodian, wallet, or hosted signing service. Calle
 | Private keys / PEM / mnemonics | Supplied by the caller (CLI flags/env, library `DeployParams`, test env). The crates do not generate or store wallet seeds. |
 | Where keys live | Process memory / caller-provided files only. Do not commit PEMs; `*.pem` is gitignored. |
 | NCTL fixtures | Live tests may load public NCTL `user-*` PEMs or `SECRET_KEY_USER_*` env vars. Those keys are **testnet-only**. Never reuse them on mainnet. |
-| WASM / Node | `ceps-wasm` install helpers accept PEM strings the same way; treat them as secrets in your app. |
+| WASM / Node | `ceps-client-wasm` install helpers accept PEM strings the same way; treat them as secrets in your app. |
 | Logging | Avoid logging PEM bodies or full signed payloads in production verbosity. |
 
 Install and mutate entrypoints sign with the secret material you pass in. Treat PEMs and env secrets as production credentials when pointed at non-test networks.

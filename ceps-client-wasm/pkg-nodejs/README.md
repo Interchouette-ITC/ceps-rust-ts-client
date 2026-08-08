@@ -213,7 +213,7 @@ curl -fsSL -o ceps-contracts.tgz \
 mkdir -p tests/wasm && tar -xzf ceps-contracts.tgz -C tests/wasm
 ```
 
-Tips are short-lived entity-era builds for demos/CI, not a claim of "the" upstream CEP tip forever. This client (and these tips) are headed to **Interchouette-ITC**; sources **today**:
+Tips are short-lived entity-era builds for demos/CI, not a claim of “the” upstream CEP tip forever. This client (and these tips) are headed to **Interchouette-ITC**; sources **today**:
 
 | CEP | Demo tip repo (now) | Branch | What you get |
 | --- | --- | --- | --- |

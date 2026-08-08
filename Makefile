@@ -14,7 +14,7 @@ NCTL_PROFILE ?= dev
 NCTL_MCP_IMAGE ?= interchouette/casper-nctl-2-docker-mcp:$(NCTL_PROFILE)
 CASPER_SDK_MCP_IMAGE ?= interchouette/casper-rust-wasm-sdk-mcp:dev
 
-WASM_CRATE := ceps-wasm
+WASM_CRATE := ceps-client-wasm
 CLI_CRATE := cli
 COMMON_CRATE := ceps-client
 
@@ -68,7 +68,7 @@ help:
 	@echo ""
 	@echo "Test"
 	@echo "  test               unit + integration"
-	@echo "  unit-test          ceps-client + ceps-wasm lib tests"
+	@echo "  unit-test          ceps-client + ceps-client-wasm lib tests"
 	@echo "  integration-test   tests/rust (NCTL for live cases)"
 	@echo "  e2e-test           CLI-driven e2e"
 	@echo "  examples           run examples/"
@@ -164,10 +164,9 @@ doc-check:
 	exit $$missing
 
 clean:
-	rm -rf $(WASM_CRATE)/$(WEB_OUT_DIR) $(WASM_CRATE)/$(NODEJS_OUT_DIR)
 	rm -f "$(BINARYEN_PATH_FILE)"
 	$(CARGO) clean
-
+	@echo "clean: left $(WASM_CRATE)/$(WEB_OUT_DIR) and $(NODEJS_OUT_DIR) in place (committed packs); rebuild with make pack"
 format:
 	$(CARGO) fmt
 
@@ -214,10 +213,14 @@ pack: web nodejs
 web: ensure-binaryen prepare
 	PATH="$$(cat "$(BINARYEN_PATH_FILE)"):$$PATH" \
 		cd $(WASM_CRATE) && wasm-pack build --target web --release --out-dir $(WEB_OUT_DIR) $(CURRENT_DIR)
+	@rm -f $(WASM_CRATE)/$(WEB_OUT_DIR)/.gitignore
+	@cp -f "$(ROOT)/README.md" "$(WASM_CRATE)/$(WEB_OUT_DIR)/README.md"
 
 nodejs: ensure-binaryen prepare
 	PATH="$$(cat "$(BINARYEN_PATH_FILE)"):$$PATH" \
 		cd $(WASM_CRATE) && wasm-pack build --target nodejs --release --out-dir $(NODEJS_OUT_DIR) $(CURRENT_DIR)
+	@rm -f $(WASM_CRATE)/$(NODEJS_OUT_DIR)/.gitignore
+	@cp -f "$(ROOT)/README.md" "$(WASM_CRATE)/$(NODEJS_OUT_DIR)/README.md"
 
 run-cli:
 	$(CARGO) run -p $(CLI_CRATE) -- $(CLI_ARGS)
@@ -310,25 +313,29 @@ wasm-from-ceps:
 			echo "wasm-from-ceps: skip $$name (missing $$root)"; \
 			continue; \
 		fi; \
-		# Prefer tests/wasm (tip stage), then newest release builds by mtime.
-		found=$$( { \
-			find "$$root/tests/wasm" -type f -name '*.wasm' 2>/dev/null; \
-			find "$$root" -type f -name '*.wasm' \
-				! -path '*/target/debug/*' ! -path '*/node_modules/*' \
-				! -path '*/tests/wasm/*' 2>/dev/null; \
-		} | awk 'NF' | while read -r f; do \
-			printf '%s\t%s\n' "$$(stat -c '%Y' "$$f" 2>/dev/null || echo 0)" "$$f"; \
-		done | sort -nr | cut -f2- | awk -F/ '{ base=$$NF; if (!seen[base]++) print }'); \
+		tip="$$root/tests/wasm"; \
+		if [ -d "$$tip" ] && find "$$tip" -type f -name '*.wasm' -print -quit | grep -q .; then \
+			found=$$(find "$$tip" -type f -name '*.wasm' | sort); \
+		else \
+			found=$$( { \
+				find "$$root" -type f -name '*.wasm' \
+					! -path '*/target/debug/*' ! -path '*/node_modules/*' \
+					! -path '*/.git/*' 2>/dev/null; \
+			} | awk 'NF' | while read -r f; do \
+				printf '%s\t%s\n' "$$(stat -c '%Y' "$$f" 2>/dev/null || echo 0)" "$$f"; \
+			done | sort -nr | cut -f2- | awk -F/ '{ base=$$NF; if (!seen[base]++) print }'); \
+		fi; \
 		if [ -z "$$found" ]; then \
 			echo "wasm-from-ceps: no wasm under $$root (build contracts there first)"; \
 			continue; \
 		fi; \
+		rm -rf "$(WASM_DIR)/$$name"; \
 		mkdir -p "$(WASM_DIR)/$$name"; \
 		echo "$$found" | while read -r f; do \
 			cp -f "$$f" "$(WASM_DIR)/$$name/"; \
 			echo "  staged $$name/$$(basename "$$f")"; \
 		done; \
 	done; \
-	echo "wasm-from-ceps: done → $(WASM_DIR)"
+	echo "wasm-from-ceps: done -> $(WASM_DIR)"
 
 ci-local: check-lint unit-test doc-check

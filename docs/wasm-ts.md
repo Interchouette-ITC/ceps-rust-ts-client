@@ -1,18 +1,20 @@
 # WASM / TypeScript
 
-`ceps-wasm` is the CEP client compiled for JavaScript (`wasm-bindgen`). Same idea as Rust `ceps-client`: `Cep18Client` / `Cep78Client` / `Cep85Client` for Node or the browser.
+`ceps-client-wasm` is the CEP **client library** compiled for JavaScript (`wasm-bindgen`). Same idea as Rust `ceps-client`: `Cep18Client` / `Cep78Client` / `Cep85Client` for Node or the browser. It replaces the old per-CEP `client-js` packages.
+
+Do not confuse it with **contract** `.wasm` under `tests/wasm/` (on-chain install bytes).
 
 It is **not** the on-chain contract `.wasm`. Contract bytes still go into `install(...)` (from demo tips via `make wasm-from-ceps`, or your own builds).
 
 ## Build or download
 
 ```bash
-make nodejs   # → ceps-wasm/pkg-nodejs (Node)
-make web      # → ceps-wasm/pkg (browser)
+make nodejs   # → ceps-client-wasm/pkg-nodejs (Node)
+make web      # → ceps-client-wasm/pkg (browser)
 make pack     # both
 ```
 
-Or download `ceps-wasm-nodejs-*.tgz` / `ceps-wasm-web-*.tgz` from a [GitHub Release](releases.md) (same idea as using a published SDK `pkg` folder).
+Or download `ceps-client-wasm-nodejs-*.tgz` / `ceps-client-wasm-web-*.tgz` from a [GitHub Release](releases.md) (same idea as using a published SDK `pkg` folder).
 
 ## Bound methods (today)
 
@@ -27,7 +29,7 @@ Full mutate/query parity lives in Rust `ceps-client`. Generated `.d.ts` may also
 ## Node example
 
 ```js
-import { Cep18Client } from "ceps-wasm";
+import { Cep18Client } from "ceps-client-wasm";
 
 const client = new Cep18Client(
   "http://127.0.0.1:11101",

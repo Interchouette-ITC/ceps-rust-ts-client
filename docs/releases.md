@@ -1,6 +1,6 @@
 # Release artefacts
 
-Each GitHub Release (stable `vX.Y.Z` or Pre-release `dev-preview`) attaches downloadable packs so you do not need to build the client WASM or demo tip contracts locally.
+Each GitHub Release (stable `vX.Y.Z` or Pre-release `dev-preview`) attaches downloadable packs. The same artefacts also live **in-tree** on the default branch: `ceps-client-wasm/pkg` + `pkg-nodejs` (client JS), and `tests/wasm/` (demo contracts). Releases are for people who prefer a tarball over a git checkout.
 
 Base URL (replace tag):
 
@@ -15,8 +15,8 @@ Examples: `v1.0.0`, `dev-preview`.
 | File | Contents |
 | --- | --- |
 | `ceps-{label}-linux-x86_64` | Stripped CLI binary |
-| `ceps-wasm-nodejs-{label}.tgz` | Client pack for **Node** (`pkg-nodejs/`) |
-| `ceps-wasm-web-{label}.tgz` | Client pack for **browsers** (`pkg/`) |
+| `ceps-client-wasm-nodejs-{label}.tgz` | Client pack for **Node** (`pkg-nodejs/`) |
+| `ceps-client-wasm-web-{label}.tgz` | Client pack for **browsers** (`pkg/`) |
 | `ceps-contracts-{label}.tgz` | Demo tip **on-chain** WASMs (`cep18/`, `cep78/`, `cep85/`) |
 | `ceps-contracts-{label}.MANIFEST.txt` | File list / tip note |
 | `SHA256SUMS` | Checksums |
@@ -30,21 +30,21 @@ Same idea as using rustSDK’s published `pkg` / `pkg-nodejs`: unpack and point 
 ```bash
 TAG=v1.0.0
 LABEL=${TAG#v}
-curl -fsSL -o ceps-wasm-nodejs.tgz \
-  "https://github.com/gRoussac/ceps-rust-ts-client/releases/download/${TAG}/ceps-wasm-nodejs-${LABEL}.tgz"
-mkdir -p ceps-wasm && tar -xzf ceps-wasm-nodejs.tgz -C ceps-wasm
-# → ceps-wasm/pkg-nodejs/
+curl -fsSL -o ceps-client-wasm-nodejs.tgz \
+  "https://github.com/gRoussac/ceps-rust-ts-client/releases/download/${TAG}/ceps-client-wasm-nodejs-${LABEL}.tgz"
+mkdir -p ceps-client-wasm && tar -xzf ceps-client-wasm-nodejs.tgz -C ceps-client-wasm
+# → ceps-client-wasm/pkg-nodejs/
 ```
 
 In `package.json`:
 
 ```json
 "dependencies": {
-  "ceps-wasm": "file:./ceps-wasm/pkg-nodejs"
+  "ceps-client-wasm": "file:./ceps-client-wasm/pkg-nodejs"
 }
 ```
 
-Web pack: download `ceps-wasm-web-${LABEL}.tgz` and unpack to `ceps-wasm/pkg/`.
+Web pack: download `ceps-client-wasm-web-${LABEL}.tgz` and unpack to `ceps-client-wasm/pkg/`.
 
 ## Fetch demo contract WASMs
 

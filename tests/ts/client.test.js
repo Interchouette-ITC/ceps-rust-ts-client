@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'vitest';
-import { Cep18Client, Cep78Client, Cep85Client } from 'ceps-wasm';
+import { Cep18Client, Cep78Client, Cep85Client } from 'ceps-client-wasm';
 
-describe('ceps-wasm constructors', () => {
+describe('ceps-client-wasm constructors', () => {
   test('Cep18Client normalizes RPC URL', () => {
     const client = new Cep18Client('http://127.0.0.1:11101', undefined, 'casper-net-1', 0);
     expect(client.rpcUrl()).toBe('http://127.0.0.1:11101/rpc');

@@ -1,6 +1,6 @@
 # Documentation hub
 
-Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**), with a thin WASM/TS surface and a clap CLI (`ceps`).
+Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**), with JS packs (`ceps-client-wasm`) and a clap CLI (`ceps`).
 
 ## Quick links
 
@@ -10,7 +10,7 @@ Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**), wit
 | [Architecture](architecture.md) | lib ↔ CLI ↔ WASM ↔ SDK |
 | [SDK dependency](sdk.md) | Features, local path, CI pin, upgrades |
 | [CLI](cli.md) | Global flags and subcommands |
-| [WASM / TS](wasm-ts.md) | `ceps-wasm` pack and Vitest |
+| [WASM / TS](wasm-ts.md) | `ceps-client-wasm` pack and Vitest |
 | [Testing](testing.md) | Unit / integration / CLI smoke / examples |
 | [CI / CD](ci.md) | Gates, Hub/GHCR images, GitHub Releases |
 | [Release artefacts](releases.md) | Download CLI, client packs, demo contracts |
@@ -32,7 +32,7 @@ Each closet is self-contained: overview, quickstart, mutations, queries, errors,
 ## Generated API
 
 - Rust: `make doc` → rustdoc under `docs/api-rust/` (`ceps_client/`)
-- WASM: typings ship with `make nodejs` as `ceps-wasm/pkg-nodejs/ceps_wasm.d.ts` (see [api-wasm/README.md](api-wasm/README.md))
+- WASM: typings ship with `make nodejs` as `ceps-client-wasm/pkg-nodejs/ceps_client_wasm.d.ts` (see [api-wasm/README.md](api-wasm/README.md))
 
 ## License / security
 
