@@ -27,6 +27,7 @@ docs/api-rust/index.html
 assets/
 docker/ceps
 
-# Client JS packs (ceps-client-wasm/pkg, pkg-nodejs) and demo contract
-# WASMs (tests/wasm/**/*.wasm) are committed so consumers can use them
-# without building (same idea as rustSDK in-tree pkg/).
+# Client JS packs and demo contract WASMs are committed (like rustSDK pkg/).
+# Nested wasm-pack "*" gitignores stay untracked:
+ceps-client-wasm/pkg/.gitignore
+ceps-client-wasm/pkg-nodejs/.gitignore

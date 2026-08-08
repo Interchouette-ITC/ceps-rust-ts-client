@@ -213,13 +213,11 @@ pack: web nodejs
 web: ensure-binaryen prepare
 	PATH="$$(cat "$(BINARYEN_PATH_FILE)"):$$PATH" \
 		cd $(WASM_CRATE) && wasm-pack build --target web --release --out-dir $(WEB_OUT_DIR) $(CURRENT_DIR)
-	@rm -f $(WASM_CRATE)/$(WEB_OUT_DIR)/.gitignore
 	@cp -f "$(ROOT)/README.md" "$(WASM_CRATE)/$(WEB_OUT_DIR)/README.md"
 
 nodejs: ensure-binaryen prepare
 	PATH="$$(cat "$(BINARYEN_PATH_FILE)"):$$PATH" \
 		cd $(WASM_CRATE) && wasm-pack build --target nodejs --release --out-dir $(NODEJS_OUT_DIR) $(CURRENT_DIR)
-	@rm -f $(WASM_CRATE)/$(NODEJS_OUT_DIR)/.gitignore
 	@cp -f "$(ROOT)/README.md" "$(WASM_CRATE)/$(NODEJS_OUT_DIR)/README.md"
 
 run-cli:
