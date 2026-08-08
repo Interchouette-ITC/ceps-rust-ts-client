@@ -12,16 +12,14 @@ CEP-85 client-js  ─┘
 
 ## What you get
 
-Two different "WASM" ideas live in this repo. Do not mix them up:
+| Piece | Name | Role | In-tree path |
+| --- | --- | --- | --- |
+| Rust library | `ceps-client` | CEP API for native Rust apps | `ceps-client/` |
+| CLI | `ceps` | Status and common queries from the shell | `cli/` |
+| Client JS packs | `ceps-client-wasm` | Same CEP classes for Node and browsers (replaces per-CEP `client-js`) | `ceps-client-wasm/pkg` (web), `ceps-client-wasm/pkg-nodejs` |
+| Demo contract WASMs | `ceps-contracts` | On-chain bytecode for `install` (demo tips) | `tests/wasm/{cep18,cep78,cep85}/` |
 
-| Piece | Role | In-tree path |
-| --- | --- | --- |
-| **Rust library** (`ceps-client`) | Full CEP API for native apps | `ceps-client/` |
-| **CLI** (`ceps`) | Status and common queries from the shell | `cli/` |
-| **Client JS packs** (`ceps-client-wasm`) | Same CEP classes for **JavaScript** (replaces per-CEP `client-js`) | `ceps-client-wasm/pkg` (web), `ceps-client-wasm/pkg-nodejs` |
-| **Contract WASMs** (demo tips) | On-chain bytecode you pass to `install` | `tests/wasm/{cep18,cep78,cep85}/` |
-
-`ceps-client-wasm` is the **library** compiled for JS. `tests/wasm` is **contracts**. Release tarballs mirror the same split (`ceps-client-wasm-*.tgz` vs `ceps-contracts-*.tgz`).
+Release downloads use the same names: `ceps-client-wasm-*.tgz` (JS packs) and `ceps-contracts-*.tgz` (contract bytes). The first three are this client; the last row is sample contract bytecode, not the JS library.
 
 ## What you can do
 
@@ -213,7 +211,7 @@ curl -fsSL -o ceps-contracts.tgz \
 mkdir -p tests/wasm && tar -xzf ceps-contracts.tgz -C tests/wasm
 ```
 
-Tips are short-lived entity-era builds for demos/CI, not a claim of “the” upstream CEP tip forever. This client (and these tips) are headed to **Interchouette-ITC**; sources **today**:
+Tips are short-lived entity-era builds for demos/CI, not a claim of "the" upstream CEP tip forever. This client (and these tips) are headed to **Interchouette-ITC**; sources **today**:
 
 | CEP | Demo tip repo (now) | Branch | What you get |
 | --- | --- | --- | --- |
