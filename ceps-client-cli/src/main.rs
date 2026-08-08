@@ -1,4 +1,4 @@
-//! `ceps` CLI - thin clap wrapper over `ceps-client`.
+//! `ceps-client-cli` - clap wrapper over `ceps-client`.
 
 use anyhow::{bail, Context, Result};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
@@ -8,7 +8,7 @@ use std::process::ExitCode;
 
 #[derive(Debug, Parser)]
 #[command(
-    name = "ceps",
+    name = "ceps-client-cli",
     version,
     about = "Unified Casper CEP client (18 / 78 / 85)"
 )]
@@ -320,7 +320,7 @@ mod tests {
 
     #[test]
     fn parses_status() {
-        let cli = Cli::try_parse_from(["ceps", "status"]).expect("parse");
+        let cli = Cli::try_parse_from(["ceps-client-cli", "status"]).expect("parse");
         assert!(matches!(cli.command, Commands::Status));
     }
 

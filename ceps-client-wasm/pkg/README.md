@@ -1,12 +1,12 @@
 # ceps-rust-ts-client
 
-One **Rust** client for Casper **CEP-18**, **CEP-78**, and **CEP-85**, with a **`ceps` CLI** and **WASM packs** so the same client can run from Node or the browser.
+One **Rust** client for Casper **CEP-18**, **CEP-78**, and **CEP-85**, with a **`ceps-client-cli`** and **WASM packs** so the same client can run from Node or the browser.
 
 It replaces the separate TypeScript **`client-js`** packages that lived next to each CEP contract. Instead of three JS clients, you use one library: `Cep18Client` / `Cep78Client` / `Cep85Client`, on top of [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
 
 ```text
 CEP-18 client-js  ─┐
-CEP-78 client-js  ─┼─→  ceps-client (Rust)  +  ceps CLI  +  ceps-client-wasm
+CEP-78 client-js  ─┼─→  ceps-client (Rust)  +  ceps-client-cli  +  ceps-client-wasm
 CEP-85 client-js  ─┘
 ```
 
@@ -15,19 +15,19 @@ CEP-85 client-js  ─┘
 | Piece | Name | Role | In-tree path |
 | --- | --- | --- | --- |
 | Rust library | `ceps-client` | CEP API for native Rust apps | `ceps-client/` |
-| CLI | `ceps` | Status and common queries from the shell | `cli/` |
-| Client JS packs | `ceps-client-wasm` | Same CEP classes for Node and browsers (replaces per-CEP `client-js`) | `ceps-client-wasm/pkg` (web), `ceps-client-wasm/pkg-nodejs` |
+| CLI | `ceps-client-cli` | Status and common queries from the shell | `ceps-client-cli/` |
+| Client JS packs | `ceps-client-wasm` | Same CEP classes for Node and browsers (replaces per-CEP `client-js`) | `ceps-client-wasm/pkg`&nbsp;/&nbsp;`pkg-nodejs` |
 | Demo contract WASMs | `ceps-contracts` | On-chain bytecode for `install` (demo tips) | `tests/wasm/{cep18,cep78,cep85}/` |
 
-Release downloads use the same names: `ceps-client-wasm-*.tgz` (JS packs) and `ceps-contracts-*.tgz` (contract bytes). The first three are this client; the last row is sample contract bytecode, not the JS library.
+Release downloads use the same names: `ceps-client-cli-*-linux-x86_64`, `ceps-client-wasm-*.tgz`, and `ceps-contracts-*.tgz`. The first three rows are this client; the last row is sample contract bytecode, not the JS library.
 
 ## What you can do
 
-| CEP | Standard | Typical flow |
-| --- | --- | --- |
+| CEP    | Standard       | Typical flow                                                               |
+| ------ | -------------- | -------------------------------------------------------------------------- |
 | **18** | Fungible token | install → bind hash → `name` / `balance_of` → `transfer` / `mint` / `burn` |
-| **78** | Enhanced NFT | install → bind hash → `mint` → `owner_of` / `balance_of` |
-| **85** | Multi-token | install → bind hash → `mint` / `burn` → `balance_of(account, id)` |
+| **78** | Enhanced NFT   | install → bind hash → `mint` → `owner_of` / `balance_of`                   |
+| **85** | Multi-token    | install → bind hash → `mint` / `burn` → `balance_of(account, id)`          |
 
 Defaults talk to local NCTL (`http://127.0.0.1:11101`, SSE `…:18101/events`, chain `casper-net-1`).
 
@@ -136,10 +136,10 @@ Details: [docs/cep85/](docs/cep85/) · example: `cargo run -p ceps-client --exam
 ### CLI
 
 ```bash
-cargo run -p cli -- status
-cargo run -p cli -- cep18 info
-cargo run -p cli -- cep78 balance --contract-hash <hash> --account <account-hash-…>
-cargo run -p cli -- cep85 balance --contract-hash <hash> --account <…> --id 1
+cargo run -p ceps-client-cli -- status
+cargo run -p ceps-client-cli -- cep18 info
+cargo run -p ceps-client-cli -- cep78 balance --contract-hash <hash> --account <account-hash-…>
+cargo run -p ceps-client-cli -- cep85 balance --contract-hash <hash> --account <…> --id 1
 ```
 
 Mutations are on the library / examples today. Flags: [docs/cli.md](docs/cli.md).
@@ -161,10 +161,10 @@ More setup: [docs/getting-started.md](docs/getting-started.md).
 
 It is **not** on-chain contract bytecode (that is `tests/wasm/` / `ceps-contracts-*.tgz`).
 
-| Target | In-tree (committed) | Typical use |
-| --- | --- | --- |
-| Node | `ceps-client-wasm/pkg-nodejs/` | Backend / scripts / Vitest |
-| Web | `ceps-client-wasm/pkg/` | Bundled frontends |
+| Target | In-tree (committed)            | Typical use                |
+| ------ | ------------------------------ | -------------------------- |
+| Node   | `ceps-client-wasm/pkg-nodejs/` | Backend / scripts / Vitest |
+| Web    | `ceps-client-wasm/pkg/`        | Bundled frontends          |
 
 Rebuild locally with `make pack` (or `make nodejs` / `make web`). Details: [docs/wasm-ts.md](docs/wasm-ts.md) · [docs/releases.md](docs/releases.md).
 
@@ -213,11 +213,11 @@ mkdir -p tests/wasm && tar -xzf ceps-contracts.tgz -C tests/wasm
 
 Tips are short-lived entity-era builds for demos/CI, not a claim of "the" upstream CEP tip forever. This client (and these tips) are headed to **Interchouette-ITC**; sources **today**:
 
-| CEP | Demo tip repo (now) | Branch | What you get |
-| --- | --- | --- | --- |
-| 18 | [gRoussac/cep18](https://github.com/gRoussac/cep18) | `ceps-client-test` | Fungible contract WASM |
-| 78 | [gRoussac/cep-78-enhanced-nft](https://github.com/gRoussac/cep-78-enhanced-nft) | `ceps-client-test` | NFT + session WASMs |
-| 85 | [gRoussac/cep-85](https://github.com/gRoussac/cep-85) | `ceps-client-test` | Multi-token WASM |
+| CEP | Demo tip repo (now)                                                             | Branch             | What you get           |
+| --- | ------------------------------------------------------------------------------- | ------------------ | ---------------------- |
+| 18  | [gRoussac/cep18](https://github.com/gRoussac/cep18)                             | `ceps-client-test` | Fungible contract WASM |
+| 78  | [gRoussac/cep-78-enhanced-nft](https://github.com/gRoussac/cep-78-enhanced-nft) | `ceps-client-test` | NFT + session WASMs    |
+| 85  | [gRoussac/cep-85](https://github.com/gRoussac/cep-85)                           | `ceps-client-test` | Multi-token WASM       |
 
 ```bash
 # after checking out those tips and building contracts there:
@@ -228,16 +228,16 @@ Override checkout roots with `CEP18_PRODUCT` / `CEP78_PRODUCT` / `CEP85_PRODUCT`
 
 ## Documentation
 
-| Doc | Description |
-| --- | --- |
-| [Getting started](docs/getting-started.md) | Build, NCTL defaults, first run |
-| [Architecture](docs/architecture.md) | How lib / CLI / WASM sit on the SDK |
-| [docs/cep18/](docs/cep18/) · [cep78/](docs/cep78/) · [cep85/](docs/cep85/) | Per-CEP guides |
-| [CLI](docs/cli.md) · [WASM / TS](docs/wasm-ts.md) | Surfaces |
-| [Testing](docs/testing.md) · [CI / CD](docs/ci.md) · [Releases](docs/releases.md) · [Docker](docs/docker.md) | Verify and ship |
-| [Contributing](docs/contributing.md) · [SDK](docs/sdk.md) | Tips, pins, upgrades |
-| [SECURITY.md](docs/SECURITY.md) | Keys and reporting |
-| `make doc` | rustdoc → `docs/api-rust/` |
+| Doc                                                                                                          | Description                         |
+| ------------------------------------------------------------------------------------------------------------ | ----------------------------------- |
+| [Getting started](docs/getting-started.md)                                                                   | Build, NCTL defaults, first run     |
+| [Architecture](docs/architecture.md)                                                                         | How lib / CLI / WASM sit on the SDK |
+| [docs/cep18/](docs/cep18/) · [cep78/](docs/cep78/) · [cep85/](docs/cep85/)                                   | Per-CEP guides                      |
+| [CLI](docs/cli.md) · [WASM / TS](docs/wasm-ts.md)                                                            | Surfaces                            |
+| [Testing](docs/testing.md) · [CI / CD](docs/ci.md) · [Releases](docs/releases.md) · [Docker](docs/docker.md) | Verify and ship                     |
+| [Contributing](docs/contributing.md) · [SDK](docs/sdk.md)                                                    | Tips, pins, upgrades                |
+| [SECURITY.md](docs/SECURITY.md)                                                                              | Keys and reporting                  |
+| `make doc`                                                                                                   | rustdoc → `docs/api-rust/`          |
 
 ## Docker
 

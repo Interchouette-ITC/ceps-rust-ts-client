@@ -121,8 +121,8 @@ jobs:
           rm -rf "$STAGE"
           mkdir -p "$STAGE"
 
-          CLI_DST="$STAGE/ceps-${LABEL}-linux-x86_64"
-          cp target/release/ceps "$CLI_DST"
+          CLI_DST="$STAGE/ceps-client-cli-${LABEL}-linux-x86_64"
+          cp target/release/ceps-client-cli "$CLI_DST"
           chmod +x "$CLI_DST"
 
           tar -czf "$STAGE/ceps-client-wasm-nodejs-${LABEL}.tgz" -C ceps-client-wasm pkg-nodejs
@@ -145,7 +145,7 @@ jobs:
           (
             cd "$STAGE"
             sha256sum \
-              "ceps-${LABEL}-linux-x86_64" \
+              "ceps-client-cli-${LABEL}-linux-x86_64" \
               "ceps-client-wasm-nodejs-${LABEL}.tgz" \
               "ceps-client-wasm-web-${LABEL}.tgz" \
               "ceps-contracts-${LABEL}.tgz" \
@@ -165,7 +165,7 @@ jobs:
         run: |
           set -euo pipefail
           gh release upload "$TAG" \
-            "$STAGE/ceps-${LABEL}-linux-x86_64" \
+            "$STAGE/ceps-client-cli-${LABEL}-linux-x86_64" \
             "$STAGE/ceps-client-wasm-nodejs-${LABEL}.tgz" \
             "$STAGE/ceps-client-wasm-web-${LABEL}.tgz" \
             "$STAGE/ceps-contracts-${LABEL}.tgz" \

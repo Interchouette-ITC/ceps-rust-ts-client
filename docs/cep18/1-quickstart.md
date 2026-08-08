@@ -39,7 +39,7 @@ let balance = client.balance_of("account-hash-…").await?;
 ## CLI
 
 ```bash
-cargo run -p cli -- status
-cargo run -p cli -- cep18 info
+cargo run -p ceps-client-cli -- status
+cargo run -p ceps-client-cli -- cep18 info
 # Mutating subcommands: see 7-cli.md
 ```

@@ -1,8 +1,8 @@
 [package]
-name = "cli"
+name = "ceps-client-cli"
 version.workspace = true
 edition.workspace = true
-description = "Clap CLI for the unified Casper CEP client."
+description = "ceps-client-cli: clap CLI for the unified Casper CEP client."
 readme.workspace = true
 homepage.workspace = true
 repository.workspace = true
@@ -10,7 +10,7 @@ authors.workspace = true
 license-file.workspace = true
 
 [[bin]]
-name = "ceps"
+name = "ceps-client-cli"
 path = "src/main.rs"
 
 [dependencies]

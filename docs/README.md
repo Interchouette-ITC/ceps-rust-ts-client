@@ -1,6 +1,6 @@
 # Documentation hub
 
-Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**), with JS packs (`ceps-client-wasm`) and a clap CLI (`ceps`).
+Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**), with JS packs (`ceps-client-wasm`) and a clap CLI (`ceps-client-cli`).
 
 ## Quick links
 

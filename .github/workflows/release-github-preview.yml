@@ -52,7 +52,7 @@ jobs:
           Overwritten on each successful [nightly-test](https://github.com/${{ github.repository }}/actions/workflows/nightly-test.yml). Not Latest - that remains the semver release (e.g. v1.0.0).
 
           ## Assets
-          - \`ceps-dev-preview-linux-x86_64\`
+          - \`ceps-client-cli-dev-preview-linux-x86_64\`
           - \`ceps-client-wasm-nodejs-dev-preview.tgz\` / \`ceps-client-wasm-web-dev-preview.tgz\`
           - \`ceps-contracts-dev-preview.tgz\` (demo tip on-chain WASMs)
           - \`SHA256SUMS\`

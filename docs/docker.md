@@ -1,6 +1,6 @@
 # Docker (CLI image)
 
-Runtime image: Debian slim + stripped `ceps` binary. The SDK is **not** copied into the image; CI builds the binary with the SDK path/git dep first, then [`docker/Dockerfile`](../docker/Dockerfile) packs only `ceps`.
+Runtime image: Debian slim + stripped `ceps-client-cli` binary. The SDK is **not** copied into the image; CI builds the binary with the SDK path/git dep first, then [`docker/Dockerfile`](../docker/Dockerfile) packs only `ceps-client-cli`.
 
 ## Local build
 

@@ -15,7 +15,7 @@ NCTL_MCP_IMAGE ?= interchouette/casper-nctl-2-docker-mcp:$(NCTL_PROFILE)
 CASPER_SDK_MCP_IMAGE ?= interchouette/casper-rust-wasm-sdk-mcp:dev
 
 WASM_CRATE := ceps-client-wasm
-CLI_CRATE := cli
+CLI_CRATE := ceps-client-cli
 COMMON_CRATE := ceps-client
 
 WEB_OUT_DIR := pkg
@@ -28,7 +28,7 @@ IMAGE_TAG ?= local
 HUB_USER ?= interchouette
 GHCR_PERSONAL ?= groussac
 GHCR_ORG ?= interchouette-itc
-DOCKER_CONTEXT_BIN ?= $(ROOT)/target/release/ceps
+DOCKER_CONTEXT_BIN ?= $(ROOT)/target/release/ceps-client-cli
 DOCKERFILE := $(ROOT)/docker/Dockerfile
 
 # Pin Binaryen so wasm-pack does not fall back to vendored 117.
@@ -79,7 +79,7 @@ help:
 	@echo ""
 	@echo "CLI"
 	@echo "  run-cli            cargo run -p $(CLI_CRATE) -- \$$(CLI_ARGS)"
-	@echo "  release-cli-bin    cargo build -p cli --release (+ strip)"
+	@echo "  release-cli-bin    cargo build -p $(CLI_CRATE) --release (+ strip)"
 	@echo ""
 	@echo "Docker / GHCR (IMAGE_TAG=dev|semver|latest)"
 	@echo "  docker-build / docker-tag / docker-push-hub / docker-push-ghcr / docker-push"
@@ -225,19 +225,19 @@ run-cli:
 
 release-cli-bin:
 	$(CARGO) build -p $(CLI_CRATE) --release
-	@strip -s "$(ROOT)/target/release/ceps" 2>/dev/null || strip "$(ROOT)/target/release/ceps"
-	@echo "release-cli-bin: $(ROOT)/target/release/ceps"
+	@strip -s "$(ROOT)/target/release/ceps-client-cli" 2>/dev/null || strip "$(ROOT)/target/release/ceps-client-cli"
+	@echo "release-cli-bin: $(ROOT)/target/release/ceps-client-cli"
 
 docker-build:
 	@test -f "$(DOCKER_CONTEXT_BIN)" || { \
 		echo "docker-build: missing $(DOCKER_CONTEXT_BIN); run make release-cli-bin first"; \
 		exit 1; \
 	}
-	cp -f "$(DOCKER_CONTEXT_BIN)" "$(ROOT)/docker/ceps"
+	cp -f "$(DOCKER_CONTEXT_BIN)" "$(ROOT)/docker/ceps-client-cli"
 	docker build -f "$(DOCKERFILE)" \
 		-t "$(IMAGE_NAME):$(IMAGE_TAG)" \
 		"$(ROOT)/docker"
-	rm -f "$(ROOT)/docker/ceps"
+	rm -f "$(ROOT)/docker/ceps-client-cli"
 	@echo "docker-build: $(IMAGE_NAME):$(IMAGE_TAG)"
 
 docker-tag:

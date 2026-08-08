@@ -1,6 +1,6 @@
 [workspace]
-members = ["ceps-client", "cli", "ceps-client-wasm", "tests/rust"]
-default-members = ["cli", "ceps-client"]
+members = ["ceps-client", "ceps-client-cli", "ceps-client-wasm", "tests/rust"]
+default-members = ["ceps-client-cli", "ceps-client"]
 resolver = "2"
 
 [workspace.package]

@@ -1,25 +1,25 @@
 # ceps-rust-ts-client
 
-One **Rust** client for Casper **CEP-18**, **CEP-78**, and **CEP-85**, with a **`ceps` CLI** and **WASM packs** so the same client can run from Node or the browser.
+One **Rust** client for Casper **CEP-18**, **CEP-78**, and **CEP-85**, with a **`ceps-client-cli`** and **WASM packs** so the same client can run from Node or the browser.
 
 It replaces the separate TypeScript **`client-js`** packages that lived next to each CEP contract. Instead of three JS clients, you use one library: `Cep18Client` / `Cep78Client` / `Cep85Client`, on top of [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
 
 ```text
 CEP-18 client-js  ─┐
-CEP-78 client-js  ─┼─→  ceps-client (Rust)  +  ceps CLI  +  ceps-client-wasm
+CEP-78 client-js  ─┼─→  ceps-client (Rust)  +  ceps-client-cli  +  ceps-client-wasm
 CEP-85 client-js  ─┘
 ```
 
 ## What you get
 
-| Piece               | Name               | Role                                                                  | In-tree path                                                |
-| ------------------- | ------------------ | --------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Rust library        | `ceps-client`      | CEP API for native Rust apps                                          | `ceps-client/`                                              |
-| CLI                 | `ceps`             | Status and common queries from the shell                              | `cli/`                                                      |
-| Client JS packs     | `ceps-client-wasm` | Same CEP classes for Node and browsers (replaces per-CEP `client-js`) | `ceps-client-wasm/pkg` (web), `ceps-client-wasm/pkg-nodejs` |
-| Demo contract WASMs | `ceps-contracts`   | On-chain bytecode for `install` (demo tips)                           | `tests/wasm/{cep18,cep78,cep85}/`                           |
+| Piece               | Name               | Role                                                                  | In-tree path                                    |
+| ------------------- | ------------------ | --------------------------------------------------------------------- | ----------------------------------------------- |
+| Rust library        | `ceps-client`      | CEP API for native Rust apps                                          | `ceps-client/`                                  |
+| CLI                 | `ceps-client-cli`  | Status and common queries from the shell                              | `ceps-client-cli/`                              |
+| Client JS packs     | `ceps-client-wasm` | Same CEP classes for Node and browsers (replaces per-CEP `client-js`) | `ceps-client-wasm/pkg`&nbsp;/&nbsp;`pkg-nodejs` |
+| Demo contract WASMs | `ceps-contracts`   | On-chain bytecode for `install` (demo tips)                           | `tests/wasm/{cep18,cep78,cep85}/`               |
 
-Release downloads use the same names: `ceps-client-wasm-*.tgz` (JS packs) and `ceps-contracts-*.tgz` (contract bytes). The first three are this client; the last row is sample contract bytecode, not the JS library.
+Release downloads use the same names: `ceps-client-cli-*-linux-x86_64`, `ceps-client-wasm-*.tgz`, and `ceps-contracts-*.tgz`. The first three rows are this client; the last row is sample contract bytecode, not the JS library.
 
 ## What you can do
 
@@ -136,10 +136,10 @@ Details: [docs/cep85/](docs/cep85/) · example: `cargo run -p ceps-client --exam
 ### CLI
 
 ```bash
-cargo run -p cli -- status
-cargo run -p cli -- cep18 info
-cargo run -p cli -- cep78 balance --contract-hash <hash> --account <account-hash-…>
-cargo run -p cli -- cep85 balance --contract-hash <hash> --account <…> --id 1
+cargo run -p ceps-client-cli -- status
+cargo run -p ceps-client-cli -- cep18 info
+cargo run -p ceps-client-cli -- cep78 balance --contract-hash <hash> --account <account-hash-…>
+cargo run -p ceps-client-cli -- cep85 balance --contract-hash <hash> --account <…> --id 1
 ```
 
 Mutations are on the library / examples today. Flags: [docs/cli.md](docs/cli.md).

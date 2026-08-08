@@ -22,7 +22,7 @@ Point `path` at your SDK checkout (or set `RUSTSDK_PRODUCT` for Make wrappers). 
 
 GitHub Actions check out `casper-ecosystem/casper-rust-wasm-sdk` at tag **`2.2.0`** so the path dependency resolves. Bump that ref when you upgrade the SDK (see [ci.md](ci.md)).
 
-Release artefacts (CLI binary, `ceps-client-wasm` packs) build against that pin. The Docker image ships only the stripped `ceps` binary.
+Release artefacts (CLI binary, `ceps-client-wasm` packs) build against that pin. The Docker image ships only the stripped `ceps-client-cli` binary.
 
 ## Upgrade checklist
 

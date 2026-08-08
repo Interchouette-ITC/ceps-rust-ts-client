@@ -1,7 +1,7 @@
 # CEP-18 CLI
 
 ```bash
-ceps [--rpc-url …] [--sse-url …] [--chain-name …] [--json] cep18 <cmd>
+ceps-client-cli [--rpc-url …] [--sse-url …] [--chain-name …] [--json] cep18 <cmd>
 ```
 
 | Command | Behavior                                 |

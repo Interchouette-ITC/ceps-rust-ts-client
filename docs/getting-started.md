@@ -28,8 +28,8 @@ make e2e-test
 ## First CLI call
 
 ```bash
-cargo run -p cli -- status
-cargo run -p cli -- cep18 info --json
+cargo run -p ceps-client-cli -- status
+cargo run -p ceps-client-cli -- cep18 info --json
 # or
 make run-cli CLI_ARGS='status'
 ```

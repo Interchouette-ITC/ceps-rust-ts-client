@@ -2,7 +2,7 @@
 
 ## Product scope
 
-**ceps-rust-ts-client** is a Rust library, clap CLI (`ceps`), and JS packs (`ceps-client-wasm`) for driving Casper **CEP-18 / CEP-78 / CEP-85** contracts via [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
+**ceps-rust-ts-client** is a Rust library, clap CLI (`ceps-client-cli`), and JS packs (`ceps-client-wasm`) for driving Casper **CEP-18 / CEP-78 / CEP-85** contracts via [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
 
 This repository is **not** a custodian, wallet, or hosted signing service. Callers supply keys and network endpoints.
 
