@@ -5,7 +5,7 @@ Each GitHub Release (stable `vX.Y.Z` or Pre-release `dev-preview`) attaches down
 Base URL (replace tag):
 
 ```text
-https://github.com/gRoussac/ceps-rust-ts-client/releases/download/<tag>/
+https://github.com/Interchouette-ITC/ceps-rust-ts-client/releases/download/<tag>/
 ```
 
 Examples: `v1.0.0`, `dev-preview`.
@@ -32,7 +32,7 @@ Same idea as using rustSDK’s published `pkg` / `pkg-nodejs`: unpack and point 
 TAG=v1.0.0
 LABEL=${TAG#v}
 curl -fsSL -o ceps-client-wasm-nodejs.tgz \
-  "https://github.com/gRoussac/ceps-rust-ts-client/releases/download/${TAG}/ceps-client-wasm-nodejs-${LABEL}.tgz"
+  "https://github.com/Interchouette-ITC/ceps-rust-ts-client/releases/download/${TAG}/ceps-client-wasm-nodejs-${LABEL}.tgz"
 mkdir -p ceps-client-wasm && tar -xzf ceps-client-wasm-nodejs.tgz -C ceps-client-wasm
 # → ceps-client-wasm/pkg-nodejs/
 ```
@@ -53,7 +53,7 @@ Web pack: download `ceps-client-wasm-web-${LABEL}.tgz` and unpack to `ceps-clien
 TAG=v1.0.0
 LABEL=${TAG#v}
 curl -fsSL -o ceps-contracts.tgz \
-  "https://github.com/gRoussac/ceps-rust-ts-client/releases/download/${TAG}/ceps-contracts-${LABEL}.tgz"
+  "https://github.com/Interchouette-ITC/ceps-rust-ts-client/releases/download/${TAG}/ceps-contracts-${LABEL}.tgz"
 mkdir -p tests/wasm && tar -xzf ceps-contracts.tgz -C tests/wasm
 # → tests/wasm/cep18/*.wasm , cep78/ , cep85/
 ```

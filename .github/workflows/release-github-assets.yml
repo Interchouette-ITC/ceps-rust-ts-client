@@ -46,27 +46,27 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: casper-ecosystem/casper-rust-wasm-sdk
-          ref: v2.2.2
+          ref: dev
           path: rustSDK
 
       - name: Checkout CEP-18 demo tip
         uses: actions/checkout@v5
         with:
-          repository: gRoussac/cep18
+          repository: Interchouette-ITC/cep-18
           ref: ceps-client-test
           path: cep-18
 
       - name: Checkout CEP-78 demo tip
         uses: actions/checkout@v5
         with:
-          repository: gRoussac/cep-78-enhanced-nft
+          repository: Interchouette-ITC/cep-78-enhanced-nft
           ref: ceps-client-test
           path: cep-78-enhanced-nft
 
       - name: Checkout CEP-85 demo tip
         uses: actions/checkout@v5
         with:
-          repository: gRoussac/cep-85
+          repository: Interchouette-ITC/cep-85
           ref: ceps-client-test
           path: cep-1155
 
@@ -141,7 +141,7 @@ jobs:
           test -d tests/wasm/cep85
           {
             echo "Demo tip contract WASMs for ceps-rust-ts-client ${LABEL}"
-            echo "Sources: gRoussac/{cep18,cep-78-enhanced-nft,cep-85} @ ceps-client-test"
+            echo "Sources: Interchouette-ITC/{cep-18,cep-78-enhanced-nft,cep-85} @ ceps-client-test"
             echo "Staged via make wasm-from-ceps (prefer tip tests/wasm/)."
             echo
             find tests/wasm -type f -name '*.wasm' | sort

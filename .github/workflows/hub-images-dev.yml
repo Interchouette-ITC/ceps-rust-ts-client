@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: casper-ecosystem/casper-rust-wasm-sdk
-          ref: v2.2.2
+          ref: dev
           path: rustSDK
 
       - name: Swatinem cache
@@ -74,11 +74,15 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Push CLI to Docker Hub
+        env:
+          HUB_USER: ${{ secrets.DOCKER_USERNAME_ITC }}
         run: |
           make docker-tag IMAGE_TAG=${{ env.IMAGE_TAG }}
           make docker-push-hub IMAGE_TAG=${{ env.IMAGE_TAG }}
 
       - name: Push MCP to Docker Hub
+        env:
+          HUB_USER: ${{ secrets.DOCKER_USERNAME_ITC }}
         run: |
           make docker-tag-mcp IMAGE_TAG=${{ env.IMAGE_TAG }}
           make docker-push-mcp-hub IMAGE_TAG=${{ env.IMAGE_TAG }}

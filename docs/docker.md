@@ -13,8 +13,8 @@ docker run --rm ceps-rust-ts-client:local --help
 | Registry        | Image                                           |
 | --------------- | ----------------------------------------------- |
 | Docker Hub      | `interchouette/ceps-rust-ts-client`             |
-| GHCR (personal) | `ghcr.io/groussac/ceps-rust-ts-client`          |
 | GHCR (org)      | `ghcr.io/interchouette-itc/ceps-rust-ts-client` |
+| GHCR (personal) | `ghcr.io/groussac/ceps-rust-ts-client`          |
 
 ## MCP image (`ceps-client-mcp`)
 
@@ -28,8 +28,8 @@ docker run --rm -p 6790:6790 ceps-client-mcp:local --http --listen 0.0.0.0:6790
 | Registry        | Image                                       |
 | --------------- | ------------------------------------------- |
 | Docker Hub      | `interchouette/ceps-client-mcp`             |
-| GHCR (personal) | `ghcr.io/groussac/ceps-client-mcp`          |
 | GHCR (org)      | `ghcr.io/interchouette-itc/ceps-client-mcp` |
+| GHCR (personal) | `ghcr.io/groussac/ceps-client-mcp`          |
 
 ## Tags
 

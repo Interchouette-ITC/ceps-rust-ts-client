@@ -32,7 +32,7 @@ make mcp-test-live     # ignored; needs NCTL
 | Registry   | Image                                                                           |
 | ---------- | ------------------------------------------------------------------------------- |
 | Docker Hub | `interchouette/ceps-client-mcp`                                                 |
-| GHCR       | `ghcr.io/groussac/ceps-client-mcp`, `ghcr.io/interchouette-itc/ceps-client-mcp` |
+| GHCR       | `ghcr.io/interchouette-itc/ceps-client-mcp` (optional personal: `ghcr.io/groussac/…`) |
 
 Tags: `:dev`, `:latest`, `:X.Y.Z`.
 

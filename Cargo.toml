@@ -14,8 +14,8 @@ version = "1.0.0"
 edition = "2021"
 description = "Unified Rust client for Casper CEP-18, CEP-78, and CEP-85 (library, CLI, and WASM packs for Node/web)."
 readme = "README.md"
-homepage = "https://github.com/gRoussac/ceps-rust-ts-client"
-repository = "https://github.com/gRoussac/ceps-rust-ts-client"
+homepage = "https://github.com/Interchouette-ITC/ceps-rust-ts-client"
+repository = "https://github.com/Interchouette-ITC/ceps-rust-ts-client"
 authors = ["3099551+gRoussac@users.noreply.github.com"]
 license-file = "LICENSE"
 

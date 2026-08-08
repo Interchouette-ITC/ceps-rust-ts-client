@@ -44,7 +44,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: casper-ecosystem/casper-rust-wasm-sdk
-          ref: v2.2.2
+          ref: dev
           path: rustSDK
 
       - name: Resolve release version
@@ -114,6 +114,7 @@ jobs:
       - name: Tag and push CLI + MCP (semver + latest + dev)
         env:
           APP_VERSION: ${{ steps.ver.outputs.version }}
+          HUB_USER: ${{ secrets.DOCKER_USERNAME_ITC }}
         run: |
           set -euo pipefail
           for tag in "$APP_VERSION" latest dev; do

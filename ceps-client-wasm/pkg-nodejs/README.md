@@ -210,7 +210,7 @@ Rebuild locally with `make pack` (or `make nodejs` / `make web`). Details: [docs
 TAG=v1.0.0   # or dev-preview
 LABEL=${TAG#v}
 curl -fsSL -o ceps-client-wasm-nodejs.tgz \
-  "https://github.com/gRoussac/ceps-rust-ts-client/releases/download/${TAG}/ceps-client-wasm-nodejs-${LABEL}.tgz"
+  "https://github.com/Interchouette-ITC/ceps-rust-ts-client/releases/download/${TAG}/ceps-client-wasm-nodejs-${LABEL}.tgz"
 mkdir -p ceps-client-wasm && tar -xzf ceps-client-wasm-nodejs.tgz -C ceps-client-wasm
 # -> ceps-client-wasm/pkg-nodejs/
 ```
@@ -243,17 +243,17 @@ This client is **not** a contract repo. You pass on-chain `.wasm` into `install`
 TAG=v1.0.0
 LABEL=${TAG#v}
 curl -fsSL -o ceps-contracts.tgz \
-  "https://github.com/gRoussac/ceps-rust-ts-client/releases/download/${TAG}/ceps-contracts-${LABEL}.tgz"
+  "https://github.com/Interchouette-ITC/ceps-rust-ts-client/releases/download/${TAG}/ceps-contracts-${LABEL}.tgz"
 mkdir -p tests/wasm && tar -xzf ceps-contracts.tgz -C tests/wasm
 ```
 
-Tips are short-lived entity-era builds for demos/CI, not a claim of "the" upstream CEP tip forever. This client (and these tips) are headed to **Interchouette-ITC**; sources **today**:
+Tips are short-lived entity-era builds for demos/CI, not a claim of "the" upstream CEP tip forever. Sources:
 
-| CEP | Demo tip repo (now)                                                             | Branch             | What you get           |
-| --- | ------------------------------------------------------------------------------- | ------------------ | ---------------------- |
-| 18  | [gRoussac/cep18](https://github.com/gRoussac/cep18)                             | `ceps-client-test` | Fungible contract WASM |
-| 78  | [gRoussac/cep-78-enhanced-nft](https://github.com/gRoussac/cep-78-enhanced-nft) | `ceps-client-test` | NFT + session WASMs    |
-| 85  | [gRoussac/cep-85](https://github.com/gRoussac/cep-85)                           | `ceps-client-test` | Multi-token WASM       |
+| CEP | Demo tip repo | Branch | What you get |
+| --- | ------------- | ------ | ------------ |
+| 18 | [Interchouette-ITC/cep-18](https://github.com/Interchouette-ITC/cep-18) | `ceps-client-test` | Fungible contract WASM |
+| 78 | [Interchouette-ITC/cep-78-enhanced-nft](https://github.com/Interchouette-ITC/cep-78-enhanced-nft) | `ceps-client-test` | NFT + session WASMs |
+| 85 | [Interchouette-ITC/cep-85](https://github.com/Interchouette-ITC/cep-85) | `ceps-client-test` | Multi-token WASM |
 
 ```bash
 # after checking out those tips and building contracts there:
