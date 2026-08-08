@@ -57,7 +57,7 @@ let client = Cep18Client::new(
 )?;
 ```
 
-Install / transfer flows: stage tip WASMs with `make wasm-from-ceps`, then follow [cep18/](cep18/), [cep78/](cep78/), or [cep85/](cep85/). Examples:
+Install / transfer flows: stage demo tip WASMs with `make wasm-from-ceps` (see [contributing.md](contributing.md)), then follow [cep18/](cep18/), [cep78/](cep78/), or [cep85/](cep85/). Examples:
 
 ```bash
 SECRET_KEY_USER_1="$(cat path/to/user-1/secret_key.pem)" \

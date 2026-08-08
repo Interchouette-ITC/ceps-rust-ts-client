@@ -1,6 +1,6 @@
 # CEP-18 client closet
 
-Fungible token client (`Cep18Client`) for CEP-18 contracts on the `ceps-client-test` tip.
+Fungible token client (`Cep18Client`). Demo installs use the CEP-18 tip WASMs described in [contributing.md](../contributing.md).
 
 ## TOC
 

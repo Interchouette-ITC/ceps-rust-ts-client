@@ -85,12 +85,12 @@ NCTL live CI also mounts `assets/{users,faucet}` and exports `SECRET_KEY_USER_1`
 | Dependency | CI source                                | Ref                              |
 | ---------- | ---------------------------------------- | -------------------------------- |
 | SDK        | `casper-ecosystem/casper-rust-wasm-sdk`  | tag `2.2.0` (bump with SDK line) |
-| CEP-18 tip | `gRoussac/cep18`                         | `ceps-client-test`               |
-| CEP-78 tip | `gRoussac/cep-78-enhanced-nft`           | `ceps-client-test`               |
-| CEP-85 tip | `gRoussac/cep-85`                        | `ceps-client-test`               |
-| NCTL       | `interchouette/casper-nctl-2-docker:dev` | Docker Hub                       |
+| CEP-18 tip | `gRoussac/cep18` | `ceps-client-test` (demo tip) |
+| CEP-78 tip | `gRoussac/cep-78-enhanced-nft` | `ceps-client-test` (demo tip) |
+| CEP-85 tip | `gRoussac/cep-85` | `ceps-client-test` (demo tip) |
+| NCTL | `interchouette/casper-nctl-2-docker:dev` | Docker Hub |
 
-Contract WASMs are **copied** from each tip’s `tests/wasm/` (`make wasm-from-ceps`). CI does not rebuild CEP contracts.
+Demo tip WASMs are **copied** from each fork’s `tests/wasm/` (`make wasm-from-ceps`). CI does not rebuild CEP contracts. See [contributing.md](contributing.md).
 
 ## Same-day stable cut
 

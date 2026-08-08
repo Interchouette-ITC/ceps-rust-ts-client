@@ -1,6 +1,6 @@
 # CEP-78 client
 
-Enhanced NFT client (`Cep78Client`) against the `ceps-client-test` tip of `cep-78-enhanced-nft`.
+Enhanced NFT client (`Cep78Client`). Demo installs use the CEP-78 tip WASMs described in [contributing.md](../contributing.md).
 
 | Page | Topic |
 | --- | --- |

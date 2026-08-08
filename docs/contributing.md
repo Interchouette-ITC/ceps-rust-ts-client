@@ -1,30 +1,28 @@
 # Contributing
 
-## CEP tip checkout
+## Contract WASMs for demos and CI
 
-Canonical tip assembly lives in `.cursor/plans/cep_test_tip_branches.plan.md`. Tip branch on the gRoussac forks: **`ceps-client-test`**.
+This repo is the **client**. Contract bytecode comes from elsewhere.
 
-1. Check out that branch in each CEP tip product you use for contract builds.
+For examples, live tests, and CI we use **demo tip** forks with branch **`ceps-client-test`**: fresh entity-era builds so installs work out of the box. They are for demos against this client, not a permanent substitute for ecosystem `casper-ecosystem/*` release tips.
+
+This client and those demo tips are moving under **Interchouette-ITC**; the table is the location **today**:
+
+| CEP | Demo tip (today) | Branch | Recorded SHA |
+| --- | --- | --- | --- |
+| 18 | [gRoussac/cep18](https://github.com/gRoussac/cep18) | `ceps-client-test` | `3e92164` |
+| 78 | [gRoussac/cep-78-enhanced-nft](https://github.com/gRoussac/cep-78-enhanced-nft) | `ceps-client-test` | `d650a03` |
+| 85 | [gRoussac/cep-85](https://github.com/gRoussac/cep-85) | `ceps-client-test` | `9d437cd` |
+
+1. Clone/check out each tip at `ceps-client-test`.
 2. Build contracts there (`make build-contract` or the repo Makefile).
-3. From this repo:
+3. From this client:
 
 ```bash
-make wasm-from-ceps
+make wasm-from-ceps   # → tests/wasm/{cep18,cep78,cep85}/
 ```
 
-Override tip roots with `CEP18_PRODUCT`, `CEP78_PRODUCT`, `CEP85_PRODUCT` if defaults do not match your layout.
-
-### Tip SHAs (documented for this client line)
-
-Recorded while shipping the unified client on branch `ceps-client-test`:
-
-| Product                                 | Branch             | SHA       |
-| --------------------------------------- | ------------------ | --------- |
-| CEP-18 (`gRoussac/cep18`)               | `ceps-client-test` | `3e92164` |
-| CEP-78 (`gRoussac/cep-78-enhanced-nft`) | `ceps-client-test` | `d650a03` |
-| CEP-85 (`gRoussac/cep-85`)              | `ceps-client-test` | `9d437cd` |
-
-Re-pin these when intentionally rebasing tips. Prefer each tip’s `tests/wasm/` artifacts over stale `target/` builds (`make wasm-from-ceps` prefers `tests/wasm`).
+Override roots with `CEP18_PRODUCT`, `CEP78_PRODUCT`, `CEP85_PRODUCT`. Prefer each tip’s `tests/wasm/` over stale `target/` builds. Re-pin the SHAs when you intentionally rebase a tip.
 
 ## SDK pin
 

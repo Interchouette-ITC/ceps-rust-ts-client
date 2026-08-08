@@ -22,7 +22,7 @@ Defaults talk to local NCTL (`http://127.0.0.1:11101`, SSE `…:18101/events`, c
 
 ## Usage
 
-Needs a running node, a secret-key PEM, and contract WASM (stage tips with `make wasm-from-ceps`, or point at your own `.wasm`).
+Needs a running node, a secret-key PEM, and contract WASM bytes (your own build, or the demo tips below via `make wasm-from-ceps`).
 
 ### CEP-18 - fungible
 
@@ -138,12 +138,31 @@ Mutations are on the library / examples today. Flags: [docs/cli.md](docs/cli.md)
 
 ```bash
 make prepare && make build
-make wasm-from-ceps          # stage tip contract WASMs into tests/wasm/
+make wasm-from-ceps          # copy demo tip WASMs into tests/wasm/ (see below)
 # NCTL running + SECRET_KEY_USER_1 set to a PEM:
 cargo run -p ceps-client --example cep18_install
 ```
 
 More setup: [docs/getting-started.md](docs/getting-started.md).
+
+## Contract WASMs (demos)
+
+This client is **not** a contract repo. You pass `.wasm` into `install`. For local demos and CI, we stage fresh builds from short-lived **demo tip** forks (branch `ceps-client-test`). They exist so examples and tests have current entity-era contracts; they are not a claim of “the” upstream CEP tip forever.
+
+This client (and these demo tips) are headed to the **Interchouette-ITC** org; URLs below are the sources **today**:
+
+| CEP | Demo tip repo (now) | Branch | What you get |
+| --- | --- | --- | --- |
+| 18 | [gRoussac/cep18](https://github.com/gRoussac/cep18) | `ceps-client-test` | Fungible contract WASM |
+| 78 | [gRoussac/cep-78-enhanced-nft](https://github.com/gRoussac/cep-78-enhanced-nft) | `ceps-client-test` | NFT + session WASMs |
+| 85 | [gRoussac/cep-85](https://github.com/gRoussac/cep-85) | `ceps-client-test` | Multi-token WASM |
+
+```bash
+# after checking out those tips and building contracts there:
+make wasm-from-ceps   # → tests/wasm/{cep18,cep78,cep85}/
+```
+
+Override checkout roots with `CEP18_PRODUCT` / `CEP78_PRODUCT` / `CEP85_PRODUCT`. Pins and SHAs: [docs/contributing.md](docs/contributing.md).
 
 ## Package map
 

@@ -1,6 +1,6 @@
 # CEP-85 client closet
 
-Multi-token client (`Cep85Client`). On-chain standard name is **CEP-85** (repo may still be `cep-1155`).
+Multi-token client (`Cep85Client`). On-chain standard name is **CEP-85** (contract repo may still be named `cep-1155`). Demo installs use the CEP-85 tip WASMs described in [contributing.md](../contributing.md).
 
 ## TOC
 
