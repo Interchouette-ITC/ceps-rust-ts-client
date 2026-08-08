@@ -54,7 +54,10 @@ pub async fn install(
     wait_timeout_ms: Option<u64>,
 ) -> ToolOutput {
     let args = match params::cep78_install_args_basic(
-        collection_name, collection_symbol, total_token_supply, events_mode,
+        collection_name,
+        collection_symbol,
+        total_token_supply,
+        events_mode,
     ) {
         Ok(a) => a,
         Err(e) => return format::err(e),
@@ -109,7 +112,12 @@ pub async fn mint(
     let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
     params::map_call(
         client
-            .mint(&token_owner, &token_meta_data, token_hash.as_deref(), &deploy)
+            .mint(
+                &token_owner,
+                &token_meta_data,
+                token_hash.as_deref(),
+                &deploy,
+            )
             .await,
     )
 }
@@ -283,7 +291,11 @@ pub async fn set_approval_for_all(
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
     let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.set_approval_for_all(&operator, approve_all, &deploy).await)
+    params::map_call(
+        client
+            .set_approval_for_all(&operator, approve_all, &deploy)
+            .await,
+    )
 }
 
 pub async fn set_token_metadata(
@@ -303,7 +315,11 @@ pub async fn set_token_metadata(
     };
     let client = need_client!(contract_hash, package_hash);
     let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.set_token_metadata(&token_meta_data, &token, &deploy).await)
+    params::map_call(
+        client
+            .set_token_metadata(&token_meta_data, &token, &deploy)
+            .await,
+    )
 }
 
 pub async fn set_variables(

@@ -3,12 +3,16 @@
 use crate::format;
 use crate::handle;
 use base64::Engine;
-use ceps_client::cep18::{Cep18Client, InstallArgs as Cep18InstallArgs, UpgradeArgs as Cep18UpgradeArgs};
+use ceps_client::cep18::{
+    Cep18Client, InstallArgs as Cep18InstallArgs, UpgradeArgs as Cep18UpgradeArgs,
+};
 use ceps_client::cep78::{
     Cep78Client, InstallArgs as Cep78InstallArgs, NftMetadataKind, TokenIdentifier,
     UpgradeArgs as Cep78UpgradeArgs,
 };
-use ceps_client::cep85::{Cep85Client, InstallArgs as Cep85InstallArgs, UpgradeArgs as Cep85UpgradeArgs};
+use ceps_client::cep85::{
+    Cep85Client, InstallArgs as Cep85InstallArgs, UpgradeArgs as Cep85UpgradeArgs,
+};
 use ceps_client::{DeployParams, EventsMode, EventsMode78, Result as CepResult};
 use mcpkit::prelude::ToolOutput;
 use std::path::{Component, Path, PathBuf};
@@ -44,7 +48,9 @@ fn resolve_under_root(root: &Path, relative: &str) -> Result<PathBuf, String> {
     }
     let full = root.join(rel);
     let canon_root = root.canonicalize().map_err(|e| format!("wasm root: {e}"))?;
-    let canon = full.canonicalize().map_err(|e| format!("wasm path {relative}: {e}"))?;
+    let canon = full
+        .canonicalize()
+        .map_err(|e| format!("wasm path {relative}: {e}"))?;
     if !canon.starts_with(&canon_root) {
         return Err("path escapes CEPS_WASM_ROOT".into());
     }
@@ -52,7 +58,10 @@ fn resolve_under_root(root: &Path, relative: &str) -> Result<PathBuf, String> {
 }
 
 /// Load WASM bytes from base64 and/or a path under the wasm root.
-pub fn load_wasm(wasm_base64: Option<String>, wasm_path: Option<String>) -> Result<Vec<u8>, String> {
+pub fn load_wasm(
+    wasm_base64: Option<String>,
+    wasm_path: Option<String>,
+) -> Result<Vec<u8>, String> {
     if let Some(b64) = wasm_base64 {
         return base64::engine::general_purpose::STANDARD
             .decode(b64.trim())
@@ -83,7 +92,10 @@ pub fn parse_events_mode78(raw: Option<u8>) -> Result<Option<EventsMode78>, Stri
     }
 }
 
-pub fn parse_token_id(token_id: Option<u64>, token_hash: Option<String>) -> Result<TokenIdentifier, String> {
+pub fn parse_token_id(
+    token_id: Option<u64>,
+    token_hash: Option<String>,
+) -> Result<TokenIdentifier, String> {
     match (token_id, token_hash) {
         (Some(id), None) => Ok(TokenIdentifier::id(id)),
         (None, Some(h)) => Ok(TokenIdentifier::hash(h)),
@@ -121,7 +133,10 @@ pub fn map_query<T: serde::Serialize>(result: CepResult<T>) -> ToolOutput {
     format::from_result(result)
 }
 
-pub fn cep18_client(contract_hash: Option<&str>, package_hash: Option<&str>) -> Result<Cep18Client, String> {
+pub fn cep18_client(
+    contract_hash: Option<&str>,
+    package_hash: Option<&str>,
+) -> Result<Cep18Client, String> {
     let ep = handle::snapshot();
     let mut c = Cep18Client::new(
         &ep.rpc_url,
@@ -137,7 +152,10 @@ pub fn cep18_client(contract_hash: Option<&str>, package_hash: Option<&str>) -> 
     Ok(c)
 }
 
-pub fn cep78_client(contract_hash: Option<&str>, package_hash: Option<&str>) -> Result<Cep78Client, String> {
+pub fn cep78_client(
+    contract_hash: Option<&str>,
+    package_hash: Option<&str>,
+) -> Result<Cep78Client, String> {
     let ep = handle::snapshot();
     let mut c = Cep78Client::new(
         &ep.rpc_url,
@@ -153,7 +171,10 @@ pub fn cep78_client(contract_hash: Option<&str>, package_hash: Option<&str>) -> 
     Ok(c)
 }
 
-pub fn cep85_client(contract_hash: Option<&str>, package_hash: Option<&str>) -> Result<Cep85Client, String> {
+pub fn cep85_client(
+    contract_hash: Option<&str>,
+    package_hash: Option<&str>,
+) -> Result<Cep85Client, String> {
     let ep = handle::snapshot();
     let mut c = Cep85Client::new(
         &ep.rpc_url,
@@ -191,7 +212,10 @@ pub fn cep18_install_args(
     Ok(args)
 }
 
-pub fn cep18_upgrade_args(name: String, events_mode: Option<u8>) -> Result<Cep18UpgradeArgs, String> {
+pub fn cep18_upgrade_args(
+    name: String,
+    events_mode: Option<u8>,
+) -> Result<Cep18UpgradeArgs, String> {
     let mut args = Cep18UpgradeArgs::new(name);
     if let Some(mode) = parse_events_mode(events_mode)? {
         args.events_mode = Some(mode);
@@ -240,7 +264,10 @@ pub fn cep78_install_args_basic(
     Ok(args)
 }
 
-pub fn cep78_upgrade_args(collection_name: String, total_token_supply: Option<u64>) -> Cep78UpgradeArgs {
+pub fn cep78_upgrade_args(
+    collection_name: String,
+    total_token_supply: Option<u64>,
+) -> Cep78UpgradeArgs {
     let mut args = Cep78UpgradeArgs::new(collection_name);
     args.total_token_supply = total_token_supply;
     args

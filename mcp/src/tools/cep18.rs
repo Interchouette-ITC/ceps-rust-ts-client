@@ -54,7 +54,14 @@ pub async fn install(
     wait_timeout_ms: Option<u64>,
 ) -> ToolOutput {
     let args = match params::cep18_install_args(
-        name, symbol, decimals, total_supply, events_mode, enable_mint_and_burn, admin_list, minter_list,
+        name,
+        symbol,
+        decimals,
+        total_supply,
+        events_mode,
+        enable_mint_and_burn,
+        admin_list,
+        minter_list,
     ) {
         Ok(a) => a,
         Err(e) => return format::err(e),
@@ -125,7 +132,11 @@ pub async fn transfer_from(
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
     let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.transfer_from(&owner, &recipient, &amount, &deploy).await)
+    params::map_call(
+        client
+            .transfer_from(&owner, &recipient, &amount, &deploy)
+            .await,
+    )
 }
 
 pub async fn approve(
@@ -265,7 +276,9 @@ pub async fn total_supply(contract_hash: String, package_hash: Option<String>) -
 pub async fn events_mode(contract_hash: String, package_hash: Option<String>) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
     match client.events_mode().await {
-        Ok(m) => format::json_ok(&serde_json::json!({ "events_mode": m.as_str(), "value": u8::from(m) })),
+        Ok(m) => {
+            format::json_ok(&serde_json::json!({ "events_mode": m.as_str(), "value": u8::from(m) }))
+        }
         Err(e) => format::err(e),
     }
 }

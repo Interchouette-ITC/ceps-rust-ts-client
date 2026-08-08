@@ -47,8 +47,11 @@ jobs:
           make doc-check
           make doc
 
+      # Nested checkout leaves .git under ceps-rust-ts-client/; JamesIves expects
+      # workspace-root git. peaceiris publishes from a path without that constraint.
       - name: Deploy GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          folder: ceps-rust-ts-client/docs
-          commit-message: "Deploy documentation for ${{ github.ref_name }}"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./ceps-rust-ts-client/docs
+          commit_message: "Deploy documentation for ${{ github.ref_name }}"
