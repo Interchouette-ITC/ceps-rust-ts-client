@@ -1,0 +1,121 @@
+# Stable CLI images after a real GitHub Release (not bare tag push / not prerelease).
+# Tags: :semver, :latest, :dev on Hub + both GHCR namespaces.
+name: hub-images-release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Image tag without leading v (e.g. 1.0.0). Empty uses workspace Cargo.toml version.
+        required: false
+        type: string
+      ref:
+        description: Git ref to build (tag, branch, or SHA). Empty uses the workflow ref.
+        required: false
+        type: string
+
+env:
+  CARGO_TERM_COLOR: always
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-push-release:
+    name: Build and push Hub/GHCR semver + latest + :dev
+    if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ceps-rust-ts-client
+
+    steps:
+      - name: Checkout client
+        uses: actions/checkout@v5
+        with:
+          path: ceps-rust-ts-client
+          ref: ${{ inputs.ref || github.event.release.tag_name || github.ref }}
+
+      - name: Checkout rustSDK (path dep)
+        uses: actions/checkout@v5
+        with:
+          repository: casper-ecosystem/casper-rust-wasm-sdk
+          ref: 2.2.0
+          path: rustSDK
+
+      - name: Resolve release version
+        id: ver
+        working-directory: ceps-rust-ts-client
+        run: |
+          set -euo pipefail
+          PKG=$(awk '/^\[workspace.package\]/{p=1;next} /^\[/{p=0} p && /^version[[:space:]]*=/{gsub(/"/,""); print $3; exit}' Cargo.toml)
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            VERSION="${VERSION#v}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+            VERSION="${VERSION#v}"
+          else
+            VERSION="$PKG"
+          fi
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "Could not resolve release version" >&2
+            exit 1
+          fi
+          if [ "$VERSION" != "$PKG" ]; then
+            echo "Refusing Hub tag $VERSION: workspace Cargo.toml is $PKG" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Resolved Hub release tag: $VERSION"
+
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev
+        working-directory: .
+
+      - name: Swatinem cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ceps-rust-ts-client -> target
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build stripped CLI
+        run: make release-cli-bin
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: make docker-build IMAGE_TAG=${{ steps.ver.outputs.version }}
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Tag and push semver + latest + dev
+        env:
+          APP_VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          for tag in "$APP_VERSION" latest dev; do
+            docker tag "ceps-rust-ts-client:$APP_VERSION" "ceps-rust-ts-client:$tag"
+            make docker-tag IMAGE_TAG="$tag"
+            make docker-push-hub IMAGE_TAG="$tag"
+            make docker-push-ghcr IMAGE_TAG="$tag"
+          done

@@ -1,6 +1,17 @@
 # CI / CD
 
-Strategy mirrors [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) `.github/workflows`: a strict PR gate, a heavier overnight job, and Pages for docs. No Hub images or GitHub Releases yet (those land when npm/crates publish is intentional).
+Pipeline mirrors sibling products ([`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) gates/releases, [`casper-nctl-2-docker`](https://github.com/gRoussac/casper-nctl-2-docker) Hub+GHCR dual push). Quality stays on NCTL live tests; release ships the `ceps` CLI image and GitHub Release artefacts (binary + WASM packs).
+
+crates.io / npm publish are not part of this line while the workspace path-deps `../rustSDK`.
+
+## Flow
+
+```text
+push ceps-client-test  →  ci-test (+ hub-images-dev :dev)
+nightly-test green     →  release-github-preview (dev-preview Pre-release + assets)
+GitHub Release vX.Y.Z  →  release-github-stable (assets) + hub-images-release (:X.Y.Z :latest :dev)
+push tip docs          →  pages
+```
 
 ## Workflows
 
@@ -9,6 +20,65 @@ Strategy mirrors [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/ca
 | `ci-test.yml` | push / PR to `dev`, `ceps-client-test`, `main` | Lint, unit, NCTL live integration, CLI smoke |
 | `nightly-test.yml` | cron `0 3 * * *` + `workflow_dispatch` | Same gate + `cargo audit` + `make nodejs` + Vitest |
 | `pages.yml` | push to `dev` / `ceps-client-test` + `workflow_dispatch` | `make doc` → GitHub Pages (`docs/`) |
+| `hub-images-dev.yml` | push `ceps-client-test` + `workflow_dispatch` | CLI image `:dev` → Hub + GHCR |
+| `hub-images-release.yml` | stable Release published + `workflow_dispatch` | `:semver` `:latest` `:dev` |
+| `release-github-assets.yml` | `workflow_call` | Build/upload CLI + WASM tarballs + `SHA256SUMS` |
+| `release-github-stable.yml` | Release published (not prerelease) | Attach assets to Latest |
+| `release-github-preview.yml` | nightly success / dispatch | Overwrite Pre-release `dev-preview` + assets |
+
+## Images
+
+Local name: `ceps-rust-ts-client`. Registries (same layout as NCTL):
+
+| Registry | Image |
+| --- | --- |
+| Docker Hub | `interchouette/ceps-rust-ts-client` |
+| GHCR (personal) | `ghcr.io/groussac/ceps-rust-ts-client` |
+| GHCR (org) | `ghcr.io/interchouette-itc/ceps-rust-ts-client` |
+
+Build is **runtime-only**: CI builds a stripped `ceps` with the SDK path dep, then [`docker/Dockerfile`](../docker/Dockerfile) copies the binary into `debian:bookworm-slim`.
+
+```bash
+make release-cli-bin
+make docker-build IMAGE_TAG=local
+# after docker login Hub + GHCR:
+make docker-push IMAGE_TAG=dev
+```
+
+| Event | Tags |
+| --- | --- |
+| Tip push `ceps-client-test` | `:dev` |
+| Stable Release `vX.Y.Z` | `:X.Y.Z`, `:latest`, `:dev` |
+
+Stable tag (without `v`) **must** equal `[workspace.package].version` in root `Cargo.toml` or the release image job fails.
+
+## Release artefacts
+
+Attached to the GitHub Release (stable or `dev-preview`):
+
+| Asset | Contents |
+| --- | --- |
+| `ceps-{label}-linux-x86_64` | Stripped CLI |
+| `ceps-wasm-nodejs-{label}.tgz` | `make nodejs` pack |
+| `ceps-wasm-web-{label}.tgz` | `make web` pack |
+| `SHA256SUMS` | Checksums of the three files |
+
+`{label}` is the tag without a leading `v` (e.g. `1.0.0` or `dev-preview`).
+
+## Secrets (repo Settings → Secrets and variables → Actions)
+
+Reuse the **same names** as `casper-nctl-2-docker`:
+
+| Secret | Purpose |
+| --- | --- |
+| `DOCKER_USERNAME` | Docker Hub login |
+| `DOCKER_PASSWORD` | Docker Hub login |
+| `GHCR_USERNAME` | GHCR login |
+| `GHCR_PAT` | GHCR PAT with package write to `groussac` and `interchouette-itc` |
+
+`GITHUB_TOKEN` (Actions default) uploads release assets and moves the `dev-preview` tag. After the first GHCR push, set package visibility public (or grant org access) for both namespaces.
+
+NCTL live CI also mounts `assets/{users,faucet}` and exports `SECRET_KEY_USER_1` / `SECRET_KEY_USER_2` from those PEMs (public NCTL fixtures; not repo secrets).
 
 ## Checkout layout (Actions)
 
@@ -18,12 +88,12 @@ Path deps and `make wasm-from-ceps` expect siblings next to this repo:
 $GITHUB_WORKSPACE/
   ceps-rust-ts-client/   # this repository
   rustSDK/               # casper-rust-wasm-sdk @ pin
-  cep-18/                # tip branch (prebuilt tests/wasm)
+  cep-18/                # tip branch (prebuilt tests/wasm; ci-test / nightly only)
   cep-78-enhanced-nft/
   cep-1155/              # remote gRoussac/cep-85
 ```
 
-Cargo `path = "../rustSDK"` and Makefile `CEP*_PRODUCT` defaults resolve from that tree.
+Release and hub image jobs checkout **client + SDK only** (no tip WASMs required for CLI/WASM pack builds).
 
 ## Pins
 
@@ -35,11 +105,15 @@ Cargo `path = "../rustSDK"` and Makefile `CEP*_PRODUCT` defaults resolve from th
 | CEP-85 tip | `gRoussac/cep-85` | `ceps-client-test` |
 | NCTL | `interchouette/casper-nctl-2-docker:dev` | Docker Hub |
 
-Contract WASMs are **copied** from each tip’s `tests/wasm/` (`make wasm-from-ceps`). CI does not rebuild CEP contracts (avoids nightly toolchains on every PR).
+Contract WASMs are **copied** from each tip’s `tests/wasm/` (`make wasm-from-ceps`). CI does not rebuild CEP contracts.
 
-## Secrets / keys
+## Same-day stable cut
 
-NCTL `:dev` is started with host mounts under `ceps-rust-ts-client/assets/{users,faucet}`. After boot, `SECRET_KEY_USER_1` / `SECRET_KEY_USER_2` are exported from those PEMs (same pattern as the SDK CI). Those keys are public NCTL fixtures.
+1. Confirm `[workspace.package] version` (currently `1.0.0`).
+2. Fill the four Hub/GHCR secrets; ensure the PAT can push both GHCR namespaces.
+3. Push tip (or merge) so `ci-test` is green and `hub-images-dev` can publish `:dev`.
+4. Create a GitHub Release **`v1.0.0`** (not prerelease) from the UI or a PAT on that commit.
+5. Wait for `release-github-stable` (assets) and `hub-images-release` (`:1.0.0` `:latest` `:dev`).
 
 ## Local parity
 
@@ -52,4 +126,5 @@ make integration-test
 make e2e-test
 make nodejs && make ts-test   # nightly extras
 make doc                      # Pages input
+make release-cli-bin && make docker-build IMAGE_TAG=local
 ```

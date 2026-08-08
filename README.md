@@ -49,6 +49,7 @@ See [docs/contributing.md](docs/contributing.md).
 | `make run-cli`                                     | `ceps` binary                |
 | `make nctl-start` / `nctl-status`                  | Sibling NCTL (`dev` profile) |
 | `make wasm-from-ceps`                              | Stage tip WASMs              |
+| `make release-cli-bin` / `docker-build`            | Stripped CLI + image         |
 | GitHub Actions                                     | See [docs/ci.md](docs/ci.md) |
 
 Agents driving NCTL/SDK should use Cursor MCP (`nctl_*` / `sdk_*`).

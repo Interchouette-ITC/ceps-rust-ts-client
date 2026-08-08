@@ -1,0 +1,133 @@
+# Build CLI + WASM packs and attach them to a GitHub Release.
+# Callers: release-github-stable (Latest) and release-github-preview (tip Pre-release).
+name: release-github-assets
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: GitHub Release tag to upload into
+        required: true
+        type: string
+      ref:
+        description: Git ref to build (tag or commit SHA)
+        required: true
+        type: string
+
+env:
+  CARGO_TERM_COLOR: always
+
+permissions:
+  contents: write
+
+jobs:
+  cli-and-wasm:
+    name: Build and upload CLI + WASM assets
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ceps-rust-ts-client
+
+    steps:
+      - name: Install system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev
+        working-directory: .
+
+      - name: Checkout client
+        uses: actions/checkout@v5
+        with:
+          path: ceps-rust-ts-client
+          ref: ${{ inputs.ref }}
+
+      - name: Checkout rustSDK (path dep)
+        uses: actions/checkout@v5
+        with:
+          repository: casper-ecosystem/casper-rust-wasm-sdk
+          ref: 2.2.0
+          path: rustSDK
+
+      - name: Swatinem cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ceps-rust-ts-client -> target
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+        working-directory: .
+
+      - name: Resolve asset label
+        id: label
+        run: |
+          set -euo pipefail
+          TAG="${{ inputs.tag }}"
+          LABEL="${TAG#v}"
+          PKG=$(awk '/^\[workspace.package\]/{p=1;next} /^\[/{p=0} p && /^version[[:space:]]*=/{gsub(/"/,""); print $3; exit}' Cargo.toml)
+          if [[ "$LABEL" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [ "$LABEL" != "$PKG" ]; then
+            echo "Refusing upload: release label $LABEL != workspace Cargo.toml $PKG" >&2
+            exit 1
+          fi
+          echo "label=$LABEL" >> "$GITHUB_OUTPUT"
+          echo "pkg=$PKG" >> "$GITHUB_OUTPUT"
+
+      - name: Build stripped CLI
+        run: make release-cli-bin
+
+      - name: Pack WASM (nodejs + web)
+        run: make pack
+
+      - name: Stage release assets
+        id: assets
+        env:
+          LABEL: ${{ steps.label.outputs.label }}
+        run: |
+          set -euo pipefail
+          STAGE=release-assets
+          rm -rf "$STAGE"
+          mkdir -p "$STAGE"
+
+          CLI_DST="$STAGE/ceps-${LABEL}-linux-x86_64"
+          cp target/release/ceps "$CLI_DST"
+          chmod +x "$CLI_DST"
+
+          tar -czf "$STAGE/ceps-wasm-nodejs-${LABEL}.tgz" -C ceps-wasm pkg-nodejs
+          tar -czf "$STAGE/ceps-wasm-web-${LABEL}.tgz" -C ceps-wasm pkg
+
+          (
+            cd "$STAGE"
+            sha256sum \
+              "ceps-${LABEL}-linux-x86_64" \
+              "ceps-wasm-nodejs-${LABEL}.tgz" \
+              "ceps-wasm-web-${LABEL}.tgz" \
+              > SHA256SUMS
+          )
+
+          echo "dir=$STAGE" >> "$GITHUB_OUTPUT"
+          ls -la "$STAGE"
+
+      - name: Upload assets to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag }}
+          LABEL: ${{ steps.label.outputs.label }}
+          STAGE: ${{ steps.assets.outputs.dir }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" \
+            "$STAGE/ceps-${LABEL}-linux-x86_64" \
+            "$STAGE/ceps-wasm-nodejs-${LABEL}.tgz" \
+            "$STAGE/ceps-wasm-web-${LABEL}.tgz" \
+            "$STAGE/SHA256SUMS" \
+            --clobber
+        working-directory: ceps-rust-ts-client

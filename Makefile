@@ -23,6 +23,15 @@ WEB_OUT_DIR := pkg
 NODEJS_OUT_DIR := pkg-nodejs
 WASM_DIR := $(ROOT)/tests/wasm
 
+# Docker / GHCR (nctl-style dual Hub + personal/org GHCR)
+IMAGE_NAME := ceps-rust-ts-client
+IMAGE_TAG ?= local
+HUB_USER ?= interchouette
+GHCR_PERSONAL ?= groussac
+GHCR_ORG ?= interchouette-itc
+DOCKER_CONTEXT_BIN ?= $(ROOT)/target/release/ceps
+DOCKERFILE := $(ROOT)/docker/Dockerfile
+
 # Pin Binaryen so wasm-pack does not fall back to vendored 117.
 BINARYEN_VERSION := 131
 BINARYEN_DIR := $(ROOT)/.tools/binaryen-version_$(BINARYEN_VERSION)
@@ -40,6 +49,8 @@ CARGO := env -u CARGO_TARGET_DIR -u PLAYWRIGHT_BROWSERS_PATH cargo
 	test unit-test integration-test e2e-test examples ts-test wasm-bindgen-test \
 	pack web nodejs \
 	run-cli \
+	release-cli-bin \
+	docker-build docker-tag docker-push-hub docker-push-ghcr docker-push \
 	nctl-start nctl-start-all nctl-stop nctl-stop-all nctl-status nctl-endpoints \
 	sdk-mcp-http sdk-mcp-http-stop \
 	wasm-from-ceps \
@@ -69,6 +80,10 @@ help:
 	@echo ""
 	@echo "CLI"
 	@echo "  run-cli            cargo run -p $(CLI_CRATE) -- \$$(CLI_ARGS)"
+	@echo "  release-cli-bin    cargo build -p cli --release (+ strip)"
+	@echo ""
+	@echo "Docker / GHCR (IMAGE_TAG=dev|semver|latest)"
+	@echo "  docker-build / docker-tag / docker-push-hub / docker-push-ghcr / docker-push"
 	@echo ""
 	@echo "Sibling NCTL / SDK MCP / Contracts"
 	@echo "  nctl-start / nctl-status / nctl-endpoints"
@@ -206,6 +221,37 @@ nodejs: ensure-binaryen prepare
 
 run-cli:
 	$(CARGO) run -p $(CLI_CRATE) -- $(CLI_ARGS)
+
+release-cli-bin:
+	$(CARGO) build -p $(CLI_CRATE) --release
+	@strip -s "$(ROOT)/target/release/ceps" 2>/dev/null || strip "$(ROOT)/target/release/ceps"
+	@echo "release-cli-bin: $(ROOT)/target/release/ceps"
+
+docker-build:
+	@test -f "$(DOCKER_CONTEXT_BIN)" || { \
+		echo "docker-build: missing $(DOCKER_CONTEXT_BIN); run make release-cli-bin first"; \
+		exit 1; \
+	}
+	cp -f "$(DOCKER_CONTEXT_BIN)" "$(ROOT)/docker/ceps"
+	docker build -f "$(DOCKERFILE)" \
+		-t "$(IMAGE_NAME):$(IMAGE_TAG)" \
+		"$(ROOT)/docker"
+	rm -f "$(ROOT)/docker/ceps"
+	@echo "docker-build: $(IMAGE_NAME):$(IMAGE_TAG)"
+
+docker-tag:
+	docker tag "$(IMAGE_NAME):$(IMAGE_TAG)" "$(HUB_USER)/$(IMAGE_NAME):$(IMAGE_TAG)"
+	docker tag "$(IMAGE_NAME):$(IMAGE_TAG)" "ghcr.io/$(GHCR_PERSONAL)/$(IMAGE_NAME):$(IMAGE_TAG)"
+	docker tag "$(IMAGE_NAME):$(IMAGE_TAG)" "ghcr.io/$(GHCR_ORG)/$(IMAGE_NAME):$(IMAGE_TAG)"
+
+docker-push-hub:
+	docker push "$(HUB_USER)/$(IMAGE_NAME):$(IMAGE_TAG)"
+
+docker-push-ghcr:
+	docker push "ghcr.io/$(GHCR_PERSONAL)/$(IMAGE_NAME):$(IMAGE_TAG)"
+	docker push "ghcr.io/$(GHCR_ORG)/$(IMAGE_NAME):$(IMAGE_TAG)"
+
+docker-push: docker-tag docker-push-hub docker-push-ghcr
 
 define require_nctl
 	@test -d "$(NCTL_DOCKER_PRODUCT)" || { \
