@@ -1,18 +1,13 @@
 # WASM / TypeScript
 
-`ceps-wasm` is a thin `wasm-bindgen` layer over `ceps-client`.
+`ceps-wasm` is the **same CEP client API** as Rust `ceps-client`, compiled with `wasm-bindgen` for Node and browsers. It replaces per-CEP TypeScript `client-js` packages for JS callers.
 
-Exported types: `Cep18Client`, `Cep78Client`, `Cep85Client`.
+It is **not** the on-chain contract `.wasm`. Contract bytes still go into `install(...)` as `Uint8Array` (from `tests/wasm/…` or your own build).
 
-Methods currently bound (JS names):
-
-| Client | Methods                                                                                      |
-| ------ | -------------------------------------------------------------------------------------------- |
-| CEP-18 | `rpcUrl`, `sseUrl`, `chainName`, `setContractHash`, `install`, `name`, `symbol`, `balanceOf` |
-| CEP-78 | `rpcUrl`, `sseUrl`, `setContractHash`, `install`, `collectionName`, `balanceOf`              |
-| CEP-85 | `rpcUrl`, `sseUrl`, `setContractHash`, `install`, `collectionName`, `balanceOf`              |
-
-Full mutate/query parity lives in Rust `ceps-client`. Because `casper-rust-wasm-sdk` also uses `wasm-bindgen`, the packed `.d.ts` lists additional SDK symbols: treat those as transitive.
+```text
+ceps-client (Rust)  ─wasm-pack─→  ceps-wasm/pkg-nodejs  (Node)
+                              └→  ceps-wasm/pkg         (web)
+```
 
 ## Build
 
@@ -24,18 +19,20 @@ make pack     # both
 
 Requires `wasm-pack` and Binaryen `wasm-opt` (Makefile pins version via `ensure-binaryen`).
 
-## Vitest
+## Bound methods (today)
 
-```bash
-make ts-test
-```
+| Client | Methods |
+| --- | --- |
+| CEP-18 | `rpcUrl`, `sseUrl`, `chainName`, `setContractHash`, `install`, `name`, `symbol`, `balanceOf` |
+| CEP-78 | `rpcUrl`, `sseUrl`, `setContractHash`, `install`, `collectionName`, `balanceOf` |
+| CEP-85 | `rpcUrl`, `sseUrl`, `setContractHash`, `install`, `collectionName`, `balanceOf` |
 
-Smoke tests live under `tests/ts/` and import `ceps-wasm` from `pkg-nodejs`.
+Full mutate/query parity lives in Rust `ceps-client`. Generated `.d.ts` may also list transitive SDK symbols from `wasm-bindgen`; treat those as SDK surface, not a supported re-export.
 
-## Usage (Node)
+## Node usage
 
 ```js
-import { Cep18Client } from "ceps-wasm";
+import { Cep18Client } from "./ceps-wasm/pkg-nodejs/ceps_wasm.js";
 
 const client = new Cep18Client(
   "http://127.0.0.1:11101",
@@ -45,6 +42,35 @@ const client = new Cep18Client(
 );
 client.setContractHash(contractHash, packageHash);
 const name = await client.name();
+const bal = await client.balanceOf("account-hash-…");
 ```
 
-Install helpers accept `Uint8Array` WASM bytes plus PEM secret and payment amount; they return a JSON string `{ transactionHash, hasExecutionResult }`.
+Install returns a JSON string `{ transactionHash, hasExecutionResult }`:
+
+```js
+import { readFileSync } from "node:fs";
+
+const contractWasm = new Uint8Array(readFileSync("tests/wasm/cep18/cep18.wasm"));
+const secretPem = readFileSync("secret_key.pem", "utf8");
+const resultJson = await client.install(
+  "MyToken",
+  "MTK",
+  9,
+  "1000000000",
+  2, // CES
+  contractWasm,
+  secretPem,
+  "400000000000",
+  true,
+);
+```
+
+## Vitest
+
+```bash
+make ts-test
+```
+
+Smoke tests under `tests/ts/` import from `pkg-nodejs`.
+
+README also has a **Usage (Node / `ceps-wasm`)** section with the same story.
