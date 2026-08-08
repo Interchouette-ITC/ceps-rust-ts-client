@@ -1,5 +1,11 @@
 [workspace]
-members = ["ceps-client", "ceps-client-cli", "ceps-client-wasm", "tests/rust"]
+members = [
+  "ceps-client",
+  "ceps-client-cli",
+  "ceps-client-wasm",
+  "mcp",
+  "tests/rust",
+]
 default-members = ["ceps-client-cli", "ceps-client"]
 resolver = "2"
 
@@ -28,7 +34,11 @@ url = "2"
 hex = "0.4"
 base64 = "0.22"
 blake2 = "0.10"
-tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "time"] }
+tokio = { version = "1", default-features = false, features = [
+  "rt-multi-thread",
+  "macros",
+  "time",
+] }
 clap = { version = "4", features = ["derive", "env"] }
 anyhow = "1"
 

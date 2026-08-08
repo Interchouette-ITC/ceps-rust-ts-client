@@ -1,0 +1,30 @@
+//! MCP sidecar library for `ceps-client`.
+
+#![allow(clippy::too_many_arguments)]
+
+pub mod format;
+pub mod handle;
+pub mod server;
+pub mod tools;
+
+#[cfg(test)]
+mod live_tests;
+
+pub use server::{run, run_http, DEFAULT_HTTP_LISTEN};
+
+/// Crate version.
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/// Package name.
+pub const NAME: &str = env!("CARGO_PKG_NAME");
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn version_is_semverish() {
+        assert!(!VERSION.is_empty());
+        assert!(VERSION.contains('.'));
+    }
+}

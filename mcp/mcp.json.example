@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "ceps-client-mcp": {
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "--add-host=host.docker.internal:host-gateway",
+        "-e", "CEPS_RPC_URL=http://host.docker.internal:11101",
+        "-e", "CEPS_SSE_URL=http://host.docker.internal:18101/events",
+        "-e", "CEPS_MCP_HTTP=false",
+        "-e", "RUST_LOG=warn",
+        "--entrypoint", "ceps-client-mcp",
+        "interchouette/ceps-client-mcp:dev"
+      ]
+    },
+    "ceps-client-mcp-http": {
+      "url": "http://127.0.0.1:6790/mcp"
+    }
+  }
+}

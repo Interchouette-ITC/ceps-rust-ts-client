@@ -26,6 +26,8 @@ docs/api-rust/src/
 docs/api-rust/index.html
 assets/
 docker/ceps-client-cli
+mcp/ceps-client-mcp
+mcp/wasm/
 
 # Client JS packs and demo contract WASMs are committed (like rustSDK pkg/).
 # Nested wasm-pack "*" gitignores stay untracked:

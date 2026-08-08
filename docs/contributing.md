@@ -30,7 +30,7 @@ Override roots with `CEP18_PRODUCT`, `CEP78_PRODUCT`, `CEP85_PRODUCT`. Prefer ea
 
 Path dependency on [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) with features `transaction`, `contract`, `helpers`, `watcher`, `SSE` (see root `Cargo.toml` and [sdk.md](sdk.md)).
 
-CI uses git tag `2.2.0` of `casper-ecosystem/casper-rust-wasm-sdk` and mirrors `[patch.crates-io]` from this workspace.
+CI uses git tag `v2.2.2` of `casper-ecosystem/casper-rust-wasm-sdk` and mirrors `[patch.crates-io]` from this workspace.
 
 The SDK TUI remains SDK-owned. Wire CEP installs by calling `ceps-client` from a TUI action or companion binary in that tree; this repo exposes the library surface (`Cep18Client` / `Cep78Client` / `Cep85Client`) for that integration.
 

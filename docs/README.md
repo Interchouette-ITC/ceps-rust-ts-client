@@ -4,27 +4,28 @@ Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**), wit
 
 ## Quick links
 
-| Page | Content |
-| --- | --- |
-| [Getting started](getting-started.md) | Install, NCTL defaults, first client |
-| [Architecture](architecture.md) | lib ↔ CLI ↔ WASM ↔ SDK |
-| [SDK dependency](sdk.md) | Features, local path, CI pin, upgrades |
-| [CLI](cli.md) | Global flags and subcommands |
-| [WASM / TS](wasm-ts.md) | `ceps-client-wasm` pack and Vitest |
-| [Testing](testing.md) | Unit / integration / CLI smoke / examples |
-| [CI / CD](ci.md) | Gates, Hub/GHCR images, GitHub Releases |
-| [Release artefacts](releases.md) | Download CLI, client packs, demo contracts |
-| [Docker](docker.md) | CLI image tags and registries |
-| [Contributing](contributing.md) | Demo tip WASMs, lint, SDK pin |
-| [SECURITY.md](SECURITY.md) | Keys, trust boundary, reporting |
-| [CHANGELOG.md](CHANGELOG.md) | Semver notes |
+| Page                                  | Content                                    |
+| ------------------------------------- | ------------------------------------------ |
+| [Getting started](getting-started.md) | Install, NCTL defaults, first client       |
+| [Architecture](architecture.md)       | lib ↔ CLI ↔ WASM ↔ SDK                     |
+| [SDK dependency](sdk.md)              | Features, local path, CI pin, upgrades     |
+| [CLI](cli.md)                         | Global flags and subcommands               |
+| [MCP](mcp.md)                         | `ceps-client-mcp` agent tools              |
+| [WASM / TS](wasm-ts.md)               | `ceps-client-wasm` pack and Vitest         |
+| [Testing](testing.md)                 | Unit / integration / CLI smoke / examples  |
+| [CI / CD](ci.md)                      | Gates, Hub/GHCR images, GitHub Releases    |
+| [Release artefacts](releases.md)      | Download CLI, client packs, demo contracts |
+| [Docker](docker.md)                   | CLI image tags and registries              |
+| [Contributing](contributing.md)       | Demo tip WASMs, lint, SDK pin              |
+| [SECURITY.md](SECURITY.md)            | Keys, trust boundary, reporting            |
+| [CHANGELOG.md](CHANGELOG.md)          | Semver notes                               |
 
 ## CEP closets
 
-| Closet | Standard |
-| --- | --- |
-| [docs/cep18/](cep18/) | Fungible token |
-| [docs/cep78/](cep78/) | Enhanced NFT |
+| Closet                | Standard                                   |
+| --------------------- | ------------------------------------------ |
+| [docs/cep18/](cep18/) | Fungible token                             |
+| [docs/cep78/](cep78/) | Enhanced NFT                               |
 | [docs/cep85/](cep85/) | Multi-token (CEP-85; repo name `cep-1155`) |
 
 Each closet is self-contained: overview, quickstart, mutations, queries, errors, CLI, API.

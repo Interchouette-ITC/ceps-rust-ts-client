@@ -1,12 +1,12 @@
 # ceps-rust-ts-client
 
-One **Rust** client for Casper **CEP-18**, **CEP-78**, and **CEP-85**, with a **`ceps-client-cli`** and **WASM packs** so the same client can run from Node or the browser.
+One **Rust** client for Casper **CEP-18**, **CEP-78**, and **CEP-85**, with a **`ceps-client-cli`**, **`ceps-client-mcp`**, and **WASM packs** so the same client can run from shell, agents, Node, or the browser.
 
 It replaces the separate TypeScript **`client-js`** packages that lived next to each CEP contract. Instead of three JS clients, you use one library: `Cep18Client` / `Cep78Client` / `Cep85Client`, on top of [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
 
 ```text
 CEP-18 client-js  ─┐
-CEP-78 client-js  ─┼─→  ceps-client (Rust)  +  ceps-client-cli  +  ceps-client-wasm
+CEP-78 client-js  ─┼─→  ceps-client (Rust)  +  ceps-client-cli  +  ceps-client-mcp  +  ceps-client-wasm
 CEP-85 client-js  ─┘
 ```
 
@@ -35,6 +35,12 @@ CEP-85 client-js  ─┘
 <td><code>ceps-client-cli/</code></td>
 </tr>
 <tr>
+<td>MCP server</td>
+<td><code>ceps‑client‑mcp</code></td>
+<td>Full CEP agent tools (stdio / HTTP :6790)</td>
+<td><code>mcp/</code></td>
+</tr>
+<tr>
 <td>Client JS packs</td>
 <td><code>ceps‑client‑wasm</code></td>
 <td>Same CEP classes for Node and browsers (replaces per-CEP <code>client-js</code>)</td>
@@ -49,7 +55,7 @@ CEP-85 client-js  ─┘
 </tbody>
 </table>
 
-Release downloads use the same names: `ceps-client-cli-*-linux-x86_64`, `ceps-client-wasm-*.tgz`, and `ceps-contracts-*.tgz`. The first three rows are this client; the last row is sample contract bytecode, not the JS library.
+Release downloads use the same names: `ceps-client-cli-*-linux-x86_64`, `ceps-client-mcp-*-linux-x86_64`, `ceps-client-wasm-*.tgz`, and `ceps-contracts-*.tgz`. The library / CLI / MCP / JS packs are this client; `ceps-contracts` is sample contract bytecode, not the JS library.
 
 ## What you can do
 

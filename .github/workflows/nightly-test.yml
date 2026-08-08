@@ -44,7 +44,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: casper-ecosystem/casper-rust-wasm-sdk
-          ref: 2.2.0
+          ref: v2.2.2
           path: rustSDK
 
       - name: Checkout CEP-18 tip
@@ -145,6 +145,12 @@ jobs:
 
       - name: Integration tests (NCTL)
         run: make integration-test
+
+      - name: MCP unit tests
+        run: make mcp-test
+
+      - name: MCP live smokes (NCTL)
+        run: make mcp-test-live
 
       - name: CLI smoke
         run: make e2e-test

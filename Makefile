@@ -16,6 +16,7 @@ CASPER_SDK_MCP_IMAGE ?= interchouette/casper-rust-wasm-sdk-mcp:dev
 
 WASM_CRATE := ceps-client-wasm
 CLI_CRATE := ceps-client-cli
+MCP_CRATE := ceps-client-mcp
 COMMON_CRATE := ceps-client
 
 WEB_OUT_DIR := pkg
@@ -24,12 +25,16 @@ WASM_DIR := $(ROOT)/tests/wasm
 
 # Docker / GHCR image naming
 IMAGE_NAME := ceps-rust-ts-client
+MCP_IMAGE_NAME := ceps-client-mcp
 IMAGE_TAG ?= local
 HUB_USER ?= interchouette
 GHCR_PERSONAL ?= groussac
 GHCR_ORG ?= interchouette-itc
 DOCKER_CONTEXT_BIN ?= $(ROOT)/target/release/ceps-client-cli
 DOCKERFILE := $(ROOT)/docker/Dockerfile
+MCP_DOCKERFILE := $(ROOT)/mcp/Dockerfile
+COMPOSE_MCP := $(ROOT)/docker/docker-compose.mcp.yml
+CEPS_MCP_IMAGE ?= interchouette/ceps-client-mcp:dev
 
 # Pin Binaryen so wasm-pack does not fall back to vendored 117.
 BINARYEN_VERSION := 131
@@ -48,8 +53,10 @@ CARGO := env -u CARGO_TARGET_DIR -u PLAYWRIGHT_BROWSERS_PATH cargo
 	test unit-test integration-test e2e-test examples ts-test wasm-bindgen-test \
 	pack web nodejs \
 	run-cli \
-	release-cli-bin \
+	release-cli-bin release-mcp-bin \
 	docker-build docker-tag docker-push-hub docker-push-ghcr docker-push \
+	docker-build-mcp docker-tag-mcp docker-push-mcp-hub docker-push-mcp-ghcr docker-push-mcp \
+	mcp-build run-mcp run-mcp-http mcp-http mcp-http-stop mcp-test mcp-test-live \
 	nctl-start nctl-start-all nctl-stop nctl-stop-all nctl-status nctl-endpoints \
 	sdk-mcp-http sdk-mcp-http-stop \
 	wasm-from-ceps \
@@ -77,9 +84,12 @@ help:
 	@echo "WASM pack"
 	@echo "  pack / web / nodejs   wasm-pack release (needs ensure-binaryen)"
 	@echo ""
-	@echo "CLI"
+	@echo "CLI / MCP"
 	@echo "  run-cli            cargo run -p $(CLI_CRATE) -- \$$(CLI_ARGS)"
 	@echo "  release-cli-bin    cargo build -p $(CLI_CRATE) --release (+ strip)"
+	@echo "  mcp-build / run-mcp / run-mcp-http / mcp-test / mcp-test-live"
+	@echo "  mcp-http / mcp-http-stop   compose HTTP :6790"
+	@echo "  release-mcp-bin / docker-build-mcp / docker-push-mcp"
 	@echo ""
 	@echo "Docker / GHCR (IMAGE_TAG=dev|semver|latest)"
 	@echo "  docker-build / docker-tag / docker-push-hub / docker-push-ghcr / docker-push"
@@ -90,7 +100,7 @@ help:
 	@echo "  wasm-from-ceps     stage tip WASMs into tests/wasm/"
 	@echo ""
 	@echo "CI"
-	@echo "  ci-local           check-lint + unit-test (no NCTL)"
+	@echo "  ci-local           check-lint + unit-test + mcp-test (no NCTL)"
 
 prepare:
 	rustup target add wasm32-unknown-unknown
@@ -176,6 +186,7 @@ clippy: prepare
 	$(CARGO) clippy -p $(COMMON_CRATE) --lib -- -D warnings
 	$(CARGO) clippy -p $(CLI_CRATE) --bins -- -D warnings
 	$(CARGO) clippy -p $(WASM_CRATE) --lib -- -D warnings
+	$(CARGO) clippy -p $(MCP_CRATE) --lib --bins -- -D warnings
 
 check-lint: clippy
 	$(CARGO) fmt -- --check
@@ -227,6 +238,58 @@ release-cli-bin:
 	$(CARGO) build -p $(CLI_CRATE) --release
 	@strip -s "$(ROOT)/target/release/ceps-client-cli" 2>/dev/null || strip "$(ROOT)/target/release/ceps-client-cli"
 	@echo "release-cli-bin: $(ROOT)/target/release/ceps-client-cli"
+
+release-mcp-bin:
+	$(CARGO) build -p $(MCP_CRATE) --release
+	@strip -s "$(ROOT)/target/release/ceps-client-mcp" 2>/dev/null || strip "$(ROOT)/target/release/ceps-client-mcp"
+	@echo "release-mcp-bin: $(ROOT)/target/release/ceps-client-mcp"
+
+mcp-build:
+	$(CARGO) build -p $(MCP_CRATE) --release
+
+run-mcp:
+	$(CARGO) run -p $(MCP_CRATE) --release
+
+run-mcp-http:
+	$(CARGO) run -p $(MCP_CRATE) --release -- --http --listen 127.0.0.1:6790
+
+mcp-test:
+	$(CARGO) test -p $(MCP_CRATE)
+
+mcp-test-live:
+	$(CARGO) test -p $(MCP_CRATE) -- --ignored --test-threads=1 --nocapture
+
+mcp-http:
+	CEPS_MCP_IMAGE="$(CEPS_MCP_IMAGE)" docker compose -f "$(COMPOSE_MCP)" up -d
+
+mcp-http-stop:
+	-docker compose -f "$(COMPOSE_MCP)" down
+
+docker-build-mcp: release-mcp-bin
+	@test -d "$(WASM_DIR)/cep18" || { echo "docker-build-mcp: missing $(WASM_DIR); run make wasm-from-ceps"; exit 1; }
+	cp -f "$(ROOT)/target/release/ceps-client-mcp" "$(ROOT)/mcp/ceps-client-mcp"
+	rm -rf "$(ROOT)/mcp/wasm"
+	cp -a "$(WASM_DIR)" "$(ROOT)/mcp/wasm"
+	docker build -f "$(MCP_DOCKERFILE)" \
+		-t "$(MCP_IMAGE_NAME):$(IMAGE_TAG)" \
+		"$(ROOT)/mcp"
+	rm -f "$(ROOT)/mcp/ceps-client-mcp"
+	rm -rf "$(ROOT)/mcp/wasm"
+	@echo "docker-build-mcp: $(MCP_IMAGE_NAME):$(IMAGE_TAG)"
+
+docker-tag-mcp:
+	docker tag "$(MCP_IMAGE_NAME):$(IMAGE_TAG)" "$(HUB_USER)/$(MCP_IMAGE_NAME):$(IMAGE_TAG)"
+	docker tag "$(MCP_IMAGE_NAME):$(IMAGE_TAG)" "ghcr.io/$(GHCR_PERSONAL)/$(MCP_IMAGE_NAME):$(IMAGE_TAG)"
+	docker tag "$(MCP_IMAGE_NAME):$(IMAGE_TAG)" "ghcr.io/$(GHCR_ORG)/$(MCP_IMAGE_NAME):$(IMAGE_TAG)"
+
+docker-push-mcp-hub:
+	docker push "$(HUB_USER)/$(MCP_IMAGE_NAME):$(IMAGE_TAG)"
+
+docker-push-mcp-ghcr:
+	docker push "ghcr.io/$(GHCR_PERSONAL)/$(MCP_IMAGE_NAME):$(IMAGE_TAG)"
+	docker push "ghcr.io/$(GHCR_ORG)/$(MCP_IMAGE_NAME):$(IMAGE_TAG)"
+
+docker-push-mcp: docker-tag-mcp docker-push-mcp-hub docker-push-mcp-ghcr
 
 docker-build:
 	@test -f "$(DOCKER_CONTEXT_BIN)" || { \
@@ -336,4 +399,4 @@ wasm-from-ceps:
 	done; \
 	echo "wasm-from-ceps: done -> $(WASM_DIR)"
 
-ci-local: check-lint unit-test doc-check
+ci-local: check-lint unit-test mcp-test doc-check

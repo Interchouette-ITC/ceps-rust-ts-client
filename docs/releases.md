@@ -12,14 +12,15 @@ Examples: `v1.0.0`, `dev-preview`.
 
 ## Assets
 
-| File | Contents |
-| --- | --- |
-| `ceps-client-cli-{label}-linux-x86_64` | Stripped CLI binary |
-| `ceps-client-wasm-nodejs-{label}.tgz` | Client pack for **Node** (`pkg-nodejs/`) |
-| `ceps-client-wasm-web-{label}.tgz` | Client pack for **browsers** (`pkg/`) |
-| `ceps-contracts-{label}.tgz` | Demo tip **on-chain** WASMs (`cep18/`, `cep78/`, `cep85/`) |
-| `ceps-contracts-{label}.MANIFEST.txt` | File list / tip note |
-| `SHA256SUMS` | Checksums |
+| File                                   | Contents                                                   |
+| -------------------------------------- | ---------------------------------------------------------- |
+| `ceps-client-cli-{label}-linux-x86_64` | Stripped CLI binary                                        |
+| `ceps-client-mcp-{label}-linux-x86_64` | Stripped MCP server binary                                 |
+| `ceps-client-wasm-nodejs-{label}.tgz`  | Client pack for **Node** (`pkg-nodejs/`)                   |
+| `ceps-client-wasm-web-{label}.tgz`     | Client pack for **browsers** (`pkg/`)                      |
+| `ceps-contracts-{label}.tgz`           | Demo tip **on-chain** WASMs (`cep18/`, `cep78/`, `cep85/`) |
+| `ceps-contracts-{label}.MANIFEST.txt`  | File list / tip note                                       |
+| `SHA256SUMS`                           | Checksums                                                  |
 
 `{label}` is the tag without a leading `v` (`1.0.0` or `dev-preview`).
 
@@ -65,6 +66,7 @@ Use those bytes in `install(...)` (Rust or JS). They are **demo tip** builds (se
 make pack              # client Node + web packs
 make wasm-from-ceps    # contracts from tip checkouts
 make release-cli-bin   # CLI
+make release-mcp-bin   # MCP
 ```
 
 CI wiring: [ci.md](ci.md).
