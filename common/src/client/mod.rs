@@ -17,6 +17,7 @@ pub trait ClientTrait {
 pub(crate) struct Client {
     rpc_url: String,
     sse_url: Option<String>,
+    chain_name: Option<String>,
     verbosity: Option<Verbosity>,
     cep: Cep,
 }
@@ -31,6 +32,7 @@ impl Client {
         let mut client = Self {
             rpc_url: String::from(""),
             sse_url: None,
+            chain_name: None,
             verbosity,
             cep,
         };
