@@ -33,3 +33,4 @@ tests/wasm/**/*.wasm
 docs/api-rust/ceps_client/
 docs/api-rust/src/
 docs/api-rust/index.html
+assets/

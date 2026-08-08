@@ -1,17 +1,16 @@
-# Tip-line PR / push gate. No Pages, no npm publish, no GitHub Releases.
-name: ci-test
+# Overnight tip tests. Adds audit + wasm-pack + Vitest on top of the PR gate.
+name: nightly-test
 
 on:
-  push:
-    branches: [dev, ceps-client-test, main]
-  pull_request:
-    branches: [dev, ceps-client-test, main]
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build_and_test:
+  nightly:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -26,6 +25,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y pkg-config libssl-dev
+        working-directory: .
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo apt-get autoremove -y
+          sudo apt-get clean
+          df -h
         working-directory: .
 
       - name: Checkout client
@@ -71,6 +78,9 @@ jobs:
           components: rustfmt, clippy
           targets: wasm32-unknown-unknown
 
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+
       - name: Stage tip WASMs
         run: make wasm-from-ceps
 
@@ -92,31 +102,24 @@ jobs:
 
       - name: Wait for NCTL
         run: |
-          echo "Waiting for RPC on 11101..."
           for i in {1..60}; do
             if nc -z localhost 11101; then
-              echo "RPC up; waiting for keys..."
               sleep 45
               break
             fi
             sleep 2
           done
-          nc -z localhost 11101 || { echo "RPC did not start"; exit 1; }
-
-          echo "Waiting for SSE..."
+          nc -z localhost 11101 || exit 1
           for i in {1..60}; do
             if curl --silent --max-time 2 http://127.0.0.1:18101/events | grep -q "ApiVersion"; then
-              echo "SSE up"
               break
             fi
             sleep 2
           done
-          curl --silent --max-time 2 http://127.0.0.1:18101/events | grep -q "ApiVersion" \
-            || { echo "SSE did not start"; exit 1; }
+          curl --silent --max-time 2 http://127.0.0.1:18101/events | grep -q "ApiVersion" || exit 1
 
       - name: Export NCTL user secrets
         run: |
-          # WARNING: NCTL fixture keys are public once mounted in CI.
           {
             echo "SECRET_KEY_USER_1<<CEPS_PEM_EOF"
             cat ./assets/users/user-1/secret_key.pem
@@ -129,6 +132,10 @@ jobs:
               echo "CEPS_PEM_EOF"
             } >> "$GITHUB_ENV"
           fi
+
+      - name: cargo audit
+        run: cargo audit
+        continue-on-error: true
 
       - name: Lint
         run: make check-lint
@@ -150,3 +157,15 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           package-manager-cache: false
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Pack nodejs
+        run: make nodejs
+
+      - name: Vitest
+        run: |
+          cd tests/ts
+          npm install
+          npm test

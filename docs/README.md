@@ -9,7 +9,8 @@ Unified **Rust** CEP client for Casper (CEP-18, CEP-78, CEP-85), with a thin WAS
 | [Getting started](getting-started.md) | Install, NCTL, first client             |
 | [Architecture](architecture.md)       | lib ↔ CLI ↔ WASM ↔ SDK                  |
 | [CLI](cli.md)                         | Global flags and subcommands            |
-| [Testing](testing.md)                 | Unit / integration / e2e / examples     |
+| [Testing](testing.md)                 | Unit / integration / CLI smoke / examples |
+| [CI / CD](ci.md)                      | GitHub Actions strategy (aligned with rustSDK) |
 | [Contributing](contributing.md)       | Tip checkout, `wasm-from-ceps`, SDK pin |
 | [WASM / TS](wasm-ts.md)               | `ceps-wasm` pack notes                  |
 

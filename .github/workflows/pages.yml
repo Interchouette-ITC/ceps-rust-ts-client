@@ -1,0 +1,54 @@
+# GitHub Pages: narrative docs + rustdoc under docs/.
+name: pages
+
+on:
+  push:
+    branches: [dev, ceps-client-test]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24.x]
+
+    defaults:
+      run:
+        working-directory: ceps-rust-ts-client
+
+    steps:
+      - name: Checkout client
+        uses: actions/checkout@v5
+        with:
+          path: ceps-rust-ts-client
+
+      - name: Checkout rustSDK (path dep)
+        uses: actions/checkout@v5
+        with:
+          repository: casper-ecosystem/casper-rust-wasm-sdk
+          ref: 2.2.0
+          path: rustSDK
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+          package-manager-cache: false
+
+      - name: Doc
+        run: |
+          make doc-check
+          make doc
+
+      - name: Deploy GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: ceps-rust-ts-client/docs
+          commit-message: "Deploy documentation for ${{ github.ref_name }}"
