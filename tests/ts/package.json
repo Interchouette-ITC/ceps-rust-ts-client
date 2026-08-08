@@ -1,15 +1,15 @@
 {
-  "name": "tests",
+  "name": "ceps-wasm-tests",
   "version": "1.0.0",
-  "description": "tests for ts-client",
-  "main": "index.js",
+  "private": true,
+  "description": "Vitest smoke tests for ceps-wasm pkg-nodejs",
   "scripts": {
     "test": "vitest --run"
   },
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
-    "vitest": "^3.0.7",
-    "ceps-ts-client": "../../ceps-ts-client/pkg-nodejs"
+    "vitest": "^3.0.7"
+  },
+  "dependencies": {
+    "ceps-wasm": "file:../../ceps-wasm/pkg-nodejs"
   }
 }

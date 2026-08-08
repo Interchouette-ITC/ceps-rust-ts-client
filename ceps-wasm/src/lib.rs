@@ -1,6 +1,13 @@
 //! Thin wasm-bindgen surface over `ceps-client` (CEP APIs only).
 
-use ceps_client::{Cep18Client, Cep78Client, Cep85Client, Verbosity};
+use ceps_client::cep18::InstallArgs as Cep18InstallArgs;
+use ceps_client::cep78::InstallArgs as Cep78InstallArgs;
+use ceps_client::cep85::InstallArgs as Cep85InstallArgs;
+use ceps_client::{
+    CallResult, Cep18Client, Cep78Client, Cep85Client, DeployParams, EventsMode, EventsMode78,
+    Verbosity,
+};
+use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
 
 fn map_err(err: ceps_client::CepError) -> JsValue {
@@ -14,6 +21,26 @@ fn verbosity_from_u8(v: Option<u8>) -> Option<Verbosity> {
         Some(2) => Some(Verbosity::High),
         _ => Some(Verbosity::Low),
     }
+}
+
+fn deploy_params(secret_key_pem: &str, payment_amount: &str, wait: bool) -> DeployParams {
+    let mut d = DeployParams::new(secret_key_pem, payment_amount);
+    if !wait {
+        d = d.without_wait();
+    }
+    d
+}
+
+fn call_result_json(result: CallResult) -> Result<String, JsValue> {
+    serde_json::to_string(&serde_json::json!({
+        "transactionHash": result.transaction_hash,
+        "hasExecutionResult": result.execution_result.is_some(),
+    }))
+    .map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+fn bytes_from_js(wasm: &Uint8Array) -> Vec<u8> {
+    wasm.to_vec()
 }
 
 /// WASM wrapper for [`Cep18Client`].
@@ -49,6 +76,12 @@ impl WasmCep18Client {
         self.inner.sse_url().map(str::to_string)
     }
 
+    /// Chain name.
+    #[wasm_bindgen(js_name = chainName)]
+    pub fn chain_name(&self) -> String {
+        self.inner.chain_name().to_string()
+    }
+
     /// Bind contract hashes (hex or prefixed).
     #[wasm_bindgen(js_name = setContractHash)]
     pub fn set_contract_hash(
@@ -59,6 +92,53 @@ impl WasmCep18Client {
         self.inner
             .set_contract_hash(contract_hash, package_hash)
             .map_err(map_err)
+    }
+
+    /// Install with required fields (+ optional CES events when `events_mode` is set).
+    #[wasm_bindgen]
+    pub async fn install(
+        &self,
+        name: String,
+        symbol: String,
+        decimals: u8,
+        total_supply: String,
+        events_mode: Option<u8>,
+        wasm: Uint8Array,
+        secret_key_pem: String,
+        payment_amount: String,
+        wait: Option<bool>,
+    ) -> Result<String, JsValue> {
+        let mut args = Cep18InstallArgs::new(name, symbol, decimals, total_supply);
+        if let Some(mode) = events_mode {
+            let mode = EventsMode::from_u8(mode)
+                .ok_or_else(|| JsValue::from_str("invalid events_mode"))?;
+            args = args.with_events_mode(mode);
+        }
+        let deploy = deploy_params(&secret_key_pem, &payment_amount, wait.unwrap_or(true));
+        let put = self
+            .inner
+            .install(&args, &bytes_from_js(&wasm), &deploy)
+            .await
+            .map_err(map_err)?;
+        call_result_json(put)
+    }
+
+    /// Token name.
+    #[wasm_bindgen]
+    pub async fn name(&self) -> Result<String, JsValue> {
+        self.inner.name().await.map_err(map_err)
+    }
+
+    /// Token symbol.
+    #[wasm_bindgen]
+    pub async fn symbol(&self) -> Result<String, JsValue> {
+        self.inner.symbol().await.map_err(map_err)
+    }
+
+    /// Balance of `account` (`account-hash-…` or prefixed).
+    #[wasm_bindgen(js_name = balanceOf)]
+    pub async fn balance_of(&self, account: String) -> Result<String, JsValue> {
+        self.inner.balance_of(&account).await.map_err(map_err)
     }
 }
 
@@ -88,6 +168,64 @@ impl WasmCep78Client {
     pub fn rpc_url(&self) -> String {
         self.inner.rpc_url().to_string()
     }
+
+    /// SSE URL when set.
+    #[wasm_bindgen(js_name = sseUrl)]
+    pub fn sse_url(&self) -> Option<String> {
+        self.inner.sse_url().map(str::to_string)
+    }
+
+    /// Bind contract hashes.
+    #[wasm_bindgen(js_name = setContractHash)]
+    pub fn set_contract_hash(
+        &mut self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> Result<(), JsValue> {
+        self.inner
+            .set_contract_hash(contract_hash, package_hash)
+            .map_err(map_err)
+    }
+
+    /// Install with defaults (Transferable / Raw / Ordinal) and optional events mode.
+    #[wasm_bindgen]
+    pub async fn install(
+        &self,
+        collection_name: String,
+        collection_symbol: String,
+        total_token_supply: u64,
+        events_mode: Option<u8>,
+        wasm: Uint8Array,
+        secret_key_pem: String,
+        payment_amount: String,
+        wait: Option<bool>,
+    ) -> Result<String, JsValue> {
+        let mut args = Cep78InstallArgs::new(collection_name, collection_symbol, total_token_supply);
+        if let Some(mode) = events_mode {
+            let mode = EventsMode78::from_u8(mode)
+                .ok_or_else(|| JsValue::from_str("invalid events_mode"))?;
+            args = args.with_events_mode(mode);
+        }
+        let deploy = deploy_params(&secret_key_pem, &payment_amount, wait.unwrap_or(true));
+        let put = self
+            .inner
+            .install(&args, &bytes_from_js(&wasm), &deploy)
+            .await
+            .map_err(map_err)?;
+        call_result_json(put)
+    }
+
+    /// Collection name.
+    #[wasm_bindgen(js_name = collectionName)]
+    pub async fn collection_name(&self) -> Result<String, JsValue> {
+        self.inner.collection_name().await.map_err(map_err)
+    }
+
+    /// Balance of owner.
+    #[wasm_bindgen(js_name = balanceOf)]
+    pub async fn balance_of(&self, owner: String) -> Result<String, JsValue> {
+        self.inner.balance_of(&owner).await.map_err(map_err)
+    }
 }
 
 /// WASM wrapper for [`Cep85Client`].
@@ -115,5 +253,69 @@ impl WasmCep85Client {
     #[wasm_bindgen(js_name = rpcUrl)]
     pub fn rpc_url(&self) -> String {
         self.inner.rpc_url().to_string()
+    }
+
+    /// SSE URL when set.
+    #[wasm_bindgen(js_name = sseUrl)]
+    pub fn sse_url(&self) -> Option<String> {
+        self.inner.sse_url().map(str::to_string)
+    }
+
+    /// Bind contract hashes.
+    #[wasm_bindgen(js_name = setContractHash)]
+    pub fn set_contract_hash(
+        &mut self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> Result<(), JsValue> {
+        self.inner
+            .set_contract_hash(contract_hash, package_hash)
+            .map_err(map_err)
+    }
+
+    /// Install with URI and optional CES events / burn flag.
+    #[wasm_bindgen]
+    pub async fn install(
+        &self,
+        name: String,
+        uri: String,
+        events_mode: Option<u8>,
+        enable_burn: Option<bool>,
+        wasm: Uint8Array,
+        secret_key_pem: String,
+        payment_amount: String,
+        wait: Option<bool>,
+    ) -> Result<String, JsValue> {
+        let mut args = Cep85InstallArgs::new(name, uri);
+        if let Some(mode) = events_mode {
+            let mode = EventsMode::from_u8(mode)
+                .ok_or_else(|| JsValue::from_str("invalid events_mode"))?;
+            args = args.with_events_mode(mode);
+        }
+        if let Some(b) = enable_burn {
+            args = args.with_enable_burn(b);
+        }
+        let deploy = deploy_params(&secret_key_pem, &payment_amount, wait.unwrap_or(true));
+        let put = self
+            .inner
+            .install(&args, &bytes_from_js(&wasm), &deploy)
+            .await
+            .map_err(map_err)?;
+        call_result_json(put)
+    }
+
+    /// Collection name.
+    #[wasm_bindgen(js_name = collectionName)]
+    pub async fn collection_name(&self) -> Result<String, JsValue> {
+        self.inner.collection_name().await.map_err(map_err)
+    }
+
+    /// Balance for account + token id.
+    #[wasm_bindgen(js_name = balanceOf)]
+    pub async fn balance_of(&self, account: String, id: String) -> Result<String, JsValue> {
+        self.inner
+            .balance_of(&account, &id)
+            .await
+            .map_err(map_err)
     }
 }

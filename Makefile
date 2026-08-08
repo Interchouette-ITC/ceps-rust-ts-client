@@ -24,7 +24,7 @@ NODEJS_OUT_DIR := pkg-nodejs
 WASM_DIR := $(ROOT)/tests/wasm
 
 # Pin Binaryen so wasm-pack does not fall back to vendored 117.
-BINARYEN_VERSION := 130
+BINARYEN_VERSION := 131
 BINARYEN_DIR := $(ROOT)/.tools/binaryen-version_$(BINARYEN_VERSION)
 BINARYEN_BIN := $(BINARYEN_DIR)/bin
 BINARYEN_PATH_FILE := $(ROOT)/.tools/wasm-opt-bin
@@ -176,7 +176,7 @@ ts-test:
 	cd tests/ts && npm install && npm test
 
 wasm-bindgen-test: prepare
-	cd $(WASM_CRATE) && wasm-pack test --headless --chrome
+	cd $(WASM_CRATE) && wasm-pack test --node
 
 test: unit-test integration-test
 
