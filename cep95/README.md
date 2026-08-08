@@ -1,6 +1,8 @@
 # CEP-95 client closet
 
-NFT client (`Cep95Client`) with JS-client API parity and Odra OwnedCep95 tip install. Spec: [0095-nft-standard](https://github.com/casper-network/ceps/blob/master/text/0095-nft-standard.md). Demo WASM: `tests/wasm/cep95/cep95.wasm` (from `Interchouette-ITC/cep-95` @ `ceps-client-test`).
+Supported simpler ERC-721-shaped NFT client (`Cep95Client`) with JS-client API parity and Odra OwnedCep95 tip install. Spec: [0095-nft-standard](https://github.com/casper-network/ceps/blob/master/text/0095-nft-standard.md). Demo WASM: `tests/wasm/cep95/cep95.wasm` (from `Interchouette-ITC/cep-95` @ `ceps-client-test`).
+
+CEP-95 does **not** replace [CEP-78](../cep78/) in this client. CEP-78 remains the first-class enhanced / configurable NFT surface; use CEP-95 when you want the fixed simpler API. The Odra tip has no CES `__events_schema` path: wait via SSE only.
 
 ## TOC
 

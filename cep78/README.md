@@ -1,6 +1,8 @@
 # CEP-78 client
 
-Enhanced NFT client (`Cep78Client`). Demo installs use the CEP-78 tip WASMs described in [contributing.md](../contributing.md).
+First-class enhanced NFT client (`Cep78Client`): configurable mode matrix, session WASMs, and full install-config queries. Demo installs use the CEP-78 tip WASMs described in [contributing.md](../contributing.md).
+
+CEP-95 is a separate, simpler NFT API also supported by this product; it does not replace CEP-78. See [docs/cep95/](../cep95/).
 
 | Page | Topic |
 | --- | --- |

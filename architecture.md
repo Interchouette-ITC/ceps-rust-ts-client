@@ -3,7 +3,7 @@
 ```text
 casper-rust-wasm-sdk          (RPC, tx, install, query, wait, CES)
         ^
-   ceps-client                (CepCore + Cep18/78/85 facades, CEP enums, error maps)
+   ceps-client                (CepCore + Cep18/78/85/95 facades, CEP enums, error maps, CES helpers)
       ^        ^        ^
    ceps-client-cli  ceps-client-wasm  ceps-client-mcp
       (clap)         (wasm-bindgen)    (mcpkit stdio/HTTP)
@@ -24,10 +24,11 @@ casper-rust-wasm-sdk          (RPC, tx, install, query, wait, CES)
 ## Facades
 
 - `Cep18Client` - fungible token
-- `Cep78Client` - enhanced NFT (mode matrix + session helpers)
+- `Cep78Client` - first-class enhanced NFT (mode matrix + session helpers)
 - `Cep85Client` - multi-token (on-chain standard name **CEP-85**)
+- `Cep95Client` - supported simpler ERC-721-shaped NFT (Odra tip; does not replace CEP-78)
 
-All share `CepCore` for endpoints, contract targeting, install/call/query/wait.
+All share `CepCore` for endpoints, contract targeting, install/call/query/wait, and CES parse helpers.
 
 ## CLI vs library
 

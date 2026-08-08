@@ -1,6 +1,8 @@
 # Documentation hub
 
-Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**, **CEP-95**), with JS packs (`ceps-client-wasm`) and a clap CLI (`ceps-client-cli`).
+Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**, with **CEP-95** supported), with JS packs (`ceps-client-wasm`) and a clap CLI (`ceps-client-cli`).
+
+**CEP-78** is the first-class enhanced NFT surface in this client. **CEP-95** is a supported simpler ERC-721-shaped NFT API (Odra tip); it does not replace CEP-78.
 
 ## Quick links
 
@@ -25,9 +27,9 @@ Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**, **CE
 | Closet                | Standard                                   |
 | --------------------- | ------------------------------------------ |
 | [docs/cep18/](cep18/) | Fungible token                             |
-| [docs/cep78/](cep78/) | Enhanced NFT                               |
+| [docs/cep78/](cep78/) | Enhanced NFT (first-class)                 |
 | [docs/cep85/](cep85/) | Multi-token (CEP-85; repo name `cep-1155`) |
-| [docs/cep95/](cep95/) | NFT (CEP-95; Odra tip)                     |
+| [docs/cep95/](cep95/) | Simpler ERC-721-shaped NFT (supported; Odra tip) |
 
 Each closet is self-contained: overview, quickstart, mutations, queries, errors, CLI, API.
 

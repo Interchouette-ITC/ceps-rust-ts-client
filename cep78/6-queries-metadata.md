@@ -1,8 +1,22 @@
 # Queries and metadata
 
-Contract named keys via `query_contract_key`: `collection_name`, `collection_symbol`, `total_token_supply`, `number_of_minted_tokens`, `events_mode`, and other install modalities.
+## Install-config getters
 
-Dictionaries:
+Named keys via `query_contract_key` (JS parity):
+
+| Method | Named key |
+| --- | --- |
+| `collection_name` / `collection_symbol` | same |
+| `total_token_supply` / `number_of_minted_tokens` | same |
+| `events_mode` | `events_mode` |
+| `allow_minting` | `allow_minting` |
+| `minting_mode` / `whitelist_mode` / `burn_mode` / `holder_mode` / `identifier_mode` / `metadata_mutability` / `nft_kind` / `nft_metadata_kind` / `ownership_mode` | matching `*_mode` / kind keys |
+| `reporting_mode` | `reporting_mode` (owner reverse lookup) |
+| `operator_burn_mode` / `package_operator_mode` / `acl_package_mode` | bool flags |
+| `json_schema` | `json_schema` |
+| `is_acl_whitelisted(entity)` | dictionary `acl_whitelist` (hex body item key) |
+
+## Dictionaries
 
 | Dict | Item key |
 | --- | --- |
