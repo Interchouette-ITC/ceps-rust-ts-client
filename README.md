@@ -24,25 +24,25 @@ CEP-85 client-js  ─┘
 <tbody>
 <tr>
 <td>Rust library</td>
-<td><span style="white-space: nowrap;"><code>ceps-client</code></span></td>
+<td><code>ceps‑client</code></td>
 <td>CEP API for native Rust apps</td>
 <td><code>ceps-client/</code></td>
 </tr>
 <tr>
 <td>CLI</td>
-<td><span style="white-space: nowrap;"><code>ceps-client-cli</code></span></td>
+<td><code>ceps‑client‑cli</code></td>
 <td>Status and common queries from the shell</td>
 <td><code>ceps-client-cli/</code></td>
 </tr>
 <tr>
 <td>Client JS packs</td>
-<td><span style="white-space: nowrap;"><code>ceps-client-wasm</code></span></td>
+<td><code>ceps‑client‑wasm</code></td>
 <td>Same CEP classes for Node and browsers (replaces per-CEP <code>client-js</code>)</td>
 <td><code>ceps-client-wasm/pkg</code> / <code>pkg-nodejs</code></td>
 </tr>
 <tr>
 <td>Demo contract WASMs</td>
-<td><span style="white-space: nowrap;"><code>ceps-contracts</code></span></td>
+<td><code>ceps‑contracts</code></td>
 <td>On-chain bytecode for <code>install</code> (demo tips)</td>
 <td><code>tests/wasm/{cep18,cep78,cep85}/</code></td>
 </tr>
