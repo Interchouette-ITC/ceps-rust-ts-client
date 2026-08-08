@@ -40,3 +40,8 @@ required-features = []
 name = "cep85_install"
 path = "examples/cep85_install.rs"
 required-features = []
+
+[[example]]
+name = "cep78_install"
+path = "examples/cep78_install.rs"
+required-features = []

@@ -1,12 +1,26 @@
-//! CEP-78 enhanced NFT client (facade shell; full parity in later work).
+//! CEP-78 enhanced NFT client.
 
+mod error;
+mod keys;
+mod modes;
 mod types;
 
-pub use types::InstallArgs;
+pub use error::Cep78Error;
+pub use keys::{key_hex_body, operator_dictionary_key, prefixed_key};
+pub use modes::{
+    BurnMode, HolderMode, IdentifierMode, MetadataMutability, MintingMode, NamedKeyConventionMode,
+    NftKind, NftMetadataKind, OwnerReverseLookupMode, OwnershipMode, WhitelistMode,
+};
+pub use types::{InstallArgs, SetVariablesArgs, TokenIdentifier, UpgradeArgs};
 
 use crate::core::CepCore;
-use crate::error::{CepKind, Result};
+use crate::core::{
+    bool_arg, json_args, key_arg, key_list_arg, string_arg, u64_arg, u8_arg, JsonArg,
+};
+use crate::error::{CepError, CepKind, Result};
+use crate::types::{CallResult, DeployParams, EventsMode78};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
+use serde_json::Value;
 
 /// Client for CEP-78 enhanced NFT contracts.
 pub struct Cep78Client {
@@ -84,6 +98,522 @@ impl Cep78Client {
     ) -> Result<()> {
         self.core.set_contract_hash(contract_hash, package_hash)
     }
+
+    /// Install a CEP-78 contract.
+    pub async fn install(
+        &self,
+        args: &InstallArgs,
+        wasm: &[u8],
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        self.core
+            .install_wasm(wasm, deploy, &install_args_json(args)?)
+            .await
+    }
+
+    /// Upgrade an existing CEP-78 package (same installer WASM).
+    pub async fn upgrade(
+        &self,
+        args: &UpgradeArgs,
+        wasm: &[u8],
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let mut v = vec![string_arg("collection_name", &args.collection_name)];
+        if let Some(supply) = args.total_token_supply {
+            v.push(u64_arg("total_token_supply", supply));
+        }
+        if let Some(mode) = args.events_mode {
+            v.push(u8_arg("events_mode", mode.into()));
+        }
+        if let Some(b) = args.acl_package_mode {
+            v.push(bool_arg("acl_package_mode", b));
+        }
+        if let Some(b) = args.package_operator_mode {
+            v.push(bool_arg("package_operator_mode", b));
+        }
+        if let Some(b) = args.operator_burn_mode {
+            v.push(bool_arg("operator_burn_mode", b));
+        }
+        self.core.install_wasm(wasm, deploy, &json_args(&v)).await
+    }
+
+    /// Mint via entrypoint.
+    pub async fn mint(
+        &self,
+        token_owner: &str,
+        token_meta_data: &str,
+        token_hash: Option<&str>,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let mut v = vec![
+            key_arg("token_owner", &prefixed_key(token_owner)?),
+            string_arg("token_meta_data", token_meta_data),
+        ];
+        if let Some(hash) = token_hash {
+            v.push(string_arg("token_hash", hash));
+        }
+        self.core.call_entrypoint("mint", deploy, &json_args(&v)).await
+    }
+
+    /// Mint via `mint_session.wasm` (registers owner + writes receipts).
+    pub async fn mint_session(
+        &self,
+        token_owner: &str,
+        token_meta_data: &str,
+        token_hash: Option<&str>,
+        session_wasm: &[u8],
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let mut v = vec![
+            key_arg("token_owner", &prefixed_key(token_owner)?),
+            string_arg("token_meta_data", token_meta_data),
+            key_arg("nft_contract_hash", &self.contract_hash_key()?),
+        ];
+        if let Some(hash) = token_hash {
+            v.push(string_arg("token_hash", hash));
+        }
+        self.core
+            .call_session(session_wasm, deploy, &json_args(&v))
+            .await
+    }
+
+    /// Burn a token.
+    pub async fn burn(
+        &self,
+        token: &TokenIdentifier,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let v = token_args(token)?;
+        self.core.call_entrypoint("burn", deploy, &json_args(&v)).await
+    }
+
+    /// Transfer a token.
+    pub async fn transfer(
+        &self,
+        source: &str,
+        target: &str,
+        token: &TokenIdentifier,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let mut v = vec![
+            key_arg("source_key", &prefixed_key(source)?),
+            key_arg("target_key", &prefixed_key(target)?),
+        ];
+        v.extend(token_args(token)?);
+        self.core
+            .call_entrypoint("transfer", deploy, &json_args(&v))
+            .await
+    }
+
+    /// Transfer via `transfer_session.wasm`.
+    pub async fn transfer_session(
+        &self,
+        source: &str,
+        target: &str,
+        token: &TokenIdentifier,
+        session_wasm: &[u8],
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let mut v = vec![
+            key_arg("source_key", &prefixed_key(source)?),
+            key_arg("target_key", &prefixed_key(target)?),
+            key_arg("nft_contract_hash", &self.contract_hash_key()?),
+        ];
+        v.extend(token_args(token)?);
+        self.core
+            .call_session(session_wasm, deploy, &json_args(&v))
+            .await
+    }
+
+    /// Register an owner for reverse-lookup pages.
+    pub async fn register_owner(
+        &self,
+        token_owner: &str,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let v = vec![key_arg("token_owner", &prefixed_key(token_owner)?)];
+        self.core
+            .call_entrypoint("register_owner", deploy, &json_args(&v))
+            .await
+    }
+
+    /// Approve an operator for one token.
+    pub async fn approve(
+        &self,
+        operator: &str,
+        token: &TokenIdentifier,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let mut v = vec![key_arg("operator", &prefixed_key(operator)?)];
+        v.extend(token_args(token)?);
+        self.core
+            .call_entrypoint("approve", deploy, &json_args(&v))
+            .await
+    }
+
+    /// Revoke approval for one token.
+    pub async fn revoke(
+        &self,
+        operator: &str,
+        token: &TokenIdentifier,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let mut v = vec![key_arg("operator", &prefixed_key(operator)?)];
+        v.extend(token_args(token)?);
+        self.core
+            .call_entrypoint("revoke", deploy, &json_args(&v))
+            .await
+    }
+
+    /// Set approval for all.
+    pub async fn set_approval_for_all(
+        &self,
+        operator: &str,
+        approve_all: bool,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let v = vec![
+            key_arg("operator", &prefixed_key(operator)?),
+            bool_arg("approve_all", approve_all),
+        ];
+        self.core
+            .call_entrypoint("set_approval_for_all", deploy, &json_args(&v))
+            .await
+    }
+
+    /// Update token metadata (mutable collections only).
+    pub async fn set_token_metadata(
+        &self,
+        token_meta_data: &str,
+        token: &TokenIdentifier,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let mut v = vec![string_arg("token_meta_data", token_meta_data)];
+        v.extend(token_args(token)?);
+        self.core
+            .call_entrypoint("set_token_metadata", deploy, &json_args(&v))
+            .await
+    }
+
+    /// Update collection variables.
+    pub async fn set_variables(
+        &self,
+        args: &SetVariablesArgs,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let mut v: Vec<JsonArg> = Vec::new();
+        if let Some(b) = args.allow_minting {
+            v.push(bool_arg("allow_minting", b));
+        }
+        if let Some(list) = &args.acl_whitelist {
+            let keys: Result<Vec<_>> = list.iter().map(|k| prefixed_key(k)).collect();
+            v.push(key_list_arg("acl_whitelist", &keys?));
+        }
+        if let Some(b) = args.acl_package_mode {
+            v.push(bool_arg("acl_package_mode", b));
+        }
+        if let Some(b) = args.package_operator_mode {
+            v.push(bool_arg("package_operator_mode", b));
+        }
+        if let Some(b) = args.operator_burn_mode {
+            v.push(bool_arg("operator_burn_mode", b));
+        }
+        if v.is_empty() {
+            return Err(CepError::MissingArgument(
+                "set_variables requires at least one field".into(),
+            ));
+        }
+        self.core
+            .call_entrypoint("set_variables", deploy, &json_args(&v))
+            .await
+    }
+
+    /// Refresh receipt pages via `updated_receipts.wasm` (package hash as `nft_contract_hash`).
+    pub async fn updated_receipts(
+        &self,
+        session_wasm: &[u8],
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let package = self
+            .core
+            .require_target()?
+            .package_hash
+            .as_ref()
+            .ok_or_else(|| CepError::MissingArgument("package hash required".into()))?;
+        let v = vec![key_arg("nft_contract_hash", &format!("hash-{package}"))];
+        self.core
+            .call_session(session_wasm, deploy, &json_args(&v))
+            .await
+    }
+
+    /// Collection name.
+    pub async fn collection_name(&self) -> Result<String> {
+        decode_string_cl(self.core.query_contract_key(&["collection_name"]).await?)
+    }
+
+    /// Collection symbol.
+    pub async fn collection_symbol(&self) -> Result<String> {
+        decode_string_cl(
+            self.core
+                .query_contract_key(&["collection_symbol"])
+                .await?,
+        )
+    }
+
+    /// Total token supply.
+    pub async fn total_token_supply(&self) -> Result<u64> {
+        decode_u64_cl(
+            self.core
+                .query_contract_key(&["total_token_supply"])
+                .await?,
+        )
+    }
+
+    /// Number of minted tokens.
+    pub async fn number_of_minted_tokens(&self) -> Result<u64> {
+        decode_u64_cl(
+            self.core
+                .query_contract_key(&["number_of_minted_tokens"])
+                .await?,
+        )
+    }
+
+    /// Events mode.
+    pub async fn events_mode(&self) -> Result<EventsMode78> {
+        let v = decode_u8_cl(self.core.query_contract_key(&["events_mode"]).await?)?;
+        EventsMode78::from_u8(v).ok_or_else(|| CepError::Decode(format!("unknown events_mode {v}")))
+    }
+
+    /// Owner of a token (dictionary query).
+    pub async fn owner_of(&self, token: &TokenIdentifier) -> Result<String> {
+        let item = token_item_key(token);
+        decode_key_cl(self.core.query_dictionary("token_owners", &item).await?)
+    }
+
+    /// Balance of an owner (dictionary query). Returns `"0"` when missing.
+    pub async fn balance_of(&self, owner: &str) -> Result<String> {
+        let item = key_hex_body(owner)?;
+        match self.core.query_dictionary("balances", &item).await {
+            Ok(raw) => decode_u64_string(raw),
+            Err(CepError::EmptyQuery(_)) => Ok("0".into()),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Approved operator for a token, if any.
+    pub async fn get_approved(&self, token: &TokenIdentifier) -> Result<Option<String>> {
+        let item = token_item_key(token);
+        match self.core.query_dictionary("approved", &item).await {
+            Ok(raw) => Ok(Some(decode_key_cl(raw)?)),
+            Err(CepError::EmptyQuery(_)) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Whether `operator` is approved for all of `owner`.
+    pub async fn is_approved_for_all(&self, owner: &str, operator: &str) -> Result<bool> {
+        let item = operator_dictionary_key(owner, operator)?;
+        match self.core.query_dictionary("operators", &item).await {
+            Ok(raw) => decode_bool_cl(raw),
+            Err(CepError::EmptyQuery(_)) => Ok(false),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Token metadata for the given kind dictionary.
+    pub async fn metadata(
+        &self,
+        token: &TokenIdentifier,
+        kind: NftMetadataKind,
+    ) -> Result<String> {
+        let dict = match kind {
+            NftMetadataKind::Cep78 => "metadata_cep78",
+            NftMetadataKind::Nft721 => "metadata_nft721",
+            NftMetadataKind::Raw => "metadata_raw",
+            NftMetadataKind::CustomValidated => "metadata_custom_validated",
+        };
+        decode_string_cl(
+            self.core
+                .query_dictionary(dict, &token_item_key(token))
+                .await?,
+        )
+    }
+
+    fn contract_hash_key(&self) -> Result<String> {
+        Ok(format!("hash-{}", self.core.require_target()?.contract_hash))
+    }
+}
+
+fn install_args_json(args: &InstallArgs) -> Result<String> {
+    let mut v = vec![
+        string_arg("collection_name", &args.collection_name),
+        string_arg("collection_symbol", &args.collection_symbol),
+        u64_arg("total_token_supply", args.total_token_supply),
+        u8_arg("ownership_mode", args.ownership_mode.into()),
+        u8_arg("nft_metadata_kind", args.nft_metadata_kind.into()),
+        u8_arg("identifier_mode", args.identifier_mode.into()),
+        u8_arg("metadata_mutability", args.metadata_mutability.into()),
+    ];
+    if let Some(kind) = args.nft_kind {
+        v.push(u8_arg("nft_kind", kind.into()));
+    }
+    if let Some(schema) = &args.json_schema {
+        v.push(string_arg("json_schema", schema));
+    }
+    if let Some(mode) = args.minting_mode {
+        v.push(u8_arg("minting_mode", mode.into()));
+    }
+    if let Some(b) = args.allow_minting {
+        v.push(bool_arg("allow_minting", b));
+    }
+    if let Some(b) = args.operator_burn_mode {
+        v.push(bool_arg("operator_burn_mode", b));
+    }
+    if let Some(b) = args.package_operator_mode {
+        v.push(bool_arg("package_operator_mode", b));
+    }
+    if let Some(mode) = args.whitelist_mode {
+        v.push(u8_arg("whitelist_mode", mode.into()));
+    }
+    if let Some(mode) = args.holder_mode {
+        v.push(u8_arg("holder_mode", mode.into()));
+    }
+    if let Some(b) = args.acl_package_mode {
+        v.push(bool_arg("acl_package_mode", b));
+    }
+    if let Some(list) = &args.acl_whitelist {
+        let keys: Result<Vec<_>> = list.iter().map(|k| prefixed_key(k)).collect();
+        v.push(key_list_arg("acl_whitelist", &keys?));
+    }
+    if let Some(mode) = args.burn_mode {
+        v.push(u8_arg("burn_mode", mode.into()));
+    }
+    if let Some(mode) = args.owner_reverse_lookup_mode {
+        v.push(u8_arg("owner_reverse_lookup_mode", mode.into()));
+    }
+    if let Some(mode) = args.named_key_convention {
+        v.push(u8_arg("named_key_convention", mode.into()));
+    }
+    if let Some(name) = &args.access_key_name {
+        v.push(string_arg("access_key_name", name));
+    }
+    if let Some(name) = &args.hash_key_name {
+        v.push(string_arg("hash_key_name", name));
+    }
+    if let Some(mode) = args.events_mode {
+        v.push(u8_arg("events_mode", mode.into()));
+    }
+    if let Some(filter) = &args.transfer_filter_contract {
+        v.push(key_arg("transfer_filter_contract", &prefixed_key(filter)?));
+    }
+    if matches!(
+        args.named_key_convention,
+        Some(NamedKeyConventionMode::V1_0Custom)
+    ) && (args.access_key_name.is_none() || args.hash_key_name.is_none())
+    {
+        return Err(CepError::MissingArgument(
+            "V1_0Custom requires access_key_name and hash_key_name".into(),
+        ));
+    }
+    Ok(json_args(&v))
+}
+
+fn token_args(token: &TokenIdentifier) -> Result<Vec<JsonArg>> {
+    Ok(match token {
+        TokenIdentifier::Id(id) => vec![u64_arg("token_id", *id)],
+        TokenIdentifier::Hash(hash) => vec![string_arg("token_hash", hash)],
+    })
+}
+
+fn token_item_key(token: &TokenIdentifier) -> String {
+    match token {
+        TokenIdentifier::Id(id) => id.to_string(),
+        TokenIdentifier::Hash(hash) => hash.clone(),
+    }
+}
+
+fn decode_string_cl(value: Value) -> Result<String> {
+    if let Some(s) = value
+        .pointer("/stored_value/CLValue/parsed")
+        .and_then(|v| v.as_str())
+    {
+        return Ok(s.to_string());
+    }
+    if let Some(s) = value.pointer("/CLValue/parsed").and_then(|v| v.as_str()) {
+        return Ok(s.to_string());
+    }
+    Err(CepError::Decode(format!("expected string, got {value}")))
+}
+
+fn decode_u8_cl(value: Value) -> Result<u8> {
+    let parsed = value
+        .pointer("/stored_value/CLValue/parsed")
+        .or_else(|| value.pointer("/CLValue/parsed"))
+        .cloned()
+        .unwrap_or(value);
+    match parsed {
+        Value::Number(n) => n
+            .as_u64()
+            .map(|v| v as u8)
+            .ok_or_else(|| CepError::Decode(format!("expected u8, got {n}"))),
+        Value::String(s) => s
+            .parse()
+            .map_err(|e| CepError::Decode(format!("expected u8: {e}"))),
+        other => Err(CepError::Decode(format!("expected u8, got {other}"))),
+    }
+}
+
+fn decode_u64_cl(value: Value) -> Result<u64> {
+    let parsed = value
+        .pointer("/stored_value/CLValue/parsed")
+        .or_else(|| value.pointer("/CLValue/parsed"))
+        .cloned()
+        .unwrap_or(value);
+    match parsed {
+        Value::Number(n) => n
+            .as_u64()
+            .ok_or_else(|| CepError::Decode(format!("expected u64, got {n}"))),
+        Value::String(s) => s
+            .parse()
+            .map_err(|e| CepError::Decode(format!("expected u64: {e}"))),
+        other => Err(CepError::Decode(format!("expected u64, got {other}"))),
+    }
+}
+
+fn decode_u64_string(value: Value) -> Result<String> {
+    Ok(decode_u64_cl(value)?.to_string())
+}
+
+fn decode_bool_cl(value: Value) -> Result<bool> {
+    let parsed = value
+        .pointer("/stored_value/CLValue/parsed")
+        .or_else(|| value.pointer("/CLValue/parsed"))
+        .cloned()
+        .unwrap_or(value);
+    match parsed {
+        Value::Bool(b) => Ok(b),
+        Value::Number(n) => Ok(n.as_u64().unwrap_or(0) != 0),
+        other => Err(CepError::Decode(format!("expected bool, got {other}"))),
+    }
+}
+
+fn decode_key_cl(value: Value) -> Result<String> {
+    if let Some(s) = value
+        .pointer("/stored_value/CLValue/parsed")
+        .and_then(|v| v.as_str())
+    {
+        return Ok(s.to_string());
+    }
+    if let Some(obj) = value.pointer("/stored_value/CLValue/parsed") {
+        if let Some(s) = obj.as_str() {
+            return Ok(s.to_string());
+        }
+        return Ok(obj.to_string());
+    }
+    if let Some(s) = value.pointer("/CLValue/parsed").and_then(|v| v.as_str()) {
+        return Ok(s.to_string());
+    }
+    Err(CepError::Decode(format!("expected Key, got {value}")))
 }
 
 #[cfg(test)]
@@ -96,5 +626,13 @@ mod tests {
             Cep78Client::new("http://127.0.0.1:11101", None, None, Some(Verbosity::High)).unwrap();
         assert_eq!(client.rpc_url(), "http://127.0.0.1:11101/rpc");
         assert!(client.sse_url().is_none());
+    }
+
+    #[test]
+    fn install_json_includes_required() {
+        let args = InstallArgs::new("Col", "COL", 100).with_events_mode(EventsMode78::Ces);
+        let s = install_args_json(&args).unwrap();
+        assert!(s.contains("collection_name"));
+        assert!(s.contains("events_mode"));
     }
 }

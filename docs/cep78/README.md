@@ -1,19 +1,15 @@
-# CEP-78 client closet
+# CEP-78 client
 
-Enhanced NFT client (`Cep78Client`) for the CEP-78 tip (without ecosystem PR #299).
+Enhanced NFT client (`Cep78Client`) against the `ceps-client-test` tip of `cep-78-enhanced-nft`.
 
-## TOC
-
-1. [Quickstart](1-quickstart.md) - placeholder
-2. [Install modes](2-install-modes.md) - placeholder
-3. [Mint / burn / transfer](3-mint-burn-transfer.md) - placeholder
-4. [Approvals / operators](4-approvals-operators.md) - placeholder
-5. [Session WASMs](5-session-wasms.md) - placeholder
-6. [Queries / metadata](6-queries-metadata.md) - placeholder
-7. [Events / errors](7-events-errors.md) - placeholder
-8. [CLI](8-cli.md) - placeholder
-9. [API](9-api.md) - placeholder
-
-## Status
-
-Facade shell + shared core in place. Full parity lands in the CEP-78 phase.
+| Page | Topic |
+| --- | --- |
+| [1-quickstart](1-quickstart.md) | Install + mint + query on NCTL |
+| [2-install-modes](2-install-modes.md) | Mode matrix (`u8` ABI) |
+| [3-mint-burn-transfer](3-mint-burn-transfer.md) | Mutate entrypoints |
+| [4-approvals-operators](4-approvals-operators.md) | Approve / revoke / operator |
+| [5-session-wasms](5-session-wasms.md) | When to use session companions |
+| [6-queries-metadata](6-queries-metadata.md) | Dictionary queries |
+| [7-events-errors](7-events-errors.md) | Events + user errors |
+| [8-cli](8-cli.md) | `ceps cep78` |
+| [9-api](9-api.md) | Method index |
