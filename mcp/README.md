@@ -1,6 +1,6 @@
 # ceps-client-mcp
 
-MCP server for **`ceps-client`**: CEP-18 / CEP-78 / CEP-85 install, query, and mutate, plus demo contract WASM helpers.
+MCP server for **`ceps-client`**: CEP-18 / CEP-78 / CEP-85 / CEP-95 install, query, and mutate, plus demo contract WASM helpers.
 
 Transports: **stdio** (default) or **Streamable HTTP** on `:6790`.
 

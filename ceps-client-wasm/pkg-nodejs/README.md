@@ -1,6 +1,6 @@
 # ceps-rust-ts-client
 
-One **Rust** client for Casper **CEP-18**, **CEP-78**, and **CEP-85**, with a **`ceps-client-cli`**, **`ceps-client-mcp`**, and **WASM packs** so the same client can run from shell, agents, Node, or the browser.
+One **Rust** client for Casper **CEP-18**, **CEP-78**, **CEP-85**, and **CEP-95**, with a **`ceps-client-cli`**, **`ceps-client-mcp`**, and **WASM packs** so the same client can run from shell, agents, Node, or the browser.
 
 It replaces the separate TypeScript **`client-js`** packages that lived next to each CEP contract. Instead of three JS clients, you use one library: `Cep18Client` / `Cep78Client` / `Cep85Client`, on top of [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
 

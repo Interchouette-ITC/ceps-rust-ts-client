@@ -3,7 +3,8 @@
 #[cfg(test)]
 mod tests {
     use crate::helpers::{
-        nctl_available, user1_account_hash, user1_public_key_hex, user1_secret_pem, CALL_PAYMENT,
+        account_hash_from_secret, nctl_available, user1_account_hash, user1_public_key_hex,
+        user1_secret_pem, user_secret_pem, CALL_PAYMENT,
     };
     use ceps_client::cep95::InstallArgs;
     use ceps_client::{Cep95Client, DeployParams, Verbosity};
@@ -39,6 +40,10 @@ mod tests {
         }
         let Some(secret) = user1_secret_pem() else {
             eprintln!("skip: no secret");
+            return;
+        };
+        let Some(spender_secret) = user_secret_pem(2, "SECRET_KEY_USER_2") else {
+            eprintln!("skip: no user-2 secret");
             return;
         };
         let wasm_file = wasm_path();
@@ -77,6 +82,7 @@ mod tests {
         assert_eq!(client.symbol().await.expect("symbol"), "C95");
 
         let owner = user1_account_hash(&secret);
+        let spender = account_hash_from_secret(&spender_secret);
         let mint_deploy = DeployParams::new(&secret, CALL_PAYMENT);
         client
             .mint(&owner, "1", None, &mint_deploy)
@@ -104,15 +110,20 @@ mod tests {
             "1"
         );
 
-        // Approve self as spender (dict read via get_approved).
+        // Approve a different account (cannot approve current owner: user error 40003).
         client
-            .approve(&owner, "1", &mint_deploy)
+            .approve(&spender, "1", &mint_deploy)
             .await
             .expect("approve");
         let approved = client.get_approved("1").await.expect("get_approved");
         assert!(
             approved.is_some(),
             "expected get_approved Some after approve"
+        );
+        let approved = approved.unwrap();
+        assert!(
+            approved.contains(&spender.replace("account-hash-", "")) || approved.contains(&spender),
+            "approved={approved} expected around {spender}"
         );
     }
 }
