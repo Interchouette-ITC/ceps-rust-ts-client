@@ -13,6 +13,7 @@ Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**), wit
 | [WASM / TS](wasm-ts.md) | `ceps-wasm` pack and Vitest |
 | [Testing](testing.md) | Unit / integration / CLI smoke / examples |
 | [CI / CD](ci.md) | Gates, Hub/GHCR images, GitHub Releases |
+| [Release artefacts](releases.md) | Download CLI, client packs, demo contracts |
 | [Docker](docker.md) | CLI image tags and registries |
 | [Contributing](contributing.md) | Demo tip WASMs, lint, SDK pin |
 | [SECURITY.md](SECURITY.md) | Keys, trust boundary, reporting |

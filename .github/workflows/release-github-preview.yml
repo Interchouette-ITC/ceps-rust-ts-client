@@ -53,8 +53,8 @@ jobs:
 
           ## Assets
           - \`ceps-dev-preview-linux-x86_64\`
-          - \`ceps-wasm-nodejs-dev-preview.tgz\`
-          - \`ceps-wasm-web-dev-preview.tgz\`
+          - \`ceps-wasm-nodejs-dev-preview.tgz\` / \`ceps-wasm-web-dev-preview.tgz\`
+          - \`ceps-contracts-dev-preview.tgz\` (demo tip on-chain WASMs)
           - \`SHA256SUMS\`
           "
 

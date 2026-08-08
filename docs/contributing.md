@@ -6,6 +6,8 @@ This repo is the **client**. Contract bytecode comes from elsewhere.
 
 For examples, live tests, and CI we use **demo tip** forks with branch **`ceps-client-test`**: fresh entity-era builds so installs work out of the box. They are for demos against this client, not a permanent substitute for ecosystem `casper-ecosystem/*` release tips.
 
+**Without cloning tips:** download `ceps-contracts-*.tgz` from a [GitHub Release](releases.md).
+
 This client and those demo tips are moving under **Interchouette-ITC**; the table is the location **today**:
 
 | CEP | Demo tip (today) | Branch | Recorded SHA |

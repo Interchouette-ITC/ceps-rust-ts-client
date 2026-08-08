@@ -156,17 +156,28 @@ More setup: [docs/getting-started.md](docs/getting-started.md).
 
 `ceps-wasm` is the **Rust CEP client compiled for JavaScript**. Use it when your app is Node or browser and you want the same `Cep18Client` / `Cep78Client` / `Cep85Client` surface instead of a per-CEP `client-js`.
 
-It is **not** how you fetch latest on-chain contracts. Contract `.wasm` files still come from tip repos (or your own builds) and are passed into `install`.
+It is **not** how you fetch on-chain contracts (see [Contract WASMs](#contract-wasms-demos) and release `ceps-contracts-*.tgz`).
 
 | Target | Output | Typical use |
 | --- | --- | --- |
-| Node | `ceps-wasm/pkg-nodejs/` | Backend / scripts / Vitest |
-| Web | `ceps-wasm/pkg/` | Bundled frontends |
+| Node | `pkg-nodejs/` | Backend / scripts / Vitest |
+| Web | `pkg/` | Bundled frontends |
 
-Build: `make nodejs`, `make web`, or `make pack` (both). Details: [docs/wasm-ts.md](docs/wasm-ts.md).
+**Fetch a published pack** (no local `wasm-pack`):
+
+```bash
+TAG=v1.0.0   # or dev-preview
+LABEL=${TAG#v}
+curl -fsSL -o ceps-wasm-nodejs.tgz \
+  "https://github.com/gRoussac/ceps-rust-ts-client/releases/download/${TAG}/ceps-wasm-nodejs-${LABEL}.tgz"
+mkdir -p ceps-wasm && tar -xzf ceps-wasm-nodejs.tgz -C ceps-wasm
+# → ceps-wasm/pkg-nodejs/
+```
+
+Or build locally: `make nodejs` / `make web` / `make pack`. Details: [docs/wasm-ts.md](docs/wasm-ts.md) · [docs/releases.md](docs/releases.md).
 
 ```js
-import { Cep18Client } from "ceps-wasm"; // after packing / linking pkg-nodejs
+import { Cep18Client } from "ceps-wasm"; // file:./ceps-wasm/pkg-nodejs after unpack
 
 const client = new Cep18Client(
   "http://127.0.0.1:11101",
@@ -183,9 +194,19 @@ Install from JS takes contract bytes as `Uint8Array` and returns JSON `{ transac
 
 ## Contract WASMs (demos)
 
-This client is **not** a contract repo. You pass on-chain `.wasm` into `install`. For local demos and CI, we stage fresh builds from short-lived **demo tip** forks (branch `ceps-client-test`). They exist so examples and tests have current entity-era contracts; they are not a claim of “the” upstream CEP tip forever.
+This client is **not** a contract repo. You pass on-chain `.wasm` into `install`.
 
-This client (and these demo tips) are headed to the **Interchouette-ITC** org; URLs below are the sources **today**:
+**Easiest:** download the release bundle (no tip checkout / no contract build):
+
+```bash
+TAG=v1.0.0
+LABEL=${TAG#v}
+curl -fsSL -o ceps-contracts.tgz \
+  "https://github.com/gRoussac/ceps-rust-ts-client/releases/download/${TAG}/ceps-contracts-${LABEL}.tgz"
+mkdir -p tests/wasm && tar -xzf ceps-contracts.tgz -C tests/wasm
+```
+
+**Or** stage from demo tip forks yourself (`make wasm-from-ceps`). Tips are short-lived entity-era builds for demos/CI, not a claim of “the” upstream CEP tip forever. This client (and these tips) are headed to **Interchouette-ITC**; sources **today**:
 
 | CEP | Demo tip repo (now) | Branch | What you get |
 | --- | --- | --- | --- |
@@ -198,7 +219,7 @@ This client (and these demo tips) are headed to the **Interchouette-ITC** org; U
 make wasm-from-ceps   # → tests/wasm/{cep18,cep78,cep85}/
 ```
 
-Override checkout roots with `CEP18_PRODUCT` / `CEP78_PRODUCT` / `CEP85_PRODUCT`. Pins and SHAs: [docs/contributing.md](docs/contributing.md).
+Override checkout roots with `CEP18_PRODUCT` / `CEP78_PRODUCT` / `CEP85_PRODUCT`. Pins and SHAs: [docs/contributing.md](docs/contributing.md). All release downloads: [docs/releases.md](docs/releases.md).
 
 ## Documentation
 
@@ -208,7 +229,7 @@ Override checkout roots with `CEP18_PRODUCT` / `CEP78_PRODUCT` / `CEP85_PRODUCT`
 | [Architecture](docs/architecture.md) | How lib / CLI / WASM sit on the SDK |
 | [docs/cep18/](docs/cep18/) · [cep78/](docs/cep78/) · [cep85/](docs/cep85/) | Per-CEP guides |
 | [CLI](docs/cli.md) · [WASM / TS](docs/wasm-ts.md) | Surfaces |
-| [Testing](docs/testing.md) · [CI / CD](docs/ci.md) · [Docker](docs/docker.md) | Verify and ship |
+| [Testing](docs/testing.md) · [CI / CD](docs/ci.md) · [Releases](docs/releases.md) · [Docker](docs/docker.md) | Verify and ship |
 | [Contributing](docs/contributing.md) · [SDK](docs/sdk.md) | Tips, pins, upgrades |
 | [SECURITY.md](docs/SECURITY.md) | Keys and reporting |
 | `make doc` | rustdoc → `docs/api-rust/` |

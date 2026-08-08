@@ -20,7 +20,7 @@ push tip docs          →  pages
 | `pages.yml`                  | push to `dev` / `ceps-client-test` + `workflow_dispatch` | `make doc` → GitHub Pages (`docs/`)                |
 | `hub-images-dev.yml`         | push `ceps-client-test` + `workflow_dispatch`            | CLI image `:dev` → Hub + GHCR                      |
 | `hub-images-release.yml`     | stable Release published + `workflow_dispatch`           | `:semver` `:latest` `:dev`                         |
-| `release-github-assets.yml`  | `workflow_call`                                          | Build/upload CLI + WASM tarballs + `SHA256SUMS`    |
+| `release-github-assets.yml`  | `workflow_call`                                          | CLI + client WASM tarballs + demo contracts + `SHA256SUMS` |
 | `release-github-stable.yml`  | Release published (not prerelease)                       | Attach assets to Latest                            |
 | `release-github-preview.yml` | nightly success / dispatch                               | Overwrite Pre-release `dev-preview` + assets       |
 
@@ -52,14 +52,16 @@ Stable tag (without `v`) **must** equal `[workspace.package].version` in root `C
 
 ## Release artefacts
 
-Attached to the GitHub Release (stable or `dev-preview`):
+Attached to each GitHub Release (stable or `dev-preview`). Full fetch guide: [releases.md](releases.md).
 
-| Asset                          | Contents                     |
-| ------------------------------ | ---------------------------- |
-| `ceps-{label}-linux-x86_64`    | Stripped CLI                 |
-| `ceps-wasm-nodejs-{label}.tgz` | `make nodejs` pack           |
-| `ceps-wasm-web-{label}.tgz`    | `make web` pack              |
-| `SHA256SUMS`                   | Checksums of the three files |
+| Asset | Contents |
+| --- | --- |
+| `ceps-{label}-linux-x86_64` | Stripped CLI |
+| `ceps-wasm-nodejs-{label}.tgz` | Client pack for Node (`pkg-nodejs`) |
+| `ceps-wasm-web-{label}.tgz` | Client pack for browsers (`pkg`) |
+| `ceps-contracts-{label}.tgz` | Demo tip on-chain WASMs (`cep18` / `cep78` / `cep85`) |
+| `ceps-contracts-{label}.MANIFEST.txt` | Manifest |
+| `SHA256SUMS` | Checksums |
 
 `{label}` is the tag without a leading `v` (e.g. `1.0.0` or `dev-preview`).
 

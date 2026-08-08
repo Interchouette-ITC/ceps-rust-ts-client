@@ -4,13 +4,15 @@
 
 It is **not** the on-chain contract `.wasm`. Contract bytes still go into `install(...)` (from demo tips via `make wasm-from-ceps`, or your own builds).
 
-## Build
+## Build or download
 
 ```bash
 make nodejs   # → ceps-wasm/pkg-nodejs (Node)
 make web      # → ceps-wasm/pkg (browser)
 make pack     # both
 ```
+
+Or download `ceps-wasm-nodejs-*.tgz` / `ceps-wasm-web-*.tgz` from a [GitHub Release](releases.md) (same idea as using a published SDK `pkg` folder).
 
 ## Bound methods (today)
 
