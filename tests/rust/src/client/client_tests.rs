@@ -208,3 +208,30 @@ mod tests_cep78 {
         );
     }
 }
+
+#[allow(dead_code)]
+#[cfg(test)]
+mod tests_cep85 {
+    use common::{ClientCEP85, Verbosity};
+
+    #[test]
+    fn test_new_client() {
+        let client = ClientCEP85::new(
+            "http://127.0.0.1:11101".to_string(),
+            Some("http://127.0.0.1:28101".to_string()),
+            Some(Verbosity::High),
+        )
+        .expect("Failed to create client");
+        assert_eq!(client.get_rpc_url(), "http://127.0.0.1:11101/rpc");
+        assert_eq!(client.get_sse_url(), "http://127.0.0.1:28101/events");
+        assert_eq!(client.get_verbosity(), Verbosity::High);
+    }
+
+    #[test]
+    fn test_new_client_without_sse_url() {
+        let client = ClientCEP85::new("http://127.0.0.1:11101".to_string(), None, None)
+            .expect("Failed to create client");
+        assert_eq!(client.get_rpc_url(), "http://127.0.0.1:11101/rpc");
+        assert_eq!(client.get_sse_url(), "");
+    }
+}

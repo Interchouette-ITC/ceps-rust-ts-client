@@ -4,6 +4,7 @@ use url::Url;
 
 pub mod cep18;
 pub mod cep78;
+pub mod cep85;
 
 pub trait ClientTrait {
     fn get_rpc_url(&self) -> String;
