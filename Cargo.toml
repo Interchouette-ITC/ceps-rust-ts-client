@@ -6,7 +6,7 @@ resolver = "2"
 [workspace.package]
 version = "1.0.0"
 edition = "2021"
-description = "Unified Rust (+ thin WASM/CLI) client for Casper CEP-18, CEP-78, and CEP-85."
+description = "Unified Rust CEP client (native lib + CLI + thin WASM packs for Node/web)."
 readme = "README.md"
 homepage = "https://github.com/gRoussac/ceps-rust-ts-client"
 repository = "https://github.com/gRoussac/ceps-rust-ts-client"

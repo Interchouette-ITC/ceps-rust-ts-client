@@ -1,33 +1,40 @@
 # ceps-rust-ts-client
 
-One **CEP client** for Casper **CEP-18**, **CEP-78**, and **CEP-85**.
+One **CEP client** for Casper **CEP-18**, **CEP-78**, and **CEP-85**: a **Rust library**, a **`ceps` CLI**, and a **thin WASM pack** of that same library for JavaScript.
 
-It replaces the separate TypeScript **`client-js`** packages that lived next to each CEP contract. Same CEP verbs (`install` → bind hash → query / mint / transfer), one codebase.
+It replaces the separate TypeScript **`client-js`** packages that lived next to each CEP contract. Same CEP verbs (`install` → bind hash → query / mint / transfer), one implementation.
 
 ```text
-CEP-18 client-js  ─┐
-CEP-78 client-js  ─┼─→  ceps-client (Rust native)
-CEP-85 client-js  ─┘         │
-                             ├─→  ceps CLI (`ceps`)
-                             └─→  ceps-wasm (same API in Node / browser)
+                    ┌─→  Rust apps:   ceps-client (native crate)
+CEP client-js ×3 ──┼─→  Shell:       ceps CLI
+                    └─→  JS apps:     ceps-wasm
+                                      ├─ make nodejs → pkg-nodejs  (Node)
+                                      └─ make web    → pkg        (browser)
 ```
 
-## Two ways to call it (Rust vs WASM)
+## What “thin WASM” means
+
+Yes: the library can be loaded from JS.
+
+| Pack | Command | Load in |
+| --- | --- | --- |
+| `ceps-wasm/pkg-nodejs/` | `make nodejs` | **Node.js** (`import { Cep18Client } from "…"` ) |
+| `ceps-wasm/pkg/` | `make web` | **Browsers** (bundler / webpack / vite) |
+
+That pack is **`ceps-client` compiled with `wasm-bindgen`**. Same class names (`Cep18Client`, …). It is **not** how you pull latest CEP **contracts**.
+
+| Name | Meaning |
+| --- | --- |
+| **`ceps-wasm`** | Off-chain **client** for Node/web |
+| **`make wasm-from-ceps`** | Copies on-chain **contract** `.wasm` from demo tip repos into `tests/wasm/` for `install(...)` |
+
+## Surfaces
 
 | Surface | What it is | Who uses it |
 | --- | --- | --- |
-| **`ceps-client`** | Native Rust library (full CEP API) | Rust apps, examples, integration tests |
-| **`ceps` CLI** | Clap binary on top of `ceps-client` | Shell / scripts |
-| **`ceps-wasm`** | That **same** CEP API compiled with `wasm-bindgen` | **Node.js** and browser apps |
-
-`ceps-wasm` is **not** the on-chain token contract. It is the **client** shipped as a JS/`wasm` pack so TypeScript can call `Cep18Client` / `Cep78Client` / `Cep85Client` without a separate `client-js` per CEP.
-
-Do not confuse:
-
-| Artifact | Role |
-| --- | --- |
-| `ceps-wasm` pack (`pkg-nodejs` / `pkg`) | Off-chain client for JS |
-| `tests/wasm/cep18/*.wasm` (etc.) | On-chain **contract** bytes passed to `install` |
+| **`ceps-client`** | Native Rust library (full CEP API) | Rust apps, examples, tests |
+| **`ceps` CLI** | Binary on top of `ceps-client` | Shell / scripts |
+| **`ceps-wasm`** | Same CEP API as WASM + JS glue | Node (`pkg-nodejs`) and web (`pkg`) |
 
 ## What you can do
 
