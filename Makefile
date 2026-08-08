@@ -1,4 +1,4 @@
-# ceps-rust-ts-client — Make entrypoints (humans + CI).
+# ceps-rust-ts-client: Make entrypoints (humans + CI).
 # Agents: use Cursor MCP for NCTL (`nctl_*`) and SDK (`sdk_*`); do not invent compose here.
 
 ROOT := $(CURDIR)
@@ -182,6 +182,8 @@ e2e-test:
 
 examples:
 	$(CARGO) run -p $(COMMON_CRATE) --example cep18_install
+	$(CARGO) run -p $(COMMON_CRATE) --example cep78_install
+	$(CARGO) run -p $(COMMON_CRATE) --example cep85_install
 
 ts-test:
 	@test -d $(WASM_CRATE)/$(NODEJS_OUT_DIR) || $(MAKE) nodejs

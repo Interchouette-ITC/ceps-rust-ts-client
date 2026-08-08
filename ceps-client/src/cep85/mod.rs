@@ -493,4 +493,30 @@ mod tests {
         .unwrap();
         assert!(key.starts_with("entity-account-"));
     }
+
+    #[test]
+    fn install_args_include_uri_and_burn() {
+        let args = InstallArgs::new("Bag", "https://x/{id}.json")
+            .with_events_mode(EventsMode::Ces)
+            .with_enable_burn(true);
+        let mut v = vec![string_arg("name", &args.name), string_arg("uri", &args.uri)];
+        if let Some(mode) = args.events_mode {
+            v.push(u8_arg("events_mode", mode.into()));
+        }
+        if let Some(enable) = args.enable_burn {
+            v.push(bool_arg("enable_burn", enable));
+        }
+        let s = json_args(&v);
+        assert!(s.contains("Bag"));
+        assert!(s.contains("enable_burn"));
+        assert!(s.contains("events_mode"));
+    }
+
+    #[test]
+    fn decode_bool_from_stored_value() {
+        let v = serde_json::json!({
+            "stored_value": { "CLValue": { "parsed": true } }
+        });
+        assert!(decode_bool_cl(v).unwrap());
+    }
 }

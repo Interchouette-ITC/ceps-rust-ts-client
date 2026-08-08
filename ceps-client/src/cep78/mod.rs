@@ -630,4 +630,12 @@ mod tests {
         assert!(s.contains("collection_name"));
         assert!(s.contains("events_mode"));
     }
+
+    #[test]
+    fn token_id_args() {
+        let v = token_args(&TokenIdentifier::id(7)).unwrap();
+        let s = json_args(&v);
+        assert!(s.contains("token_id"));
+        assert!(s.contains('7'));
+    }
 }

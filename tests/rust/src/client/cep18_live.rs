@@ -1,4 +1,4 @@
-//! CEP-18 NCTL integration: install → query → transfer.
+//! CEP-18 NCTL integration: install → query → burn.
 
 #[cfg(test)]
 mod tests {
@@ -12,7 +12,7 @@ mod tests {
     use std::time::{SystemTime, UNIX_EPOCH};
 
     #[tokio::test]
-    async fn cep18_install_query_transfer() {
+    async fn cep18_install_query_burn() {
         if !nctl_available() {
             eprintln!("skip: NCTL RPC not reachable on 127.0.0.1:11101");
             return;
@@ -61,23 +61,22 @@ mod tests {
             .set_contract_hash(&contract_hash, Some(&package_hash))
             .expect("set hashes");
 
-        let token_name = client.name().await.expect("name");
-        assert_eq!(token_name, name);
-        let symbol = client.symbol().await.expect("symbol");
-        assert_eq!(symbol, "CRT");
-        let decimals = client.decimals().await.expect("decimals");
-        assert_eq!(decimals, 9);
+        assert_eq!(client.name().await.expect("name"), name);
+        assert_eq!(client.symbol().await.expect("symbol"), "CRT");
+        assert_eq!(client.decimals().await.expect("decimals"), 9);
 
         let owner = user1_account_hash(&secret);
-        let balance = client.balance_of(&owner).await.expect("balance");
-        assert_eq!(balance, "1000000000000");
+        assert_eq!(
+            client.balance_of(&owner).await.expect("balance"),
+            "1000000000000"
+        );
 
-        // Transfer a small amount to self is rejected; burn instead as mutate smoke.
         let burn_deploy = DeployParams::new(&secret, CALL_PAYMENT);
         let burned = client.burn(&owner, "1", &burn_deploy).await.expect("burn");
         assert!(!burned.transaction_hash.is_empty());
-
-        let balance_after = client.balance_of(&owner).await.expect("balance after");
-        assert_eq!(balance_after, "999999999999");
+        assert_eq!(
+            client.balance_of(&owner).await.expect("balance after"),
+            "999999999999"
+        );
     }
 }

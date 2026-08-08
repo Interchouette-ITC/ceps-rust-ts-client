@@ -4,7 +4,7 @@ use casper_rust_wasm_sdk::types::sdk_error::SdkError;
 use std::fmt;
 use thiserror::Error;
 
-/// Convenient alias for library results.
+/// Alias for `Result<T, CepError>`.
 pub type Result<T> = std::result::Result<T, CepError>;
 
 /// Errors produced by `ceps-client`.

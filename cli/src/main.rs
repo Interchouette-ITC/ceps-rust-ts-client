@@ -312,3 +312,55 @@ fn print_info(cep: &str, rpc: &str, sse: Option<&str>, chain: &str, json: bool) 
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use clap::Parser;
+
+    #[test]
+    fn parses_status() {
+        let cli = Cli::try_parse_from(["ceps", "status"]).expect("parse");
+        assert!(matches!(cli.command, Commands::Status));
+    }
+
+    #[test]
+    fn parses_cep85_balance() {
+        let cli = Cli::try_parse_from([
+            "ceps",
+            "cep85",
+            "balance",
+            "--contract-hash",
+            "b485c074cef7ccaccd0302949d2043ab7133abdb14cfa87e8392945c0bd80a5f",
+            "--account",
+            "account-hash-b485c074cef7ccaccd0302949d2043ab7133abdb14cfa87e8392945c0bd80a5f",
+            "--id",
+            "1",
+        ])
+        .expect("parse");
+        match cli.command {
+            Commands::Cep85 {
+                command: Cep85Commands::Balance { id, .. },
+            } => assert_eq!(id, "1"),
+            other => panic!("unexpected {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parses_cep78_name() {
+        let cli = Cli::try_parse_from([
+            "ceps",
+            "cep78",
+            "name",
+            "--contract-hash",
+            "b485c074cef7ccaccd0302949d2043ab7133abdb14cfa87e8392945c0bd80a5f",
+        ])
+        .expect("parse");
+        assert!(matches!(
+            cli.command,
+            Commands::Cep78 {
+                command: Cep78Commands::Name { .. }
+            }
+        ));
+    }
+}

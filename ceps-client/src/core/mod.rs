@@ -283,8 +283,8 @@ impl CepCore {
         let tx_hash = TransactionHash::new(&result.transaction_hash)
             .map_err(|e| CepError::InvalidHash(format!("transaction hash: {e}")))?;
 
-        // Best-effort execution lookup. Large successful installs can make NCTL's
-        // info_get_transaction fail to deserialize; SSE wait is still authoritative.
+        // After SSE reports processed: try to attach execution JSON when the node
+        // can return it. Some large successful installs fail NCTL deserialize.
         let mut last_json = None;
         for _ in 0..8 {
             if let Ok(get_tx) = self

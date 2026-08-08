@@ -300,7 +300,7 @@ impl Cep18Client {
         Ok(v != 0)
     }
 
-    /// Balance of `account` (prefixed key or raw public-key hex with `account-hash-` / `hash-`).
+    /// Balance of `account` (`account-hash-…`, `hash-…`, `entity-…`, or bare 64-hex as `hash-`).
     pub async fn balance_of(&self, account: &str) -> Result<String> {
         let item_key = balance_dictionary_key(account)?;
         let raw = self.core.query_dictionary("balances", &item_key).await?;
@@ -406,5 +406,30 @@ mod tests {
         .unwrap();
         assert_eq!(client.rpc_url(), "http://127.0.0.1:11101/rpc");
         assert_eq!(client.sse_url(), Some("http://127.0.0.1:18101/events"));
+    }
+
+    #[test]
+    fn install_json_includes_required_and_flags() {
+        let args = InstallArgs::new("Tok", "TOK", 9, "1000")
+            .with_events_mode(EventsMode::Ces)
+            .with_mint_and_burn(true);
+        let s = install_args_json(&args).unwrap();
+        assert!(s.contains("Tok"));
+        assert!(s.contains("events_mode"));
+        assert!(s.contains("enable_mint_burn"));
+    }
+
+    #[test]
+    fn decode_string_from_stored_value() {
+        let v = serde_json::json!({
+            "stored_value": { "CLValue": { "parsed": "hello" } }
+        });
+        assert_eq!(decode_string_cl(v).unwrap(), "hello");
+    }
+
+    #[test]
+    fn decode_u256_from_number() {
+        let v = serde_json::json!({ "CLValue": { "parsed": 42 } });
+        assert_eq!(decode_u256_cl(v).unwrap(), "42");
     }
 }

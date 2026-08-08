@@ -4,9 +4,8 @@
 ceps [--rpc-url …] [--sse-url …] [--chain-name …] [--json] cep18 <cmd>
 ```
 
-| Command | Status |
+| Command | Behavior |
 | --- | --- |
-| `info` | Prints bound endpoints |
-| `install` / `transfer` / `mint` / … | Landed next to lib methods; prefer lib for scripting until fully wired |
+| `info` | Prints bound RPC / SSE / chain endpoints |
 
-Global defaults match NCTL `dev`. See [docs/cli.md](../cli.md).
+Install, transfer, mint, and other mutations are on `Cep18Client` (see examples and [8-api.md](8-api.md)). Global defaults match NCTL `dev`. See [docs/cli.md](../cli.md).

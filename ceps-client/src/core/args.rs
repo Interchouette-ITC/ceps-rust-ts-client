@@ -23,7 +23,7 @@ impl JsonArg {
     }
 }
 
-/// Convenience constructor.
+/// Build a typed JSON arg (same fields as [`JsonArg::new`]).
 pub fn json_arg(name: &str, arg_type: &str, value: Value) -> JsonArg {
     JsonArg::new(name, arg_type, value)
 }
@@ -33,37 +33,37 @@ pub fn json_args(args: &[JsonArg]) -> String {
     serde_json::to_string(args).expect("JsonArg serialization is infallible")
 }
 
-/// String arg.
+/// `String` CL value.
 pub fn string_arg(name: &str, value: &str) -> JsonArg {
     json_arg(name, "String", Value::String(value.to_string()))
 }
 
-/// U8 arg.
+/// `U8` CL value.
 pub fn u8_arg(name: &str, value: u8) -> JsonArg {
     json_arg(name, "U8", json!(value))
 }
 
-/// U64 arg.
+/// `U64` CL value.
 pub fn u64_arg(name: &str, value: u64) -> JsonArg {
     json_arg(name, "U64", json!(value))
 }
 
-/// U256 arg from decimal string.
+/// `U256` from a decimal string (not hex).
 pub fn u256_arg(name: &str, value: &str) -> JsonArg {
     json_arg(name, "U256", Value::String(value.to_string()))
 }
 
-/// Bool arg.
+/// `Bool` CL value.
 pub fn bool_arg(name: &str, value: bool) -> JsonArg {
     json_arg(name, "Bool", json!(value))
 }
 
-/// Key arg from a prefixed key string (`account-hash-…`, `hash-…`, `entity-…`).
+/// `Key` from a prefixed key string (`account-hash-…`, `hash-…`, `entity-…`).
 pub fn key_arg(name: &str, prefixed_key: &str) -> JsonArg {
     json_arg(name, "Key", Value::String(prefixed_key.to_string()))
 }
 
-/// List of Key values.
+/// `List (Key)` values.
 pub fn key_list_arg(name: &str, keys: &[String]) -> JsonArg {
     json_arg(name, "List (Key)", json!(keys))
 }
@@ -77,5 +77,24 @@ mod tests {
         let s = json_args(&[string_arg("name", "TOKEN"), u8_arg("decimals", 9)]);
         assert!(s.contains("\"name\":\"name\""));
         assert!(s.contains("TOKEN"));
+    }
+
+    #[test]
+    fn u256_and_key_list_shapes() {
+        let s = json_args(&[
+            u256_arg("amount", "1000"),
+            key_list_arg(
+                "admin_list",
+                &[
+                    "account-hash-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                        .into(),
+                ],
+            ),
+            bool_arg("flag", true),
+        ]);
+        assert!(s.contains("U256"));
+        assert!(s.contains("List (Key)"));
+        assert!(s.contains("Bool"));
+        assert!(s.contains("1000"));
     }
 }

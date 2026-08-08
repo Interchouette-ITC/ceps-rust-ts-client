@@ -1,4 +1,4 @@
-//! CEP-85 NCTL integration: install → mint → balance.
+//! CEP-85 NCTL integration: install → mint → burn → balance.
 
 #[cfg(test)]
 mod tests {
@@ -32,7 +32,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn cep85_install_mint_balance() {
+    async fn cep85_install_mint_burn() {
         if !nctl_available() {
             eprintln!("skip: NCTL not reachable");
             return;
@@ -89,5 +89,16 @@ mod tests {
 
         let bal = client.balance_of(&owner, "1").await.expect("balance");
         assert_eq!(bal, "10");
+
+        let burn_deploy = DeployParams::new(&secret, CALL_PAYMENT);
+        client
+            .burn(&owner, "1", "3", &burn_deploy)
+            .await
+            .expect("burn");
+        let bal_after = client
+            .balance_of(&owner, "1")
+            .await
+            .expect("balance after burn");
+        assert_eq!(bal_after, "7");
     }
 }

@@ -25,5 +25,5 @@ Each closet is self-contained: overview, quickstart, mutations, queries, errors,
 
 ## Generated API
 
-- Rust: `make doc` → `cargo doc -p ceps-client`
-- WASM: typedoc into `docs/api-wasm/` after `make nodejs` (later)
+- Rust: `make doc` → rustdoc under `docs/api-rust/` (`ceps_client/`)
+- WASM: typings ship with `make nodejs` as `ceps-wasm/pkg-nodejs/ceps_wasm.d.ts` (see [api-wasm/README.md](api-wasm/README.md))

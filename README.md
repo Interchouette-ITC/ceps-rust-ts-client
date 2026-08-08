@@ -21,8 +21,8 @@ cargo run -p cli -- status
 | `ceps-client/` | Native CEP library (`Cep18Client`, `Cep78Client`, `Cep85Client`) |
 | `cli/` | Clap binary `ceps` |
 | `ceps-wasm/` | Thin `wasm-bindgen` CEP exports |
-| `tests/rust/` | Integration tests |
-| `tests/e2e/` | CLI e2e scenarios |
+| `tests/rust/` | Integration tests (NCTL live cases) |
+| `tests/ts/` | Vitest smoke against `ceps-wasm` `pkg-nodejs` |
 | `tests/wasm/` | Staged contract WASMs from sibling tips |
 | `docs/` | Hub + one closet per CEP |
 

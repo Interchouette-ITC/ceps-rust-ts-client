@@ -1,128 +1,128 @@
-//! CEP-78 mode enums (u8 ABI).
+//! Ownership / metadata / minting modes for CEP-78 (`u8` ABI).
 
-/// Ownership mode.
+/// Who may transfer a token after mint.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum OwnershipMode {
-    /// Only minter may transfer.
+    /// Only the minter may transfer.
     Minter = 0,
-    /// Assigned owner; may not transfer further unless rules allow.
+    /// Owner is assigned; further transfer rules apply.
     Assigned = 1,
     /// Freely transferable.
     Transferable = 2,
 }
 
-/// NFT kind.
+/// Physical / digital / virtual classification stored on-chain.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum NftKind {
-    /// Physical.
+    /// Physical asset.
     Physical = 0,
-    /// Digital.
+    /// Digital asset.
     Digital = 1,
-    /// Virtual.
+    /// Virtual asset.
     Virtual = 2,
 }
 
-/// Who may hold tokens.
+/// Whether accounts, contracts, or both may hold tokens.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum HolderMode {
-    /// Accounts only.
+    /// Account keys only.
     Accounts = 0,
-    /// Contracts only.
+    /// Contract keys only.
     Contracts = 1,
-    /// Mixed.
+    /// Accounts and contracts.
     Mixed = 2,
 }
 
-/// On-chain metadata schema kind.
+/// Metadata schema stored for each token.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum NftMetadataKind {
-    /// CEP-78 schema.
+    /// CEP-78 JSON schema.
     Cep78 = 0,
-    /// NFT721 schema.
+    /// NFT-721 style schema.
     Nft721 = 1,
-    /// Raw string.
+    /// Opaque string payload.
     Raw = 2,
-    /// Custom validated JSON schema.
+    /// Custom schema validated on-chain.
     CustomValidated = 3,
 }
 
-/// Token identifier mode.
+/// How tokens are identified (`token_id` vs `token_hash`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum IdentifierMode {
-    /// Ordinal `token_id` (u64).
+    /// Sequential `u64` id.
     Ordinal = 0,
-    /// Hash string identifier.
+    /// Caller-supplied hash string.
     Hash = 1,
 }
 
-/// Whether metadata may change after mint.
+/// Whether `set_token_metadata` may change metadata after mint.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum MetadataMutability {
-    /// Immutable after mint.
+    /// Metadata fixed at mint.
     Immutable = 0,
-    /// Mutable via `set_token_metadata`.
+    /// Metadata may be updated.
     Mutable = 1,
 }
 
-/// Who may mint.
+/// Who is allowed to mint.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum MintingMode {
     /// Installer only.
     Installer = 0,
-    /// Public mint.
+    /// Anyone.
     Public = 1,
     /// ACL whitelist.
     Acl = 2,
 }
 
-/// Burnability.
+/// Whether tokens may be burned.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum BurnMode {
-    /// Burnable.
+    /// Burn entrypoint enabled.
     Burnable = 0,
-    /// Non-burnable.
+    /// Burn entrypoint disabled.
     NonBurnable = 1,
 }
 
-/// ACL whitelist lock.
+/// Whether the ACL whitelist can still change.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum WhitelistMode {
-    /// Unlocked.
+    /// Whitelist can be edited.
     Unlocked = 0,
-    /// Locked.
+    /// Whitelist frozen.
     Locked = 1,
 }
 
-/// Owner reverse-lookup / page receipts.
+/// Owner page / reverse-lookup behavior.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum OwnerReverseLookupMode {
-    /// No lookup.
+    /// No owner pages.
     NoLookup = 0,
-    /// Complete.
+    /// Full reverse lookup.
     Complete = 1,
-    /// Transfers only.
+    /// Track transfers only.
     TransfersOnly = 2,
 }
 
-/// Named-key naming convention at install.
+/// How installer named keys are derived.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum NamedKeyConventionMode {
     /// `cep78_contract_hash_{collection_name}` style.
     DerivedFromCollectionName = 0,
-    /// Legacy v1.0 standard names.
+    /// Legacy v1.0 standard key names.
     V1_0Standard = 1,
-    /// Caller-supplied access/hash key names.
+    /// Requires `access_key_name` and `hash_key_name` at install.
     V1_0Custom = 2,
 }
 

@@ -1,4 +1,4 @@
-//! Unit-style smoke tests for the renamed facades (no live NCTL required).
+//! Endpoint smoke tests (no NCTL).
 
 #[cfg(test)]
 mod tests {
