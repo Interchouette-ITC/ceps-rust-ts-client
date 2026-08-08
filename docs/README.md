@@ -4,21 +4,21 @@ Unified **Rust** CEP client for Casper (CEP-18, CEP-78, CEP-85), with a thin WAS
 
 ## Quick links
 
-| Page | Content |
-| --- | --- |
-| [Getting started](getting-started.md) | Install, NCTL, first client |
-| [Architecture](architecture.md) | lib ↔ CLI ↔ WASM ↔ SDK |
-| [CLI](cli.md) | Global flags and subcommands |
-| [Testing](testing.md) | Unit / integration / e2e / examples |
-| [Contributing](contributing.md) | Tip checkout, `wasm-from-ceps`, SDK pin |
-| [WASM / TS](wasm-ts.md) | `ceps-wasm` pack notes |
+| Page                                  | Content                                 |
+| ------------------------------------- | --------------------------------------- |
+| [Getting started](getting-started.md) | Install, NCTL, first client             |
+| [Architecture](architecture.md)       | lib ↔ CLI ↔ WASM ↔ SDK                  |
+| [CLI](cli.md)                         | Global flags and subcommands            |
+| [Testing](testing.md)                 | Unit / integration / e2e / examples     |
+| [Contributing](contributing.md)       | Tip checkout, `wasm-from-ceps`, SDK pin |
+| [WASM / TS](wasm-ts.md)               | `ceps-wasm` pack notes                  |
 
 ## CEP closets
 
-| Closet | Standard |
-| --- | --- |
-| [docs/cep18/](cep18/) | Fungible token |
-| [docs/cep78/](cep78/) | Enhanced NFT |
+| Closet                | Standard                                   |
+| --------------------- | ------------------------------------------ |
+| [docs/cep18/](cep18/) | Fungible token                             |
+| [docs/cep78/](cep78/) | Enhanced NFT                               |
 | [docs/cep85/](cep85/) | Multi-token (CEP-85; repo name `cep-1155`) |
 
 Each closet is self-contained: overview, quickstart, mutations, queries, errors, CLI, API.

@@ -16,15 +16,15 @@ cargo run -p cli -- status
 
 ## Layout
 
-| Path | Role |
-| --- | --- |
+| Path           | Role                                                             |
+| -------------- | ---------------------------------------------------------------- |
 | `ceps-client/` | Native CEP library (`Cep18Client`, `Cep78Client`, `Cep85Client`) |
-| `cli/` | Clap binary `ceps` |
-| `ceps-wasm/` | Thin `wasm-bindgen` CEP exports |
-| `tests/rust/` | Integration tests (NCTL live cases) |
-| `tests/ts/` | Vitest smoke against `ceps-wasm` `pkg-nodejs` |
-| `tests/wasm/` | Staged contract WASMs from sibling tips |
-| `docs/` | Hub + one closet per CEP |
+| `cli/`         | Clap binary `ceps`                                               |
+| `ceps-wasm/`   | Thin `wasm-bindgen` CEP exports                                  |
+| `tests/rust/`  | Integration tests (NCTL live cases)                              |
+| `tests/ts/`    | Vitest smoke against `ceps-wasm` `pkg-nodejs`                    |
+| `tests/wasm/`  | Staged contract WASMs from sibling tips                          |
+| `docs/`        | Hub + one closet per CEP                                         |
 
 ## Contract tips
 
@@ -41,13 +41,13 @@ See [docs/contributing.md](docs/contributing.md).
 
 ## Make
 
-| Target | Purpose |
-| --- | --- |
-| `make build` / `check` / `check-lint` | Native workspace |
-| `make unit-test` / `integration-test` / `e2e-test` | Tests |
-| `make pack` / `nodejs` | wasm-pack |
-| `make run-cli` | `ceps` binary |
-| `make nctl-start` / `nctl-status` | Sibling NCTL (`dev` profile) |
-| `make wasm-from-ceps` | Stage tip WASMs |
+| Target                                             | Purpose                      |
+| -------------------------------------------------- | ---------------------------- |
+| `make build` / `check` / `check-lint`              | Native workspace             |
+| `make unit-test` / `integration-test` / `e2e-test` | Tests                        |
+| `make pack` / `nodejs`                             | wasm-pack                    |
+| `make run-cli`                                     | `ceps` binary                |
+| `make nctl-start` / `nctl-status`                  | Sibling NCTL (`dev` profile) |
+| `make wasm-from-ceps`                              | Stage tip WASMs              |
 
 Agents driving NCTL/SDK should use Cursor MCP (`nctl_*` / `sdk_*`).
