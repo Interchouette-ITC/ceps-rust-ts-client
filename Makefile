@@ -1,5 +1,8 @@
 # ceps-rust-ts-client: Make entrypoints (humans + CI).
 
+SHELL := /bin/bash
+.SHELLFLAGS := -eu -o pipefail -c
+
 ROOT := $(CURDIR)
 CURRENT_DIR := .
 
