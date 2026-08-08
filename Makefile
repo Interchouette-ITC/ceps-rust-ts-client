@@ -155,6 +155,7 @@ doc-check:
 	for f in \
 		docs/README.md docs/getting-started.md docs/architecture.md docs/cli.md \
 		docs/testing.md docs/contributing.md docs/wasm-ts.md docs/ci.md \
+		docs/sdk.md docs/docker.md docs/SECURITY.md \
 		docs/api-wasm/README.md \
 		docs/cep18/README.md docs/cep18/1-quickstart.md docs/cep18/8-api.md \
 		docs/cep78/README.md docs/cep78/2-install-modes.md docs/cep78/5-session-wasms.md docs/cep78/9-api.md \

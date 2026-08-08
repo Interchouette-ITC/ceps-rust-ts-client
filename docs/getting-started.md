@@ -3,15 +3,26 @@
 ## Prerequisites
 
 - Rust stable (edition 2021)
-- [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) available for the workspace path dependency (see root `Cargo.toml`)
-- Optional: a local Casper NCTL `dev` network for live calls
+- [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) as the workspace Cargo dependency (path locally; see [sdk.md](sdk.md))
+- Optional: local Casper NCTL `dev` for live install/query (e.g. [casper-nctl-2-docker](https://github.com/Interchouette-ITC/casper-nctl-2-docker))
+- Optional: `wasm-pack` + Binaryen for `make pack` (Makefile pins Binaryen via `ensure-binaryen`)
 
-## Build
+## Build and verify
 
 ```bash
 make prepare
 make build
+make check-lint
 make unit-test
+make doc-check
+```
+
+With NCTL up and tip WASMs staged:
+
+```bash
+make wasm-from-ceps
+make integration-test
+make e2e-test
 ```
 
 ## First CLI call
@@ -19,15 +30,19 @@ make unit-test
 ```bash
 cargo run -p cli -- status
 cargo run -p cli -- cep18 info --json
+# or
+make run-cli CLI_ARGS='status'
 ```
 
 Defaults match NCTL `dev`:
 
-| Setting | Default                         |
-| ------- | ------------------------------- |
-| RPC     | `http://127.0.0.1:11101`        |
-| SSE     | `http://127.0.0.1:18101/events` |
-| Chain   | `casper-net-1`                  |
+| Setting | Default |
+| --- | --- |
+| RPC | `http://127.0.0.1:11101` |
+| SSE | `http://127.0.0.1:18101/events` |
+| Chain | `casper-net-1` |
+
+Override with `--rpc-url` / `CEPS_RPC_URL` (and SSE / chain counterparts). Full flag table: [cli.md](cli.md).
 
 ## First Rust snippet
 
@@ -42,4 +57,27 @@ let client = Cep18Client::new(
 )?;
 ```
 
-Install / transfer flows are documented in [cep18/](cep18/) once you stage tip WASMs with `make wasm-from-ceps`.
+Install / transfer flows: stage tip WASMs with `make wasm-from-ceps`, then follow [cep18/](cep18/), [cep78/](cep78/), or [cep85/](cep85/). Examples:
+
+```bash
+SECRET_KEY_USER_1="$(cat path/to/user-1/secret_key.pem)" \
+  cargo run -p ceps-client --example cep18_install
+```
+
+## WASM / TypeScript
+
+```bash
+make nodejs
+make ts-test
+```
+
+See [wasm-ts.md](wasm-ts.md).
+
+## Docker CLI
+
+```bash
+make release-cli-bin && make docker-build IMAGE_TAG=local
+docker run --rm ceps-rust-ts-client:local --help
+```
+
+See [docker.md](docker.md).

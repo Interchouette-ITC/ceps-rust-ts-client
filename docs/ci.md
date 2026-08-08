@@ -2,7 +2,7 @@
 
 Pipeline mirrors [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) gates/releases and [`casper-nctl-2-docker`](https://github.com/gRoussac/casper-nctl-2-docker) Hub+GHCR dual push. Quality stays on NCTL live tests; release ships the `ceps` CLI image and GitHub Release artefacts (binary + WASM packs).
 
-crates.io / npm publish are not part of this line while the workspace still path-depends on `casper-rust-wasm-sdk`.
+crates.io / npm publish are not part of this line while the workspace still path-depends on `casper-rust-wasm-sdk` (see [sdk.md](sdk.md)).
 
 ## Flow
 
