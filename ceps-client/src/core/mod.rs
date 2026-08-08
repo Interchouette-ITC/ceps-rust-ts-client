@@ -282,22 +282,53 @@ impl CepCore {
             .await?;
         let tx_hash = TransactionHash::new(&result.transaction_hash)
             .map_err(|e| CepError::InvalidHash(format!("transaction hash: {e}")))?;
-        if let Ok(get_tx) = self
-            .sdk
-            .get_transaction(
-                tx_hash,
-                Some(false),
-                Some(self.verbosity),
-                Some(self.rpc_url.clone()),
-            )
-            .await
-        {
-            if let Ok(json) = serde_json::to_value(&get_tx.result) {
-                if let Some(err) = extract_execution_error(&json) {
+
+        // Best-effort execution lookup. Large successful installs can make NCTL's
+        // info_get_transaction fail to deserialize; SSE wait is still authoritative.
+        let mut last_json = None;
+        for _ in 0..8 {
+            if let Ok(get_tx) = self
+                .sdk
+                .get_transaction(
+                    tx_hash.clone(),
+                    Some(false),
+                    Some(self.verbosity),
+                    Some(self.rpc_url.clone()),
+                )
+                .await
+            {
+                if let Ok(json) = serde_json::to_value(&get_tx.result) {
+                    last_json = Some(json);
+                }
+            }
+
+            #[cfg(not(target_arch = "wasm32"))]
+            if last_json.as_ref().is_none_or(|j| !json_has_execution(j)) {
+                if let Ok(json) =
+                    fetch_transaction_json_raw(&self.rpc_url, &result.transaction_hash).await
+                {
+                    last_json = Some(json);
+                }
+            }
+
+            if let Some(json) = &last_json {
+                if let Some(err) = extract_execution_error(json) {
                     return Err(CepError::from_execution_message(err, self.cep_kind));
                 }
-                result = result.with_execution(json);
+                if json_has_execution(json) {
+                    break;
+                }
             }
+            #[cfg(not(target_arch = "wasm32"))]
+            {
+                std::thread::sleep(std::time::Duration::from_millis(250));
+            }
+        }
+        if let Some(json) = last_json {
+            if let Some(err) = extract_execution_error(&json) {
+                return Err(CepError::from_execution_message(err, self.cep_kind));
+            }
+            result = result.with_execution(json);
         }
         Ok(result)
     }
@@ -307,25 +338,76 @@ impl CepCore {
     }
 }
 
+fn json_has_execution(json: &Value) -> bool {
+    json.get("execution_info").is_some()
+        || json.pointer("/execution_result").is_some()
+        || json.to_string().contains("\"execution_result\"")
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+async fn fetch_transaction_json_raw(
+    rpc_url: &str,
+    transaction_hash: &str,
+) -> std::result::Result<Value, String> {
+    let body = serde_json::json!({
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "info_get_transaction",
+        "params": {
+            "transaction_hash": { "Version1": transaction_hash },
+            "finalized_approvals": false
+        }
+    });
+    let client = reqwest::Client::new();
+    let resp = client
+        .post(rpc_url)
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| format!("raw info_get_transaction: {e}"))?;
+    let value: Value = resp
+        .json()
+        .await
+        .map_err(|e| format!("raw info_get_transaction body: {e}"))?;
+    if let Some(err) = value.get("error") {
+        return Err(format!("raw info_get_transaction rpc error: {err}"));
+    }
+    value
+        .get("result")
+        .cloned()
+        .ok_or_else(|| "raw info_get_transaction missing result".to_string())
+}
+
 fn extract_execution_error(json: &Value) -> Option<String> {
-    // Walk common shapes for execution failure messages.
     let candidates = [
+        json.pointer("/execution_info/execution_result/Version2/error_message"),
+        json.pointer("/execution_info/execution_result/Version1/error_message"),
         json.pointer("/execution_info/execution_result/Failure/error_message"),
+        json.pointer("/execution_result/Version2/error_message"),
+        json.pointer("/execution_result/Version1/error_message"),
         json.pointer("/execution_result/Failure/error_message"),
         json.pointer("/execution_info/execution_result/error_message"),
+        json.pointer("/execution_info/execution_result/failure/error_message"),
+        json.pointer("/execution_result/failure/error_message"),
     ];
     for c in candidates.into_iter().flatten() {
         if let Some(s) = c.as_str() {
-            return Some(s.to_string());
+            if !s.is_empty() {
+                return Some(s.to_string());
+            }
         }
     }
-    // String-search in serialized JSON as a last resort.
     let text = json.to_string();
-    if text.contains("User error:") || text.contains("\"Failure\"") {
-        if let Some(idx) = text.find("User error:") {
-            let slice: String = text[idx..].chars().take(64).collect();
-            return Some(slice);
+    if let Some(idx) = text.find("User error:") {
+        let slice: String = text[idx..].chars().take(80).collect();
+        return Some(slice);
+    }
+    if text.contains("\"Failure\"") || text.contains("\"failure\"") {
+        if let Some(idx) = text.find("error_message") {
+            let slice: String = text[idx..].chars().take(120).collect();
+            return Some(format!("execution Failure: {slice}"));
         }
+        return Some("execution Failure (see transaction result)".into());
     }
     None
 }
@@ -344,5 +426,36 @@ mod tests {
     #[test]
     fn core_rejects_empty_rpc() {
         assert!(CepCore::new("", None, None, None).is_err());
+    }
+
+    #[test]
+    fn extracts_version2_error_message() {
+        let json = serde_json::json!({
+            "execution_info": {
+                "execution_result": {
+                    "Version2": {
+                        "error_message": "ApiError::EarlyEndOfStream [17]"
+                    }
+                }
+            }
+        });
+        assert_eq!(
+            extract_execution_error(&json).as_deref(),
+            Some("ApiError::EarlyEndOfStream [17]")
+        );
+    }
+
+    #[test]
+    fn ignores_null_version2_error_message() {
+        let json = serde_json::json!({
+            "execution_info": {
+                "execution_result": {
+                    "Version2": {
+                        "error_message": null
+                    }
+                }
+            }
+        });
+        assert!(extract_execution_error(&json).is_none());
     }
 }

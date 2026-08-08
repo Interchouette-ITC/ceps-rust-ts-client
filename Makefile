@@ -250,9 +250,15 @@ wasm-from-ceps:
 			echo "wasm-from-ceps: skip $$name (missing $$root)"; \
 			continue; \
 		fi; \
-		found=$$(find "$$root" -type f -name '*.wasm' \
-			! -path '*/target/debug/*' ! -path '*/node_modules/*' \
-			2>/dev/null | head -20); \
+		# Prefer tests/wasm (tip stage), then newest release builds by mtime.
+		found=$$( { \
+			find "$$root/tests/wasm" -type f -name '*.wasm' 2>/dev/null; \
+			find "$$root" -type f -name '*.wasm' \
+				! -path '*/target/debug/*' ! -path '*/node_modules/*' \
+				! -path '*/tests/wasm/*' 2>/dev/null; \
+		} | awk 'NF' | while read -r f; do \
+			printf '%s\t%s\n' "$$(stat -c '%Y' "$$f" 2>/dev/null || echo 0)" "$$f"; \
+		done | sort -nr | cut -f2- | awk -F/ '{ base=$$NF; if (!seen[base]++) print }'); \
 		if [ -z "$$found" ]; then \
 			echo "wasm-from-ceps: no wasm under $$root (build contracts there first)"; \
 			continue; \

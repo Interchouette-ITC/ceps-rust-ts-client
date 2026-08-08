@@ -95,6 +95,24 @@ enum Cep78Commands {
 enum Cep85Commands {
     /// Print client endpoint configuration.
     Info,
+    /// Query collection name (requires `--contract-hash`).
+    Name {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+    },
+    /// Query balance for an account and token id.
+    Balance {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        account: String,
+        #[arg(long)]
+        id: String,
+    },
 }
 
 #[tokio::main]
@@ -159,19 +177,59 @@ async fn run() -> Result<()> {
                 cli.json,
             )?;
         }
-        Commands::Cep85 {
-            command: Cep85Commands::Info,
-        } => {
-            let client = Cep85Client::new(&cli.rpc_url, sse, chain, verbosity)
-                .context("create CEP-85 client")?;
-            print_info(
-                "cep85",
-                client.rpc_url(),
-                client.sse_url(),
-                client.chain_name(),
-                cli.json,
-            )?;
-        }
+        Commands::Cep85 { command } => match command {
+            Cep85Commands::Info => {
+                let client = Cep85Client::new(&cli.rpc_url, sse, chain, verbosity)
+                    .context("create CEP-85 client")?;
+                print_info(
+                    "cep85",
+                    client.rpc_url(),
+                    client.sse_url(),
+                    client.chain_name(),
+                    cli.json,
+                )?;
+            }
+            Cep85Commands::Name {
+                contract_hash,
+                package_hash,
+            } => {
+                let mut client = Cep85Client::new(&cli.rpc_url, sse, chain, verbosity)
+                    .context("create CEP-85 client")?;
+                client
+                    .set_contract_hash(&contract_hash, package_hash.as_deref())
+                    .context("set contract")?;
+                let name = client.collection_name().await.context("collection name")?;
+                if cli.json {
+                    println!("{}", serde_json::json!({ "name": name }));
+                } else {
+                    println!("{name}");
+                }
+            }
+            Cep85Commands::Balance {
+                contract_hash,
+                package_hash,
+                account,
+                id,
+            } => {
+                let mut client = Cep85Client::new(&cli.rpc_url, sse, chain, verbosity)
+                    .context("create CEP-85 client")?;
+                client
+                    .set_contract_hash(&contract_hash, package_hash.as_deref())
+                    .context("set contract")?;
+                let bal = client
+                    .balance_of(&account, &id)
+                    .await
+                    .context("balance_of")?;
+                if cli.json {
+                    println!(
+                        "{}",
+                        serde_json::json!({ "account": account, "id": id, "balance": bal })
+                    );
+                } else {
+                    println!("{bal}");
+                }
+            }
+        },
     }
     Ok(())
 }

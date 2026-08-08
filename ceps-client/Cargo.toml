@@ -15,6 +15,7 @@ path = "src/lib.rs"
 
 [dependencies]
 casper-rust-wasm-sdk.workspace = true
+casper-types = { version = "7.1.1", default-features = false }
 thiserror.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -23,6 +24,9 @@ hex.workspace = true
 base64.workspace = true
 blake2.workspace = true
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
 [dev-dependencies]
 tokio.workspace = true
 casper-rust-wasm-sdk.workspace = true
@@ -30,4 +34,9 @@ casper-rust-wasm-sdk.workspace = true
 [[example]]
 name = "cep18_install"
 path = "examples/cep18_install.rs"
+required-features = []
+
+[[example]]
+name = "cep85_install"
+path = "examples/cep85_install.rs"
 required-features = []

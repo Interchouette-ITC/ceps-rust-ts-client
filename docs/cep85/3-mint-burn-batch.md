@@ -1,3 +1,10 @@
-# Placeholder
+# Mint / burn / batch
 
-Filled in the CEP-85 documentation pass.
+| Method | Entrypoint |
+| --- | --- |
+| `mint` | `mint` |
+| `batch_mint` | `batch_mint` |
+| `burn` | `burn` |
+| `batch_burn` | `batch_burn` |
+
+Args use entity-prefixed keys for owners/recipients and U256 strings for ids/amounts.
