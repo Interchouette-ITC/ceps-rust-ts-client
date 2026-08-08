@@ -16,7 +16,7 @@ This repository is **not** a custodian, wallet, or hosted signing service. Calle
 | WASM / Node | `ceps-wasm` install helpers accept PEM strings the same way; treat them as secrets in your app. |
 | Logging | Avoid logging PEM bodies or full signed payloads in production verbosity. |
 
-Unlike [casper-deployer](https://github.com/Interchouette-ITC/casper-deployer) (Casper Wallet only, no server-side keys), this client **does** sign with caller-supplied secret material when you ask it to install or mutate.
+Install and mutate entrypoints sign with the secret material you pass in. Treat PEMs and env secrets as production credentials when pointed at non-test networks.
 
 ## Network trust boundary
 

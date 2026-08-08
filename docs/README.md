@@ -2,15 +2,13 @@
 
 Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**), with a thin WASM/TS surface and a clap CLI (`ceps`).
 
-The SDK is a Cargo dependency, not a vendored pack tree. See [sdk.md](sdk.md).
-
 ## Quick links
 
 | Page | Content |
 | --- | --- |
 | [Getting started](getting-started.md) | Install, NCTL defaults, first client |
 | [Architecture](architecture.md) | lib ↔ CLI ↔ WASM ↔ SDK |
-| [SDK dependency](sdk.md) | Path/git pin vs deployer embedding |
+| [SDK dependency](sdk.md) | Features, local path, CI pin, upgrades |
 | [CLI](cli.md) | Global flags and subcommands |
 | [WASM / TS](wasm-ts.md) | `ceps-wasm` pack and Vitest |
 | [Testing](testing.md) | Unit / integration / CLI smoke / examples |

@@ -1,10 +1,9 @@
 # ceps-rust-ts-client: Make entrypoints (humans + CI).
-# Agents: use Cursor MCP for NCTL (`nctl_*`) and SDK (`sdk_*`); do not invent compose here.
 
 ROOT := $(CURDIR)
 CURRENT_DIR := .
 
-# Sibling products (override if not adjacent)
+# Optional overrides for adjacent checkouts
 NCTL_DOCKER_PRODUCT ?= $(ROOT)/../casper-nctl-2-docker
 RUSTSDK_PRODUCT ?= $(ROOT)/../rustSDK
 CEP18_PRODUCT ?= $(ROOT)/../cep-18
@@ -23,7 +22,7 @@ WEB_OUT_DIR := pkg
 NODEJS_OUT_DIR := pkg-nodejs
 WASM_DIR := $(ROOT)/tests/wasm
 
-# Docker / GHCR (nctl-style dual Hub + personal/org GHCR)
+# Docker / GHCR image naming
 IMAGE_NAME := ceps-rust-ts-client
 IMAGE_TAG ?= local
 HUB_USER ?= interchouette
@@ -85,10 +84,10 @@ help:
 	@echo "Docker / GHCR (IMAGE_TAG=dev|semver|latest)"
 	@echo "  docker-build / docker-tag / docker-push-hub / docker-push-ghcr / docker-push"
 	@echo ""
-	@echo "Sibling NCTL / SDK MCP / Contracts"
+	@echo "NCTL / contracts"
 	@echo "  nctl-start / nctl-status / nctl-endpoints"
 	@echo "  sdk-mcp-http / sdk-mcp-http-stop"
-	@echo "  wasm-from-ceps     stage WASMs from ceps-client-test siblings"
+	@echo "  wasm-from-ceps     stage tip WASMs into tests/wasm/"
 	@echo ""
 	@echo "CI"
 	@echo "  ci-local           check-lint + unit-test (no NCTL)"

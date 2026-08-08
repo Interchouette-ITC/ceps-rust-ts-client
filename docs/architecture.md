@@ -8,8 +8,6 @@ casper-rust-wasm-sdk          (RPC, tx, install, query, wait, CES)
    cli/`ceps`  ceps-wasm      (clap)   (wasm-bindgen CEP-only exports)
 ```
 
-The SDK is linked as a **Cargo crate**, not copied into this tree. Deployer’s “vendored slim packs” model does not apply here ([sdk.md](sdk.md)).
-
 ## Ownership
 
 | Concern | Owner |
@@ -17,9 +15,9 @@ The SDK is linked as a **Cargo crate**, not copied into this tree. Deployer’s 
 | Identities, tx, payment, wait, CLValues | SDK |
 | CEP enums, dictionary keys, user-error maps | `ceps-client` |
 | Shell UX | `cli` (`ceps`) |
-| Browser / Node CEP API | `ceps-wasm` (no supported full-SDK re-export) |
-| Contract WASM bytes | Tip CEP products → `make wasm-from-ceps` → `tests/wasm/` |
-| Local chain lifecycle | NCTL product / MCP (`nctl_*`), not this repo |
+| Browser / Node CEP API | `ceps-wasm` |
+| Contract WASM bytes | Tip CEP builds → `make wasm-from-ceps` → `tests/wasm/` |
+| Local chain | External NCTL; this repo only connects to it |
 
 ## Facades
 

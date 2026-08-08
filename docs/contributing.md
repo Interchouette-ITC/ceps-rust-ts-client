@@ -28,7 +28,7 @@ Re-pin these when intentionally rebasing tips. Prefer each tip’s `tests/wasm/`
 
 ## SDK pin
 
-Path dependency on [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) with features `transaction`, `contract`, `helpers`, `watcher`, `SSE` (see root `Cargo.toml`). This repo does **not** embed SDK packs; see [sdk.md](sdk.md).
+Path dependency on [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) with features `transaction`, `contract`, `helpers`, `watcher`, `SSE` (see root `Cargo.toml` and [sdk.md](sdk.md)).
 
 CI uses git tag `2.2.0` of `casper-ecosystem/casper-rust-wasm-sdk` and mirrors `[patch.crates-io]` from this workspace.
 

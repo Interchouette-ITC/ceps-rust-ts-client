@@ -2,14 +2,12 @@
 
 Unified **Rust** (+ thin WASM / CLI) client for Casper **CEP-18**, **CEP-78**, and **CEP-85**, built on [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
 
-This repository does **not** vendor or embed SDK WASM packs (that is what [casper-deployer](https://github.com/Interchouette-ITC/casper-deployer#sdk-upgrade-note) does under `casper-rust-wasm-sdk/`). Here the SDK is a normal Cargo dependency: path checkout locally, pinned git tag in CI. See [docs/sdk.md](docs/sdk.md).
-
 ## What it does
 
 - Install and drive **CEP-18** (fungible), **CEP-78** (enhanced NFT), **CEP-85** (multi-token) contracts
-- Share one transport core (`CepCore`) for RPC/SSE, install, entrypoint call, query, wait, CES-friendly errors
+- Share one transport core (`CepCore`) for RPC/SSE, install, entrypoint call, query, wait, and CES-friendly errors
 - Ship a clap CLI (`ceps`) for status and common queries
-- Ship thin `ceps-wasm` bindings for Node/browser CEP APIs (not a full SDK re-export)
+- Ship thin `ceps-wasm` bindings for Node/browser CEP APIs
 - Run live integration against NCTL; publish CLI images to Hub + GHCR and GitHub Release artefacts
 
 ## Stack
@@ -19,7 +17,7 @@ This repository does **not** vendor or embed SDK WASM packs (that is what [caspe
 | Library | `ceps-client` (Rust, edition 2021) |
 | CLI | `ceps` (`cli` crate, clap) |
 | WASM | `ceps-wasm` (`wasm-bindgen` / `wasm-pack`) |
-| Casper | `casper-rust-wasm-sdk` features `transaction`, `contract`, `helpers`, `watcher`, `SSE` |
+| Casper | `casper-rust-wasm-sdk` (`transaction`, `contract`, `helpers`, `watcher`, `SSE`) |
 | Tests | Rust unit + NCTL live; Vitest on `pkg-nodejs` |
 | Images | `interchouette/ceps-rust-ts-client` + GHCR (see [docs/docker.md](docs/docker.md)) |
 
@@ -80,8 +78,6 @@ Develop against tip branch **`ceps-client-test`** on the CEP forks, build contra
 | `make release-cli-bin` / `docker-build` | Stripped CLI + image |
 | `make doc` | rustdoc → `docs/api-rust/` |
 
-Agents driving NCTL/SDK should use Cursor MCP (`nctl_*` / `sdk_*`).
-
 ## Docker
 
 ```bash
@@ -89,7 +85,6 @@ make release-cli-bin
 make docker-build IMAGE_TAG=local
 docker run --rm ceps-rust-ts-client:local --help
 
-# published (after CI secrets + push):
 docker pull interchouette/ceps-rust-ts-client:dev
 ```
 
@@ -102,7 +97,7 @@ Tags, Hub, and GHCR: [docs/docker.md](docs/docker.md). Release strategy: [docs/c
 | [docs/README.md](docs/README.md) | Documentation hub |
 | [Getting started](docs/getting-started.md) | Build, NCTL defaults, first client |
 | [Architecture](docs/architecture.md) | lib ↔ CLI ↔ WASM ↔ SDK |
-| [SDK dependency](docs/sdk.md) | Path dep vs deployer vendoring; upgrade pin |
+| [SDK dependency](docs/sdk.md) | Features, local path, CI pin, upgrades |
 | [CLI](docs/cli.md) | Global flags and subcommands |
 | [WASM / TS](docs/wasm-ts.md) | `ceps-wasm` pack and Vitest |
 | [Testing](docs/testing.md) | Unit / live / e2e / examples |

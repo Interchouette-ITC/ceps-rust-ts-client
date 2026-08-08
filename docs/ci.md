@@ -1,8 +1,6 @@
 # CI / CD
 
-Pipeline mirrors [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) gates/releases and [`casper-nctl-2-docker`](https://github.com/gRoussac/casper-nctl-2-docker) Hub+GHCR dual push. Quality stays on NCTL live tests; release ships the `ceps` CLI image and GitHub Release artefacts (binary + WASM packs).
-
-crates.io / npm publish are not part of this line while the workspace still path-depends on `casper-rust-wasm-sdk` (see [sdk.md](sdk.md)).
+Quality gate on NCTL live tests; release ships the `ceps` CLI image and GitHub Release artefacts (binary + WASM packs). crates.io / npm publish are out of scope while the workspace path-depends on `casper-rust-wasm-sdk` (see [sdk.md](sdk.md)).
 
 ## Flow
 
@@ -67,14 +65,14 @@ Attached to the GitHub Release (stable or `dev-preview`):
 
 ## Secrets (repo Settings → Secrets and variables → Actions)
 
-Reuse the **same names** as `casper-nctl-2-docker`:
+Reuse these Actions secret names:
 
-| Secret            | Purpose                                                           |
-| ----------------- | ----------------------------------------------------------------- |
-| `DOCKER_USERNAME` | Docker Hub login                                                  |
-| `DOCKER_PASSWORD` | Docker Hub login                                                  |
-| `GHCR_USERNAME`   | GHCR login                                                        |
-| `GHCR_PAT`        | GHCR PAT with package write to `groussac` and `interchouette-itc` |
+| Secret | Purpose |
+| --- | --- |
+| `DOCKER_USERNAME` | Docker Hub login |
+| `DOCKER_PASSWORD` | Docker Hub login |
+| `GHCR_USERNAME` | GHCR login |
+| `GHCR_PAT` | GHCR PAT with package write to `groussac` and `interchouette-itc` |
 
 `GITHUB_TOKEN` (Actions default) uploads release assets and moves the `dev-preview` tag. After the first GHCR push, set package visibility public (or grant org access) for both namespaces.
 
