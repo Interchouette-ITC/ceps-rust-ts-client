@@ -214,6 +214,15 @@ impl CepCore {
         query::query_dictionary(self, dictionary_name, item_key).await
     }
 
+    /// Read a named key from an account (by public key hex or account-hash-…).
+    pub async fn get_account_named_key(
+        &self,
+        account_identifier: &str,
+        named_key: &str,
+    ) -> Result<String> {
+        query::get_account_named_key(self, account_identifier, named_key).await
+    }
+
     /// Wait for a transaction hash on the configured SSE endpoint.
     pub async fn wait_transaction(
         &self,

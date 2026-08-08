@@ -10,4 +10,6 @@ doctest = false
 
 [dependencies]
 ceps-client = { path = "../../ceps-client" }
-tokio.workspace = true
+casper-rust-wasm-sdk.workspace = true
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time"] }
+serde_json.workspace = true

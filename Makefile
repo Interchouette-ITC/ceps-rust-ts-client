@@ -169,8 +169,7 @@ e2e-test:
 	$(CARGO) run -p $(CLI_CRATE) -- cep85 info
 
 examples:
-	@echo "examples: add under examples/ as CEP phases land"
-	@exit 0
+	$(CARGO) run -p $(COMMON_CRATE) --example cep18_install
 
 ts-test:
 	@test -d $(WASM_CRATE)/$(NODEJS_OUT_DIR) || $(MAKE) nodejs

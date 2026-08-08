@@ -6,14 +6,13 @@ use casper_rust_wasm_sdk::helpers::contract_hash_key_for_global_state;
 use casper_rust_wasm_sdk::rpcs::get_dictionary_item::DictionaryItemInput;
 use casper_rust_wasm_sdk::rpcs::query_global_state::PathIdentifierInput;
 use casper_rust_wasm_sdk::types::deploy_params::dictionary_item_str_params::DictionaryItemStrParams;
-use casper_rust_wasm_sdk::types::identifier::entity_identifier::EntityIdentifier;
 use serde_json::Value;
 
 pub(super) async fn query_contract_key(core: &CepCore, path: &[&str]) -> Result<Value> {
     let target = core.require_target()?;
     let key = contract_hash_key_for_global_state(&target.query_key());
-    let entity = EntityIdentifier::from_formatted_str(&key)
-        .map_err(|e| CepError::InvalidHash(format!("entity identifier: {e}")))?;
+    // Pass the hash as a string so SDK falls back to classic `hash-…` global-state
+    // queries when addressable entities are disabled (EntityIdentifier rejects `hash-`).
     let path_input = if path.len() == 1 {
         PathIdentifierInput::String(path[0].to_string())
     } else {
@@ -22,8 +21,8 @@ pub(super) async fn query_contract_key(core: &CepCore, path: &[&str]) -> Result<
     let response = core
         .sdk()
         .query_contract_key(
-            Some(entity),
             None,
+            Some(key),
             path_input,
             None,
             Some(core.verbosity()),
@@ -55,4 +54,29 @@ pub(super) async fn query_dictionary(
         .await?;
     serde_json::to_value(&response.result)
         .map_err(|e| CepError::Decode(format!("query_dictionary: {e}")))
+}
+
+pub(super) async fn get_account_named_key(
+    core: &CepCore,
+    account_identifier: &str,
+    named_key: &str,
+) -> Result<String> {
+    #[allow(deprecated)]
+    let response = core
+        .sdk()
+        .get_account(
+            None,
+            Some(account_identifier.to_string()),
+            None,
+            Some(core.verbosity()),
+            Some(core.rpc_url().to_string()),
+        )
+        .await?;
+
+    let keys = response.result.account.named_keys();
+    let key = keys.get(named_key).ok_or_else(|| {
+        let names: Vec<String> = keys.names().cloned().collect();
+        CepError::EmptyQuery(format!("account named key '{named_key}' (have: {names:?})"))
+    })?;
+    Ok(key.to_formatted_string())
 }

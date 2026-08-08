@@ -25,3 +25,9 @@ blake2.workspace = true
 
 [dev-dependencies]
 tokio.workspace = true
+casper-rust-wasm-sdk.workspace = true
+
+[[example]]
+name = "cep18_install"
+path = "examples/cep18_install.rs"
+required-features = []

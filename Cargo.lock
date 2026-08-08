@@ -1319,7 +1319,9 @@ dependencies = [
 name = "integration-tests"
 version = "1.0.0"
 dependencies = [
+ "casper-rust-wasm-sdk",
  "ceps-client",
+ "serde_json",
  "tokio",
 ]
 
