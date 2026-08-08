@@ -1,40 +1,22 @@
 # ceps-rust-ts-client
 
-One **CEP client** for Casper **CEP-18**, **CEP-78**, and **CEP-85**: a **Rust library**, a **`ceps` CLI**, and a **thin WASM pack** of that same library for JavaScript.
+One **Rust** client for Casper **CEP-18**, **CEP-78**, and **CEP-85**, with a **`ceps` CLI** and **WASM packs** so the same client can run from Node or the browser.
 
-It replaces the separate TypeScript **`client-js`** packages that lived next to each CEP contract. Same CEP verbs (`install` → bind hash → query / mint / transfer), one implementation.
+It replaces the separate TypeScript **`client-js`** packages that lived next to each CEP contract. Instead of three JS clients, you use one library: `Cep18Client` / `Cep78Client` / `Cep85Client`, on top of [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
 
 ```text
-                    ┌─→  Rust apps:   ceps-client (native crate)
-CEP client-js ×3 ──┼─→  Shell:       ceps CLI
-                    └─→  JS apps:     ceps-wasm
-                                      ├─ make nodejs → pkg-nodejs  (Node)
-                                      └─ make web    → pkg        (browser)
+CEP-18 client-js  ─┐
+CEP-78 client-js  ─┼─→  ceps-client (Rust)  +  ceps CLI  +  ceps-wasm
+CEP-85 client-js  ─┘
 ```
 
-## What “thin WASM” means
+## What you get
 
-Yes: the library can be loaded from JS.
-
-| Pack | Command | Load in |
-| --- | --- | --- |
-| `ceps-wasm/pkg-nodejs/` | `make nodejs` | **Node.js** (`import { Cep18Client } from "…"` ) |
-| `ceps-wasm/pkg/` | `make web` | **Browsers** (bundler / webpack / vite) |
-
-That pack is **`ceps-client` compiled with `wasm-bindgen`**. Same class names (`Cep18Client`, …). It is **not** how you pull latest CEP **contracts**.
-
-| Name | Meaning |
+| Piece | Role |
 | --- | --- |
-| **`ceps-wasm`** | Off-chain **client** for Node/web |
-| **`make wasm-from-ceps`** | Copies on-chain **contract** `.wasm` from demo tip repos into `tests/wasm/` for `install(...)` |
-
-## Surfaces
-
-| Surface | What it is | Who uses it |
-| --- | --- | --- |
-| **`ceps-client`** | Native Rust library (full CEP API) | Rust apps, examples, tests |
-| **`ceps` CLI** | Binary on top of `ceps-client` | Shell / scripts |
-| **`ceps-wasm`** | Same CEP API as WASM + JS glue | Node (`pkg-nodejs`) and web (`pkg`) |
+| **Rust library** (`ceps-client`) | Full CEP API for native apps |
+| **CLI** (`ceps`) | Status and common queries from the shell |
+| **WASM packs** (`ceps-wasm`) | Same CEP classes for JavaScript (Node and web) |
 
 ## What you can do
 
@@ -46,14 +28,14 @@ That pack is **`ceps-client` compiled with `wasm-bindgen`**. Same class names (`
 
 Defaults talk to local NCTL (`http://127.0.0.1:11101`, SSE `…:18101/events`, chain `casper-net-1`).
 
-## Usage (Rust)
+## Usage
 
-Needs a running node, a secret-key PEM, and **contract** WASM bytes (your own build, or the demo tips via `make wasm-from-ceps`).
+Needs a running node, a secret-key PEM, and on-chain contract `.wasm` bytes (your own build, or the [demo tips](#contract-wasms-demos) via `make wasm-from-ceps`).
 
 ### CEP-18 - fungible
 
 ```text
-install contract wasm → named keys cep18_contract_hash_* / package_*
+install → named keys cep18_contract_hash_* / package_*
   → set_contract_hash
   → name / symbol / balance_of
   → transfer | mint | burn
@@ -88,7 +70,7 @@ Details: [docs/cep18/](docs/cep18/) · example: `cargo run -p ceps-client --exam
 ### CEP-78 - NFT
 
 ```text
-install contract wasm → named keys cep78_contract_hash_* / package_*
+install → named keys cep78_contract_hash_* / package_*
   → set_contract_hash
   → mint → owner_of / balance_of
 ```
@@ -122,7 +104,7 @@ Details: [docs/cep78/](docs/cep78/) · example: `cargo run -p ceps-client --exam
 ### CEP-85 - multi-token
 
 ```text
-install contract wasm → named keys cep85_contract_hash_* / package_*
+install → named keys cep85_contract_hash_* / package_*
   → set_contract_hash
   → mint / burn → balance_of(account, id)
 ```
@@ -159,7 +141,7 @@ cargo run -p cli -- cep85 balance --contract-hash <hash> --account <…> --id 1
 
 Mutations are on the library / examples today. Flags: [docs/cli.md](docs/cli.md).
 
-### Try an install end-to-end (Rust)
+### Try an install end-to-end
 
 ```bash
 make prepare && make build
@@ -170,74 +152,36 @@ cargo run -p ceps-client --example cep18_install
 
 More setup: [docs/getting-started.md](docs/getting-started.md).
 
-## Usage (Node / `ceps-wasm`)
+## WASM packs (JavaScript)
 
-Build the client pack, then import the same CEP class names from JS.
+`ceps-wasm` is the **Rust CEP client compiled for JavaScript**. Use it when your app is Node or browser and you want the same `Cep18Client` / `Cep78Client` / `Cep85Client` surface instead of a per-CEP `client-js`.
 
-```bash
-make nodejs    # → ceps-wasm/pkg-nodejs
-# or: make web → ceps-wasm/pkg  (browsers)
-# or: make pack  (both)
-```
+It is **not** how you fetch latest on-chain contracts. Contract `.wasm` files still come from tip repos (or your own builds) and are passed into `install`.
 
-### What `ceps-wasm` exposes today
+| Target | Output | Typical use |
+| --- | --- | --- |
+| Node | `ceps-wasm/pkg-nodejs/` | Backend / scripts / Vitest |
+| Web | `ceps-wasm/pkg/` | Bundled frontends |
 
-| Client | Bound methods (JS names) |
-| --- | --- |
-| CEP-18 | `setContractHash`, `install`, `name`, `symbol`, `balanceOf`, URL getters |
-| CEP-78 | `setContractHash`, `install`, `collectionName`, `balanceOf`, … |
-| CEP-85 | `setContractHash`, `install`, `collectionName`, `balanceOf`, … |
-
-Full mutate/query parity is on Rust `ceps-client`; the WASM surface is the thin JS entry for the same clients.
-
-### Node.js - query after bind
+Build: `make nodejs`, `make web`, or `make pack` (both). Details: [docs/wasm-ts.md](docs/wasm-ts.md).
 
 ```js
-import { Cep18Client } from "./ceps-wasm/pkg-nodejs/ceps_wasm.js";
-// after `make nodejs`; or depend on the packed package name `ceps-wasm`
+import { Cep18Client } from "ceps-wasm"; // after packing / linking pkg-nodejs
 
 const client = new Cep18Client(
   "http://127.0.0.1:11101",
   "http://127.0.0.1:18101/events",
   "casper-net-1",
-  0, // verbosity: 0=low
+  0,
 );
-
 client.setContractHash(contractHash, packageHash);
 const name = await client.name();
 const bal = await client.balanceOf("account-hash-…");
-console.log({ name, bal });
 ```
 
-### Node.js - install (contract bytes in, tx hash out)
+Install from JS takes contract bytes as `Uint8Array` and returns JSON `{ transactionHash, hasExecutionResult }`. Bound methods today are a subset of the Rust API (see [docs/wasm-ts.md](docs/wasm-ts.md)); full parity is on `ceps-client`.
 
-```js
-import { readFileSync } from "node:fs";
-import { Cep18Client } from "./ceps-wasm/pkg-nodejs/ceps_wasm.js";
-
-const client = new Cep18Client("http://127.0.0.1:11101", "http://127.0.0.1:18101/events", "casper-net-1", 0);
-const contractWasm = new Uint8Array(readFileSync("tests/wasm/cep18/cep18.wasm"));
-const secretPem = readFileSync("secret_key.pem", "utf8");
-
-// install(name, symbol, decimals, totalSupply, eventsMode?, contractWasm, secretPem, payment, wait?)
-const resultJson = await client.install(
-  "MyToken",
-  "MTK",
-  9,
-  "1000000000",
-  2, // CES events mode
-  contractWasm,
-  secretPem,
-  "400000000000",
-  true,
-);
-const { transactionHash } = JSON.parse(resultJson);
-// then resolve installer named keys and client.setContractHash(...)
-```
-
-Smoke test: `make ts-test`. Full notes: [docs/wasm-ts.md](docs/wasm-ts.md).
-
-## Contract WASMs (on-chain demos)
+## Contract WASMs (demos)
 
 This client is **not** a contract repo. You pass on-chain `.wasm` into `install`. For local demos and CI, we stage fresh builds from short-lived **demo tip** forks (branch `ceps-client-test`). They exist so examples and tests have current entity-era contracts; they are not a claim of “the” upstream CEP tip forever.
 
