@@ -1,115 +1,180 @@
 # ceps-rust-ts-client
 
-Unified **Rust** (+ thin WASM / CLI) client for Casper **CEP-18**, **CEP-78**, and **CEP-85**, built on [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
+One **Rust** client for Casper **CEP-18**, **CEP-78**, and **CEP-85** (plus a thin WASM pack and a `ceps` CLI).
 
-## What it does
+It replaces the separate TypeScript **`client-js`** packages that lived next to each CEP contract. Instead of three JS clients, you use one library: `Cep18Client` / `Cep78Client` / `Cep85Client`, on top of [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
 
-- Install and drive **CEP-18** (fungible), **CEP-78** (enhanced NFT), **CEP-85** (multi-token) contracts
-- Share one transport core (`CepCore`) for RPC/SSE, install, entrypoint call, query, wait, and CES-friendly errors
-- Ship a clap CLI (`ceps`) for status and common queries
-- Ship thin `ceps-wasm` bindings for Node/browser CEP APIs
-- Run live integration against NCTL; publish CLI images to Hub + GHCR and GitHub Release artefacts
-
-## Stack
-
-| Layer | Tech |
-| --- | --- |
-| Library | `ceps-client` (Rust, edition 2021) |
-| CLI | `ceps` (`cli` crate, clap) |
-| WASM | `ceps-wasm` (`wasm-bindgen` / `wasm-pack`) |
-| Casper | `casper-rust-wasm-sdk` (`transaction`, `contract`, `helpers`, `watcher`, `SSE`) |
-| Tests | Rust unit + NCTL live; Vitest on `pkg-nodejs` |
-| Images | `interchouette/ceps-rust-ts-client` + GHCR (see [docs/docker.md](docs/docker.md)) |
-
-## Repository layout
-
-| Path | Role |
-| --- | --- |
-| `ceps-client/` | Native CEP library (`Cep18Client`, `Cep78Client`, `Cep85Client`) |
-| `cli/` | Clap binary `ceps` |
-| `ceps-wasm/` | Thin CEP-only WASM exports |
-| `docker/` | Runtime Dockerfile for the CLI binary |
-| `tests/rust/` | Integration tests (NCTL live cases) |
-| `tests/ts/` | Vitest smoke against `pkg-nodejs` |
-| `tests/wasm/` | Staged contract WASMs from tip builds |
-| `docs/` | Hub, CEP closets, CI, security, SDK notes |
-
-## Quick start
-
-```bash
-make help
-make prepare
-make build
-make check-lint
-make unit-test
-cargo run -p cli -- --help
-cargo run -p cli -- status
+```text
+CEP-18 client-js  ─┐
+CEP-78 client-js  ─┼─→  ceps-client (Rust)  +  ceps CLI  +  ceps-wasm
+CEP-85 client-js  ─┘
 ```
 
-Library sketch:
+## What you can do
+
+| CEP | Standard | Typical flow |
+| --- | --- | --- |
+| **18** | Fungible token | install → bind hash → `name` / `balance_of` → `transfer` / `mint` / `burn` |
+| **78** | Enhanced NFT | install → bind hash → `mint` → `owner_of` / `balance_of` |
+| **85** | Multi-token | install → bind hash → `mint` / `burn` → `balance_of(account, id)` |
+
+Defaults talk to local NCTL (`http://127.0.0.1:11101`, SSE `…:18101/events`, chain `casper-net-1`).
+
+## Usage
+
+Needs a running node, a secret-key PEM, and contract WASM (stage tips with `make wasm-from-ceps`, or point at your own `.wasm`).
+
+### CEP-18 - fungible
+
+```text
+install wasm → named keys cep18_contract_hash_* / package_*
+  → set_contract_hash
+  → name / symbol / balance_of
+  → transfer | mint | burn
+```
 
 ```rust
-use ceps_client::{Cep18Client, Verbosity};
+use ceps_client::cep18::InstallArgs;
+use ceps_client::{Cep18Client, DeployParams, EventsMode, Verbosity};
 
-let client = Cep18Client::new(
+let mut client = Cep18Client::new(
     "http://127.0.0.1:11101",
     Some("http://127.0.0.1:18101/events".into()),
     Some("casper-net-1".into()),
     Some(Verbosity::Low),
 )?;
+
+let put = client
+    .install(
+        &InstallArgs::new("MyToken", "MTK", 9, "1000000000")
+            .with_events_mode(EventsMode::Ces)
+            .with_mint_and_burn(true),
+        &wasm_bytes,
+        &DeployParams::new(&secret_pem, "400000000000"),
+    )
+    .await?;
+// bind installer named keys, then:
+client.set_contract_hash(&contract_hash, Some(&package_hash))?;
+let bal = client.balance_of("account-hash-…").await?;
 ```
 
-Defaults match NCTL `dev` (RPC `11101`, SSE `18101/events`, chain `casper-net-1`). Full walkthrough: [docs/getting-started.md](docs/getting-started.md).
+Details: [docs/cep18/](docs/cep18/) · example: `cargo run -p ceps-client --example cep18_install`
 
-## Contract tips
+### CEP-78 - NFT
 
-Develop against tip branch **`ceps-client-test`** on the CEP forks, build contracts there, then `make wasm-from-ceps`. Details: [docs/contributing.md](docs/contributing.md).
+```text
+install wasm → named keys cep78_contract_hash_* / package_*
+  → set_contract_hash
+  → mint → owner_of / balance_of
+```
 
-## Make
+```rust
+use ceps_client::cep78::InstallArgs;
+use ceps_client::{Cep78Client, DeployParams, EventsMode78, Verbosity};
 
-| Target | Purpose |
-| --- | --- |
-| `make build` / `check` / `check-lint` | Native workspace |
-| `make unit-test` / `integration-test` / `e2e-test` | Tests |
-| `make pack` / `nodejs` / `web` | wasm-pack |
-| `make run-cli` | `ceps` binary |
-| `make nctl-start` / `nctl-status` | Local NCTL (`dev` profile) |
-| `make wasm-from-ceps` | Stage tip WASMs |
-| `make release-cli-bin` / `docker-build` | Stripped CLI + image |
-| `make doc` | rustdoc → `docs/api-rust/` |
+let mut client = Cep78Client::new(/* rpc, sse, chain, verbosity */)?;
+client
+    .install(
+        &InstallArgs::new("MyNft", "NFT", 100).with_events_mode(EventsMode78::Ces),
+        &wasm_bytes,
+        &DeployParams::new(&secret_pem, "600000000000"),
+    )
+    .await?;
+client.set_contract_hash(&contract_hash, Some(&package_hash))?;
+client
+    .mint(
+        "account-hash-…",
+        r#"{"name":"token-1"}"#,
+        None,
+        &DeployParams::new(&secret_pem, "5000000000"),
+    )
+    .await?;
+let owner = client.owner_of(&token_id).await?;
+```
 
-## Docker
+Details: [docs/cep78/](docs/cep78/) · example: `cargo run -p ceps-client --example cep78_install`
+
+### CEP-85 - multi-token
+
+```text
+install wasm → named keys cep85_contract_hash_* / package_*
+  → set_contract_hash
+  → mint / burn → balance_of(account, id)
+```
+
+```rust
+use ceps_client::cep85::InstallArgs;
+use ceps_client::{Cep85Client, DeployParams, EventsMode, Verbosity};
+
+let mut client = Cep85Client::new(/* rpc, sse, chain, verbosity */)?;
+client
+    .install(
+        &InstallArgs::new("MyMulti", "https://example.com/{id}.json")
+            .with_events_mode(EventsMode::Ces)
+            .with_enable_burn(true),
+        &wasm_bytes,
+        &DeployParams::new(&secret_pem, "550000000000"),
+    )
+    .await?;
+client.set_contract_hash(&contract_hash, Some(&package_hash))?;
+client.mint(&owner, "1", "10", None, &DeployParams::new(&secret_pem, "5000000000")).await?;
+let bal = client.balance_of(&owner, "1").await?;
+```
+
+Details: [docs/cep85/](docs/cep85/) · example: `cargo run -p ceps-client --example cep85_install`
+
+### CLI
 
 ```bash
-make release-cli-bin
-make docker-build IMAGE_TAG=local
-docker run --rm ceps-rust-ts-client:local --help
-
-docker pull interchouette/ceps-rust-ts-client:dev
+cargo run -p cli -- status
+cargo run -p cli -- cep18 info
+cargo run -p cli -- cep78 balance --contract-hash <hash> --account <account-hash-…>
+cargo run -p cli -- cep85 balance --contract-hash <hash> --account <…> --id 1
 ```
 
-Tags, Hub, and GHCR: [docs/docker.md](docs/docker.md). Release strategy: [docs/ci.md](docs/ci.md).
+Mutations are on the library / examples today. Flags: [docs/cli.md](docs/cli.md).
+
+### Try an install end-to-end
+
+```bash
+make prepare && make build
+make wasm-from-ceps          # stage tip contract WASMs into tests/wasm/
+# NCTL running + SECRET_KEY_USER_1 set to a PEM:
+cargo run -p ceps-client --example cep18_install
+```
+
+More setup: [docs/getting-started.md](docs/getting-started.md).
+
+## Package map
+
+| Crate | For |
+| --- | --- |
+| `ceps-client` | Native Rust apps (full CEP API) |
+| `cli` (`ceps`) | Shell queries / status |
+| `ceps-wasm` | Node / browser CEP bindings ([docs/wasm-ts.md](docs/wasm-ts.md)) |
 
 ## Documentation
 
 | Doc | Description |
 | --- | --- |
-| [docs/README.md](docs/README.md) | Documentation hub |
-| [Getting started](docs/getting-started.md) | Build, NCTL defaults, first client |
-| [Architecture](docs/architecture.md) | lib ↔ CLI ↔ WASM ↔ SDK |
-| [SDK dependency](docs/sdk.md) | Features, local path, CI pin, upgrades |
-| [CLI](docs/cli.md) | Global flags and subcommands |
-| [WASM / TS](docs/wasm-ts.md) | `ceps-wasm` pack and Vitest |
-| [Testing](docs/testing.md) | Unit / live / e2e / examples |
-| [CI / CD](docs/ci.md) | Gates, Hub/GHCR, GitHub Releases |
-| [Docker](docs/docker.md) | CLI image tags and registries |
-| [Contributing](docs/contributing.md) | Tip WASMs, lint, SDK pin |
-| [SECURITY.md](docs/SECURITY.md) | Keys, trust boundary, reporting |
-| [CHANGELOG.md](docs/CHANGELOG.md) | Semver notes |
-| [docs/cep18/](docs/cep18/) | CEP-18 closet |
-| [docs/cep78/](docs/cep78/) | CEP-78 closet |
-| [docs/cep85/](docs/cep85/) | CEP-85 closet |
-| `make doc` | Generated rustdoc under `docs/api-rust/` |
+| [Getting started](docs/getting-started.md) | Build, NCTL defaults, first run |
+| [Architecture](docs/architecture.md) | How lib / CLI / WASM sit on the SDK |
+| [docs/cep18/](docs/cep18/) · [cep78/](docs/cep78/) · [cep85/](docs/cep85/) | Per-CEP guides |
+| [CLI](docs/cli.md) · [WASM / TS](docs/wasm-ts.md) | Surfaces |
+| [Testing](docs/testing.md) · [CI / CD](docs/ci.md) · [Docker](docs/docker.md) | Verify and ship |
+| [Contributing](docs/contributing.md) · [SDK](docs/sdk.md) | Tips, pins, upgrades |
+| [SECURITY.md](docs/SECURITY.md) | Keys and reporting |
+| `make doc` | rustdoc → `docs/api-rust/` |
+
+## Docker
+
+```bash
+make release-cli-bin && make docker-build IMAGE_TAG=local
+docker run --rm ceps-rust-ts-client:local --help
+docker pull interchouette/ceps-rust-ts-client:dev
+```
+
+See [docs/docker.md](docs/docker.md).
 
 ## License / security
 
