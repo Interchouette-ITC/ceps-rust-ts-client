@@ -1365,6 +1365,318 @@ impl CepsClientMcp {
     ) -> ToolOutput {
         tools::cep85::is_non_fungible(contract_hash, package_hash, id).await
     }
+
+    #[tool(description = "CEPS95 Odra install")]
+    async fn ceps95_install(
+        &self,
+        name: String,
+        symbol: String,
+        package_hash_key_name: String,
+        secret_key_pem: String,
+        payment_amount: String,
+        wasm_path: Option<String>,
+        wasm_base64: Option<String>,
+        allow_key_override: Option<bool>,
+        is_upgradable: Option<bool>,
+        is_upgrade: Option<bool>,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> ToolOutput {
+        tools::cep95::install(
+            name,
+            symbol,
+            package_hash_key_name,
+            secret_key_pem,
+            payment_amount,
+            wasm_path,
+            wasm_base64,
+            allow_key_override,
+            is_upgradable,
+            is_upgrade,
+            wait,
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    #[tool(description = "CEPS95 bind Odra install (package named key → contract+package)")]
+    async fn ceps95_bind_odra_install(
+        &self,
+        installer_public_key: String,
+        package_hash_key_name: String,
+    ) -> ToolOutput {
+        tools::cep95::bind_odra_install(installer_public_key, package_hash_key_name).await
+    }
+
+    #[tool(description = "CEPS95 mint")]
+    async fn ceps95_mint(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        to: String,
+        token_id: String,
+        secret_key_pem: String,
+        payment_amount: String,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> ToolOutput {
+        tools::cep95::mint(
+            contract_hash,
+            package_hash,
+            to,
+            token_id,
+            secret_key_pem,
+            payment_amount,
+            wait,
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    #[tool(description = "CEPS95 burn")]
+    async fn ceps95_burn(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        token_id: String,
+        secret_key_pem: String,
+        payment_amount: String,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> ToolOutput {
+        tools::cep95::burn(
+            contract_hash,
+            package_hash,
+            token_id,
+            secret_key_pem,
+            payment_amount,
+            wait,
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    #[tool(description = "CEPS95 transfer_from")]
+    async fn ceps95_transfer_from(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        from: String,
+        to: String,
+        token_id: String,
+        secret_key_pem: String,
+        payment_amount: String,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> ToolOutput {
+        tools::cep95::transfer_from(
+            contract_hash,
+            package_hash,
+            from,
+            to,
+            token_id,
+            secret_key_pem,
+            payment_amount,
+            wait,
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    #[tool(description = "CEPS95 safe_transfer_from")]
+    async fn ceps95_safe_transfer_from(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        from: String,
+        to: String,
+        token_id: String,
+        secret_key_pem: String,
+        payment_amount: String,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> ToolOutput {
+        tools::cep95::safe_transfer_from(
+            contract_hash,
+            package_hash,
+            from,
+            to,
+            token_id,
+            secret_key_pem,
+            payment_amount,
+            wait,
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    #[tool(description = "CEPS95 approve")]
+    async fn ceps95_approve(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        spender: String,
+        token_id: String,
+        secret_key_pem: String,
+        payment_amount: String,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> ToolOutput {
+        tools::cep95::approve(
+            contract_hash,
+            package_hash,
+            spender,
+            token_id,
+            secret_key_pem,
+            payment_amount,
+            wait,
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    #[tool(description = "CEPS95 revoke_approval")]
+    async fn ceps95_revoke_approval(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        token_id: String,
+        secret_key_pem: String,
+        payment_amount: String,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> ToolOutput {
+        tools::cep95::revoke_approval(
+            contract_hash,
+            package_hash,
+            token_id,
+            secret_key_pem,
+            payment_amount,
+            wait,
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    #[tool(description = "CEPS95 approve_for_all")]
+    async fn ceps95_approve_for_all(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        operator: String,
+        secret_key_pem: String,
+        payment_amount: String,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> ToolOutput {
+        tools::cep95::approve_for_all(
+            contract_hash,
+            package_hash,
+            operator,
+            secret_key_pem,
+            payment_amount,
+            wait,
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    #[tool(description = "CEPS95 revoke_approval_for_all")]
+    async fn ceps95_revoke_approval_for_all(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        operator: String,
+        secret_key_pem: String,
+        payment_amount: String,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> ToolOutput {
+        tools::cep95::revoke_approval_for_all(
+            contract_hash,
+            package_hash,
+            operator,
+            secret_key_pem,
+            payment_amount,
+            wait,
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    #[tool(description = "CEPS95 name")]
+    async fn ceps95_name(&self, contract_hash: String, package_hash: Option<String>) -> ToolOutput {
+        tools::cep95::name(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS95 symbol")]
+    async fn ceps95_symbol(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep95::symbol(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS95 total_supply")]
+    async fn ceps95_total_supply(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep95::total_supply(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS95 balance_of")]
+    async fn ceps95_balance_of(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        owner: String,
+    ) -> ToolOutput {
+        tools::cep95::balance_of(contract_hash, package_hash, owner).await
+    }
+
+    #[tool(description = "CEPS95 owner_of")]
+    async fn ceps95_owner_of(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        token_id: String,
+    ) -> ToolOutput {
+        tools::cep95::owner_of(contract_hash, package_hash, token_id).await
+    }
+
+    #[tool(description = "CEPS95 get_approved")]
+    async fn ceps95_get_approved(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        token_id: String,
+    ) -> ToolOutput {
+        tools::cep95::get_approved(contract_hash, package_hash, token_id).await
+    }
+
+    #[tool(description = "CEPS95 is_approved_for_all")]
+    async fn ceps95_is_approved_for_all(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        owner: String,
+        operator: String,
+    ) -> ToolOutput {
+        tools::cep95::is_approved_for_all(contract_hash, package_hash, owner, operator).await
+    }
+
+    #[tool(description = "CEPS95 token_metadata")]
+    async fn ceps95_token_metadata(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        token_id: String,
+    ) -> ToolOutput {
+        tools::cep95::token_metadata(contract_hash, package_hash, token_id).await
+    }
 }
 
 /// Serves MCP over stdio until the client disconnects.

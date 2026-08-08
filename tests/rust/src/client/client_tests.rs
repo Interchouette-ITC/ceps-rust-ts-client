@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod tests {
-    use ceps_client::{Cep18Client, Cep78Client, Cep85Client, Verbosity};
+    use ceps_client::{Cep18Client, Cep78Client, Cep85Client, Cep95Client, Verbosity};
 
     #[test]
     fn cep18_endpoints() {
@@ -28,6 +28,12 @@ mod tests {
     #[test]
     fn cep85_endpoints() {
         let client = Cep85Client::new("http://127.0.0.1:11101", None, None, None).expect("client");
+        assert_eq!(client.rpc_url(), "http://127.0.0.1:11101/rpc");
+    }
+
+    #[test]
+    fn cep95_endpoints() {
+        let client = Cep95Client::new("http://127.0.0.1:11101", None, None, None).expect("client");
         assert_eq!(client.rpc_url(), "http://127.0.0.1:11101/rpc");
     }
 

@@ -3,9 +3,10 @@
 use ceps_client::cep18::InstallArgs as Cep18InstallArgs;
 use ceps_client::cep78::InstallArgs as Cep78InstallArgs;
 use ceps_client::cep85::InstallArgs as Cep85InstallArgs;
+use ceps_client::cep95::InstallArgs as Cep95InstallArgs;
 use ceps_client::{
-    CallResult, Cep18Client, Cep78Client, Cep85Client, DeployParams, EventsMode, EventsMode78,
-    Verbosity,
+    CallResult, Cep18Client, Cep78Client, Cep85Client, Cep95Client, DeployParams, EventsMode,
+    EventsMode78, Verbosity,
 };
 use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
@@ -318,5 +319,98 @@ impl WasmCep85Client {
     #[wasm_bindgen(js_name = balanceOf)]
     pub async fn balance_of(&self, account: String, id: String) -> Result<String, JsValue> {
         self.inner.balance_of(&account, &id).await.map_err(map_err)
+    }
+}
+
+/// WASM wrapper for [`Cep95Client`].
+#[wasm_bindgen(js_name = Cep95Client)]
+pub struct WasmCep95Client {
+    inner: Cep95Client,
+}
+
+#[wasm_bindgen(js_class = Cep95Client)]
+impl WasmCep95Client {
+    /// Create a CEP-95 client.
+    #[wasm_bindgen(constructor)]
+    pub fn new(
+        rpc_url: String,
+        sse_url: Option<String>,
+        chain_name: Option<String>,
+        verbosity: Option<u8>,
+    ) -> Result<WasmCep95Client, JsValue> {
+        let inner = Cep95Client::new(rpc_url, sse_url, chain_name, verbosity_from_u8(verbosity))
+            .map_err(map_err)?;
+        Ok(Self { inner })
+    }
+
+    /// RPC URL.
+    #[wasm_bindgen(js_name = rpcUrl)]
+    pub fn rpc_url(&self) -> String {
+        self.inner.rpc_url().to_string()
+    }
+
+    /// SSE URL when set.
+    #[wasm_bindgen(js_name = sseUrl)]
+    pub fn sse_url(&self) -> Option<String> {
+        self.inner.sse_url().map(str::to_string)
+    }
+
+    /// Bind contract hashes.
+    #[wasm_bindgen(js_name = setContractHash)]
+    pub fn set_contract_hash(
+        &mut self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> Result<(), JsValue> {
+        self.inner
+            .set_contract_hash(contract_hash, package_hash)
+            .map_err(map_err)
+    }
+
+    /// Install Odra OwnedCep95 (or compatible) with package named-key name.
+    #[wasm_bindgen]
+    #[allow(clippy::too_many_arguments)]
+    pub async fn install(
+        &self,
+        name: String,
+        symbol: String,
+        package_hash_key_name: String,
+        wasm: Uint8Array,
+        secret_key_pem: String,
+        payment_amount: String,
+        wait: Option<bool>,
+    ) -> Result<String, JsValue> {
+        let args = Cep95InstallArgs::new(name, symbol, package_hash_key_name);
+        let deploy = deploy_params(&secret_key_pem, &payment_amount, wait.unwrap_or(true));
+        let put = self
+            .inner
+            .install(&args, &bytes_from_js(&wasm), &deploy)
+            .await
+            .map_err(map_err)?;
+        call_result_json(put)
+    }
+
+    /// Collection name.
+    #[wasm_bindgen]
+    pub async fn name(&self) -> Result<String, JsValue> {
+        self.inner.name().await.map_err(map_err)
+    }
+
+    /// Collection symbol.
+    #[wasm_bindgen]
+    pub async fn symbol(&self) -> Result<String, JsValue> {
+        self.inner.symbol().await.map_err(map_err)
+    }
+
+    /// Balance of owner.
+    #[wasm_bindgen(js_name = balanceOf)]
+    pub async fn balance_of(&self, owner: String) -> Result<String, JsValue> {
+        self.inner.balance_of(&owner).await.map_err(map_err)
+    }
+
+    /// Owner of token id.
+    #[wasm_bindgen(js_name = ownerOf)]
+    pub async fn owner_of(&self, token_id: String) -> Result<String, JsValue> {
+        self.inner.owner_of(&token_id).await.map_err(map_err)
     }
 }

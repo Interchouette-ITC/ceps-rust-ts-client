@@ -13,6 +13,7 @@ use ceps_client::cep78::{
 use ceps_client::cep85::{
     Cep85Client, InstallArgs as Cep85InstallArgs, UpgradeArgs as Cep85UpgradeArgs,
 };
+use ceps_client::cep95::{Cep95Client, InstallArgs as Cep95InstallArgs};
 use ceps_client::{DeployParams, EventsMode, EventsMode78, Result as CepResult};
 use mcpkit::prelude::ToolOutput;
 use std::path::{Component, Path, PathBuf};
@@ -188,6 +189,46 @@ pub fn cep85_client(
             .map_err(|e| e.to_string())?;
     }
     Ok(c)
+}
+
+pub fn cep95_client(
+    contract_hash: Option<&str>,
+    package_hash: Option<&str>,
+) -> Result<Cep95Client, String> {
+    let ep = handle::snapshot();
+    let mut c = Cep95Client::new(
+        &ep.rpc_url,
+        Some(ep.sse_url.clone()),
+        Some(ep.chain_name.clone()),
+        Some(ep.verbosity),
+    )
+    .map_err(|e| e.to_string())?;
+    if let Some(h) = contract_hash {
+        c.set_contract_hash(h, package_hash)
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(c)
+}
+
+pub fn cep95_install_args(
+    name: String,
+    symbol: String,
+    package_hash_key_name: String,
+    allow_key_override: Option<bool>,
+    is_upgradable: Option<bool>,
+    is_upgrade: Option<bool>,
+) -> Cep95InstallArgs {
+    let mut args = Cep95InstallArgs::new(name, symbol, package_hash_key_name);
+    if let Some(v) = allow_key_override {
+        args = args.with_allow_key_override(v);
+    }
+    if let Some(v) = is_upgradable {
+        args = args.with_upgradable(v);
+    }
+    if let Some(v) = is_upgrade {
+        args = args.with_upgrade(v);
+    }
+    args
 }
 
 pub fn cep18_install_args(

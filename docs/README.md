@@ -1,6 +1,6 @@
 # Documentation hub
 
-Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**), with JS packs (`ceps-client-wasm`) and a clap CLI (`ceps-client-cli`).
+Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**, **CEP-95**), with JS packs (`ceps-client-wasm`) and a clap CLI (`ceps-client-cli`).
 
 ## Quick links
 
@@ -27,6 +27,7 @@ Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**), wit
 | [docs/cep18/](cep18/) | Fungible token                             |
 | [docs/cep78/](cep78/) | Enhanced NFT                               |
 | [docs/cep85/](cep85/) | Multi-token (CEP-85; repo name `cep-1155`) |
+| [docs/cep95/](cep95/) | NFT (CEP-95; Odra tip)                     |
 
 Each closet is self-contained: overview, quickstart, mutations, queries, errors, CLI, API.
 

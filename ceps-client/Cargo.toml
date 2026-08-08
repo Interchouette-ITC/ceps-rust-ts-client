@@ -2,7 +2,7 @@
 name = "ceps-client"
 version.workspace = true
 edition.workspace = true
-description = "Native CEP-18 / CEP-78 / CEP-85 client library for Casper."
+description = "Native CEP-18 / CEP-78 / CEP-85 / CEP-95 client library for Casper."
 readme.workspace = true
 homepage.workspace = true
 repository.workspace = true
@@ -44,4 +44,9 @@ required-features = []
 [[example]]
 name = "cep78_install"
 path = "examples/cep78_install.rs"
+required-features = []
+
+[[example]]
+name = "cep95_install"
+path = "examples/cep95_install.rs"
 required-features = []

@@ -1,13 +1,14 @@
 # ceps-rust-ts-client
 
-One **Rust** client for Casper **CEP-18**, **CEP-78**, and **CEP-85**, with a **`ceps-client-cli`**, **`ceps-client-mcp`**, and **WASM packs** so the same client can run from shell, agents, Node, or the browser.
+One **Rust** client for Casper **CEP-18**, **CEP-78**, **CEP-85**, and **CEP-95**, with a **`ceps-client-cli`**, **`ceps-client-mcp`**, and **WASM packs** so the same client can run from shell, agents, Node, or the browser.
 
-It replaces the separate TypeScript **`client-js`** packages that lived next to each CEP contract. Instead of three JS clients, you use one library: `Cep18Client` / `Cep78Client` / `Cep85Client`, on top of [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
+It replaces the separate TypeScript **`client-js`** packages that lived next to each CEP contract. Instead of per-CEP JS clients, you use one library: `Cep18Client` / `Cep78Client` / `Cep85Client` / `Cep95Client`, on top of [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
 
 ```text
 CEP-18 client-js  ─┐
 CEP-78 client-js  ─┼─→  ceps-client (Rust)  +  ceps-client-cli  +  ceps-client-mcp  +  ceps-client-wasm
-CEP-85 client-js  ─┘
+CEP-85 client-js  ─┤
+CEP-95 JS client  ─┘
 ```
 
 ## What you get
@@ -50,7 +51,7 @@ CEP-85 client-js  ─┘
 <td>Demo contract WASMs</td>
 <td><code>ceps‑contracts</code></td>
 <td>On-chain bytecode for <code>install</code> (demo tips)</td>
-<td><code>tests/wasm/{cep18,cep78,cep85}/</code></td>
+<td><code>tests/wasm/{cep18,cep78,cep85,cep95}/</code></td>
 </tr>
 </tbody>
 </table>
@@ -64,6 +65,7 @@ Release downloads use the same names: `ceps-client-cli-*-linux-x86_64`, `ceps-cl
 | **18** | Fungible token | install → bind hash → `name` / `balance_of` → `transfer` / `mint` / `burn` |
 | **78** | Enhanced NFT   | install → bind hash → `mint` → `owner_of` / `balance_of`                   |
 | **85** | Multi-token    | install → bind hash → `mint` / `burn` → `balance_of(account, id)`          |
+| **95** | NFT (Odra tip) | install → `bind_odra_install` → `mint` → `owner_of` / `approve`            |
 
 Defaults talk to local NCTL (`http://127.0.0.1:11101`, SSE `…:18101/events`, chain `casper-net-1`).
 
@@ -169,6 +171,33 @@ let bal = client.balance_of(&owner, "1").await?;
 
 Details: [docs/cep85/](docs/cep85/) · example: `cargo run -p ceps-client --example cep85_install`
 
+### CEP-95 - NFT (Odra tip)
+
+```text
+install (odra_cfg_package_hash_key_name) → bind_odra_install
+  → name / symbol / balance_of / owner_of
+  → mint | burn | transfer_from | approve*
+```
+
+```rust
+use ceps_client::cep95::InstallArgs;
+use ceps_client::{Cep95Client, DeployParams, Verbosity};
+
+let mut client = Cep95Client::new(/* rpc, sse, chain, verbosity */)?;
+client
+    .install(
+        &InstallArgs::new("MyNft", "MNFT", "cep95_pkg_demo"),
+        &contract_wasm_bytes,
+        &DeployParams::new(&secret_pem, "600000000000"),
+    )
+    .await?;
+client.bind_odra_install(&installer_public_key, "cep95_pkg_demo").await?;
+client.mint(&owner, "1", None, &DeployParams::new(&secret_pem, "5000000000")).await?;
+let owner_of = client.owner_of("1").await?;
+```
+
+Details: [docs/cep95/](docs/cep95/) · example: `cargo run -p ceps-client --example cep95_install`
+
 ### CLI
 
 ```bash
@@ -176,6 +205,7 @@ cargo run -p ceps-client-cli -- status
 cargo run -p ceps-client-cli -- cep18 info
 cargo run -p ceps-client-cli -- cep78 balance --contract-hash <hash> --account <account-hash-…>
 cargo run -p ceps-client-cli -- cep85 balance --contract-hash <hash> --account <…> --id 1
+cargo run -p ceps-client-cli -- cep95 owner-of --contract-hash <hash> --token-id 1
 ```
 
 Mutations are on the library / examples today. Flags: [docs/cli.md](docs/cli.md).
