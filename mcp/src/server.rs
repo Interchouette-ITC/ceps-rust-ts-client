@@ -838,6 +838,291 @@ impl CepsClientMcp {
         tools::cep78::events_mode(contract_hash, package_hash).await
     }
 
+    #[tool(description = "CEPS78 allow_minting")]
+    async fn ceps78_allow_minting(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep78::allow_minting(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS78 minting_mode")]
+    async fn ceps78_minting_mode(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep78::minting_mode(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS78 whitelist_mode")]
+    async fn ceps78_whitelist_mode(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep78::whitelist_mode(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS78 reporting_mode (owner reverse lookup)")]
+    async fn ceps78_reporting_mode(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep78::reporting_mode(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS78 burn_mode")]
+    async fn ceps78_burn_mode(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep78::burn_mode(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS78 operator_burn_mode")]
+    async fn ceps78_operator_burn_mode(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep78::operator_burn_mode(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS78 holder_mode")]
+    async fn ceps78_holder_mode(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep78::holder_mode(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS78 identifier_mode")]
+    async fn ceps78_identifier_mode(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep78::identifier_mode(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS78 metadata_mutability")]
+    async fn ceps78_metadata_mutability(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep78::metadata_mutability(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS78 nft_kind")]
+    async fn ceps78_nft_kind(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep78::nft_kind(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS78 nft_metadata_kind")]
+    async fn ceps78_nft_metadata_kind(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep78::nft_metadata_kind(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS78 ownership_mode")]
+    async fn ceps78_ownership_mode(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep78::ownership_mode(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS78 package_operator_mode")]
+    async fn ceps78_package_operator_mode(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep78::package_operator_mode(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS78 acl_package_mode")]
+    async fn ceps78_acl_package_mode(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep78::acl_package_mode(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS78 json_schema")]
+    async fn ceps78_json_schema(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep78::json_schema(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS78 is_acl_whitelisted")]
+    async fn ceps78_is_acl_whitelisted(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        entity: String,
+    ) -> ToolOutput {
+        tools::cep78::is_acl_whitelisted(contract_hash, package_hash, entity).await
+    }
+
+    #[tool(description = "CEPS78 owner_of_session")]
+    async fn ceps78_owner_of_session(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        token_id: Option<u64>,
+        token_hash: Option<String>,
+        key_name: String,
+        secret_key_pem: String,
+        payment_amount: String,
+        session_wasm_path: Option<String>,
+        session_wasm_base64: Option<String>,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> ToolOutput {
+        tools::cep78::owner_of_session(
+            contract_hash,
+            package_hash,
+            token_id,
+            token_hash,
+            key_name,
+            secret_key_pem,
+            payment_amount,
+            session_wasm_path,
+            session_wasm_base64,
+            wait,
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    #[tool(description = "CEPS78 balance_of_session")]
+    async fn ceps78_balance_of_session(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        token_owner: String,
+        key_name: String,
+        secret_key_pem: String,
+        payment_amount: String,
+        session_wasm_path: Option<String>,
+        session_wasm_base64: Option<String>,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> ToolOutput {
+        tools::cep78::balance_of_session(
+            contract_hash,
+            package_hash,
+            token_owner,
+            key_name,
+            secret_key_pem,
+            payment_amount,
+            session_wasm_path,
+            session_wasm_base64,
+            wait,
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    #[tool(description = "CEPS78 get_approved_session")]
+    async fn ceps78_get_approved_session(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        token_id: Option<u64>,
+        token_hash: Option<String>,
+        key_name: String,
+        secret_key_pem: String,
+        payment_amount: String,
+        session_wasm_path: Option<String>,
+        session_wasm_base64: Option<String>,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> ToolOutput {
+        tools::cep78::get_approved_session(
+            contract_hash,
+            package_hash,
+            token_id,
+            token_hash,
+            key_name,
+            secret_key_pem,
+            payment_amount,
+            session_wasm_path,
+            session_wasm_base64,
+            wait,
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    #[tool(description = "CEPS78 is_approved_for_all_session")]
+    async fn ceps78_is_approved_for_all_session(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        token_owner: String,
+        operator: String,
+        key_name: String,
+        secret_key_pem: String,
+        payment_amount: String,
+        session_wasm_path: Option<String>,
+        session_wasm_base64: Option<String>,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> ToolOutput {
+        tools::cep78::is_approved_for_all_session(
+            contract_hash,
+            package_hash,
+            token_owner,
+            operator,
+            key_name,
+            secret_key_pem,
+            payment_amount,
+            session_wasm_path,
+            session_wasm_base64,
+            wait,
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    #[tool(description = "Parse CES events from execution JSON for a contract hash")]
+    async fn ceps_ces_parse_execution(
+        &self,
+        contract_hash: String,
+        execution_result_json: String,
+    ) -> ToolOutput {
+        tools::ces::parse_execution(contract_hash, execution_result_json).await
+    }
+
+    #[tool(description = "Fetch a transaction and parse CES events for a contract hash")]
+    async fn ceps_ces_parse_transaction(
+        &self,
+        contract_hash: String,
+        transaction_hash: String,
+    ) -> ToolOutput {
+        tools::ces::parse_transaction(contract_hash, transaction_hash).await
+    }
+
     #[tool(description = "CEPS78 owner_of")]
     async fn ceps78_owner_of(
         &self,

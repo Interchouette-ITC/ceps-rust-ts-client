@@ -380,6 +380,173 @@ impl Cep78Client {
         EventsMode78::from_u8(v).ok_or_else(|| CepError::Decode(format!("unknown events_mode {v}")))
     }
 
+    /// Whether minting is currently allowed.
+    pub async fn allow_minting(&self) -> Result<bool> {
+        decode_bool_cl(self.core.query_contract_key(&["allow_minting"]).await?)
+    }
+
+    /// Minting mode.
+    pub async fn minting_mode(&self) -> Result<MintingMode> {
+        mode_u8(self, "minting_mode", MintingMode::from_u8).await
+    }
+
+    /// Whitelist mode.
+    pub async fn whitelist_mode(&self) -> Result<WhitelistMode> {
+        mode_u8(self, "whitelist_mode", WhitelistMode::from_u8).await
+    }
+
+    /// Owner reverse-lookup / reporting mode (`reporting_mode` named key).
+    pub async fn reporting_mode(&self) -> Result<OwnerReverseLookupMode> {
+        mode_u8(self, "reporting_mode", OwnerReverseLookupMode::from_u8).await
+    }
+
+    /// Burn mode.
+    pub async fn burn_mode(&self) -> Result<BurnMode> {
+        mode_u8(self, "burn_mode", BurnMode::from_u8).await
+    }
+
+    /// Whether operators may burn.
+    pub async fn operator_burn_mode(&self) -> Result<bool> {
+        decode_bool_cl(
+            self.core
+                .query_contract_key(&["operator_burn_mode"])
+                .await?,
+        )
+    }
+
+    /// Holder mode.
+    pub async fn holder_mode(&self) -> Result<HolderMode> {
+        mode_u8(self, "holder_mode", HolderMode::from_u8).await
+    }
+
+    /// Identifier mode.
+    pub async fn identifier_mode(&self) -> Result<IdentifierMode> {
+        mode_u8(self, "identifier_mode", IdentifierMode::from_u8).await
+    }
+
+    /// Metadata mutability.
+    pub async fn metadata_mutability(&self) -> Result<MetadataMutability> {
+        mode_u8(self, "metadata_mutability", MetadataMutability::from_u8).await
+    }
+
+    /// NFT kind.
+    pub async fn nft_kind(&self) -> Result<NftKind> {
+        mode_u8(self, "nft_kind", NftKind::from_u8).await
+    }
+
+    /// NFT metadata kind.
+    pub async fn nft_metadata_kind(&self) -> Result<NftMetadataKind> {
+        mode_u8(self, "nft_metadata_kind", NftMetadataKind::from_u8).await
+    }
+
+    /// Ownership mode.
+    pub async fn ownership_mode(&self) -> Result<OwnershipMode> {
+        mode_u8(self, "ownership_mode", OwnershipMode::from_u8).await
+    }
+
+    /// Whether package-level operators are enabled.
+    pub async fn package_operator_mode(&self) -> Result<bool> {
+        decode_bool_cl(
+            self.core
+                .query_contract_key(&["package_operator_mode"])
+                .await?,
+        )
+    }
+
+    /// Whether ACL whitelist entries may be packages.
+    pub async fn acl_package_mode(&self) -> Result<bool> {
+        decode_bool_cl(self.core.query_contract_key(&["acl_package_mode"]).await?)
+    }
+
+    /// JSON schema string (custom validated metadata installs).
+    pub async fn json_schema(&self) -> Result<String> {
+        decode_string_cl(self.core.query_contract_key(&["json_schema"]).await?)
+    }
+
+    /// Whether `entity` appears in the ACL whitelist dictionary.
+    pub async fn is_acl_whitelisted(&self, entity: &str) -> Result<bool> {
+        let item = key_hex_body(entity)?;
+        match self.core.query_dictionary("acl_whitelist", &item).await {
+            Ok(raw) => decode_bool_cl(raw),
+            Err(CepError::EmptyQuery(_)) => Ok(false),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Persist owner under caller named key via `owner_of_session.wasm`.
+    pub async fn owner_of_session(
+        &self,
+        token: &TokenIdentifier,
+        key_name: &str,
+        session_wasm: &[u8],
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let mut v = vec![
+            key_arg("nft_contract_hash", &self.contract_hash_key()?),
+            string_arg("key_name", key_name),
+        ];
+        v.extend(token_args(token)?);
+        self.core
+            .call_session(session_wasm, deploy, &json_args(&v))
+            .await
+    }
+
+    /// Persist balance under caller named key via `balance_of_session.wasm`.
+    pub async fn balance_of_session(
+        &self,
+        token_owner: &str,
+        key_name: &str,
+        session_wasm: &[u8],
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let v = vec![
+            key_arg("nft_contract_hash", &self.contract_hash_key()?),
+            key_arg("token_owner", &prefixed_key(token_owner)?),
+            string_arg("key_name", key_name),
+        ];
+        self.core
+            .call_session(session_wasm, deploy, &json_args(&v))
+            .await
+    }
+
+    /// Persist approval under caller named key via `get_approved_session.wasm`.
+    pub async fn get_approved_session(
+        &self,
+        token: &TokenIdentifier,
+        key_name: &str,
+        session_wasm: &[u8],
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let mut v = vec![
+            key_arg("nft_contract_hash", &self.contract_hash_key()?),
+            string_arg("key_name", key_name),
+        ];
+        v.extend(token_args(token)?);
+        self.core
+            .call_session(session_wasm, deploy, &json_args(&v))
+            .await
+    }
+
+    /// Persist operator flag under caller named key via `is_approved_for_all_session.wasm`.
+    pub async fn is_approved_for_all_session(
+        &self,
+        token_owner: &str,
+        operator: &str,
+        key_name: &str,
+        session_wasm: &[u8],
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let v = vec![
+            key_arg("nft_contract_hash", &self.contract_hash_key()?),
+            key_arg("token_owner", &prefixed_key(token_owner)?),
+            key_arg("operator", &prefixed_key(operator)?),
+            string_arg("key_name", key_name),
+        ];
+        self.core
+            .call_session(session_wasm, deploy, &json_args(&v))
+            .await
+    }
+
     /// Owner of a token (dictionary query).
     pub async fn owner_of(&self, token: &TokenIdentifier) -> Result<String> {
         let item = token_item_key(token);
@@ -588,8 +755,23 @@ fn decode_bool_cl(value: Value) -> Result<bool> {
     match parsed {
         Value::Bool(b) => Ok(b),
         Value::Number(n) => Ok(n.as_u64().unwrap_or(0) != 0),
+        Value::String(s) => match s.to_ascii_lowercase().as_str() {
+            "true" | "1" => Ok(true),
+            "false" | "0" => Ok(false),
+            other => Err(CepError::Decode(format!(
+                "expected bool string, got {other}"
+            ))),
+        },
         other => Err(CepError::Decode(format!("expected bool, got {other}"))),
     }
+}
+
+async fn mode_u8<T, F>(client: &Cep78Client, named_key: &str, map: F) -> Result<T>
+where
+    F: FnOnce(u8) -> Option<T>,
+{
+    let v = decode_u8_cl(client.core.query_contract_key(&[named_key]).await?)?;
+    map(v).ok_or_else(|| CepError::Decode(format!("unknown {named_key} {v}")))
 }
 
 fn decode_key_cl(value: Value) -> Result<String> {

@@ -6,6 +6,8 @@ Install: `install`, `upgrade`.
 
 Mutate: `mint`, `mint_session`, `burn`, `transfer`, `transfer_session`, `register_owner`, `approve`, `revoke`, `set_approval_for_all`, `set_token_metadata`, `set_variables`, `updated_receipts`.
 
-Query: `collection_name`, `collection_symbol`, `total_token_supply`, `number_of_minted_tokens`, `events_mode`, `owner_of`, `balance_of`, `get_approved`, `is_approved_for_all`, `metadata`.
+Query: `collection_name`, `collection_symbol`, `total_token_supply`, `number_of_minted_tokens`, `events_mode`, install-config getters (`allow_minting`, `*_mode`, `json_schema`, `is_acl_whitelisted`, …), `owner_of`, `balance_of`, `get_approved`, `is_approved_for_all`, `metadata`.
 
-Modes live under `ceps_client::cep78::{OwnershipMode, IdentifierMode, …}`.
+Query sessions: `owner_of_session`, `balance_of_session`, `get_approved_session`, `is_approved_for_all_session`.
+
+Modes live under `ceps_client::cep78::{OwnershipMode, IdentifierMode, …}`. CES: `CepCore` parse helpers / `CallResult.ces_events`.

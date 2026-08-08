@@ -80,10 +80,15 @@ enum Commands {
         #[command(subcommand)]
         command: Cep85Commands,
     },
-    /// CEP-95 NFT commands.
+    /// CEP-95 NFT commands (supported simpler API).
     Cep95 {
         #[command(subcommand)]
         command: Cep95Commands,
+    },
+    /// CES parse helpers (SDK CESParser).
+    Ces {
+        #[command(subcommand)]
+        command: CesCommands,
     },
 }
 
@@ -112,6 +117,24 @@ enum Cep78Commands {
         package_hash: Option<String>,
         #[arg(long)]
         account: String,
+    },
+    /// Query ownership mode (`u8` ABI).
+    OwnershipMode {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+enum CesCommands {
+    /// Parse CES events for a transaction against a contract hash.
+    Parse {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        transaction_hash: String,
     },
 }
 
@@ -420,6 +443,46 @@ async fn run() -> Result<()> {
                 } else {
                     println!("{bal}");
                 }
+            }
+            Cep78Commands::OwnershipMode {
+                contract_hash,
+                package_hash,
+            } => {
+                let mut client = Cep78Client::new(&cli.rpc_url, sse, chain, verbosity)
+                    .context("create CEP-78 client")?;
+                client
+                    .set_contract_hash(&contract_hash, package_hash.as_deref())
+                    .context("set contract")?;
+                let mode = client.ownership_mode().await.context("ownership_mode")?;
+                if cli.json {
+                    println!(
+                        "{}",
+                        serde_json::json!({ "ownership_mode": format!("{:?}", mode), "value": u8::from(mode) })
+                    );
+                } else {
+                    println!("{:?} ({})", mode, u8::from(mode));
+                }
+            }
+        },
+        Commands::Ces { command } => match command {
+            CesCommands::Parse {
+                contract_hash,
+                transaction_hash,
+            } => {
+                let client = Cep18Client::new(&cli.rpc_url, sse, chain, verbosity)
+                    .context("create client for CES")?;
+                let hash =
+                    if contract_hash.starts_with("hash-") || contract_hash.starts_with("entity-") {
+                        contract_hash.clone()
+                    } else {
+                        format!("hash-{contract_hash}")
+                    };
+                let rows = client
+                    .core()
+                    .parse_ces_transaction(&[hash], &transaction_hash)
+                    .await
+                    .context("parse CES")?;
+                println!("{}", serde_json::to_string_pretty(&rows)?);
             }
         },
         Commands::Cep85 { command } => match command {

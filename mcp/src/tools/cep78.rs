@@ -25,6 +25,26 @@ pub const TOOL_NAMES: &[&str] = &[
     "ceps78_total_token_supply",
     "ceps78_number_of_minted_tokens",
     "ceps78_events_mode",
+    "ceps78_allow_minting",
+    "ceps78_minting_mode",
+    "ceps78_whitelist_mode",
+    "ceps78_reporting_mode",
+    "ceps78_burn_mode",
+    "ceps78_operator_burn_mode",
+    "ceps78_holder_mode",
+    "ceps78_identifier_mode",
+    "ceps78_metadata_mutability",
+    "ceps78_nft_kind",
+    "ceps78_nft_metadata_kind",
+    "ceps78_ownership_mode",
+    "ceps78_package_operator_mode",
+    "ceps78_acl_package_mode",
+    "ceps78_json_schema",
+    "ceps78_is_acl_whitelisted",
+    "ceps78_owner_of_session",
+    "ceps78_balance_of_session",
+    "ceps78_get_approved_session",
+    "ceps78_is_approved_for_all_session",
     "ceps78_owner_of",
     "ceps78_balance_of",
     "ceps78_get_approved",
@@ -457,4 +477,168 @@ pub async fn metadata(
     };
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.metadata(&token, kind).await)
+}
+
+macro_rules! mode_query {
+    ($name:ident, $method:ident) => {
+        pub async fn $name(contract_hash: String, package_hash: Option<String>) -> ToolOutput {
+            let client = need_client!(contract_hash, package_hash);
+            match client.$method().await {
+                Ok(m) => format::json_ok(&serde_json::json!({
+                    "mode": format!("{:?}", m),
+                    "value": u8::from(m)
+                })),
+                Err(e) => format::err(e),
+            }
+        }
+    };
+}
+
+macro_rules! bool_query {
+    ($name:ident, $method:ident) => {
+        pub async fn $name(contract_hash: String, package_hash: Option<String>) -> ToolOutput {
+            let client = need_client!(contract_hash, package_hash);
+            params::map_query(client.$method().await)
+        }
+    };
+}
+
+bool_query!(allow_minting, allow_minting);
+mode_query!(minting_mode, minting_mode);
+mode_query!(whitelist_mode, whitelist_mode);
+mode_query!(reporting_mode, reporting_mode);
+mode_query!(burn_mode, burn_mode);
+bool_query!(operator_burn_mode, operator_burn_mode);
+mode_query!(holder_mode, holder_mode);
+mode_query!(identifier_mode, identifier_mode);
+mode_query!(metadata_mutability, metadata_mutability);
+mode_query!(nft_kind, nft_kind);
+mode_query!(nft_metadata_kind, nft_metadata_kind);
+mode_query!(ownership_mode, ownership_mode);
+bool_query!(package_operator_mode, package_operator_mode);
+bool_query!(acl_package_mode, acl_package_mode);
+
+pub async fn json_schema(contract_hash: String, package_hash: Option<String>) -> ToolOutput {
+    let client = need_client!(contract_hash, package_hash);
+    params::map_query(client.json_schema().await)
+}
+
+pub async fn is_acl_whitelisted(
+    contract_hash: String,
+    package_hash: Option<String>,
+    entity: String,
+) -> ToolOutput {
+    let client = need_client!(contract_hash, package_hash);
+    params::map_query(client.is_acl_whitelisted(&entity).await)
+}
+
+pub async fn owner_of_session(
+    contract_hash: String,
+    package_hash: Option<String>,
+    token_id: Option<u64>,
+    token_hash: Option<String>,
+    key_name: String,
+    secret_key_pem: String,
+    payment_amount: String,
+    session_wasm_path: Option<String>,
+    session_wasm_base64: Option<String>,
+    wait: Option<bool>,
+    wait_timeout_ms: Option<u64>,
+) -> ToolOutput {
+    let token = match params::parse_token_id(token_id, token_hash) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    let session = match params::load_wasm(session_wasm_base64, session_wasm_path) {
+        Ok(w) => w,
+        Err(e) => return format::err(e),
+    };
+    let client = need_client!(contract_hash, package_hash);
+    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
+    params::map_call(
+        client
+            .owner_of_session(&token, &key_name, &session, &deploy)
+            .await,
+    )
+}
+
+pub async fn balance_of_session(
+    contract_hash: String,
+    package_hash: Option<String>,
+    token_owner: String,
+    key_name: String,
+    secret_key_pem: String,
+    payment_amount: String,
+    session_wasm_path: Option<String>,
+    session_wasm_base64: Option<String>,
+    wait: Option<bool>,
+    wait_timeout_ms: Option<u64>,
+) -> ToolOutput {
+    let session = match params::load_wasm(session_wasm_base64, session_wasm_path) {
+        Ok(w) => w,
+        Err(e) => return format::err(e),
+    };
+    let client = need_client!(contract_hash, package_hash);
+    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
+    params::map_call(
+        client
+            .balance_of_session(&token_owner, &key_name, &session, &deploy)
+            .await,
+    )
+}
+
+pub async fn get_approved_session(
+    contract_hash: String,
+    package_hash: Option<String>,
+    token_id: Option<u64>,
+    token_hash: Option<String>,
+    key_name: String,
+    secret_key_pem: String,
+    payment_amount: String,
+    session_wasm_path: Option<String>,
+    session_wasm_base64: Option<String>,
+    wait: Option<bool>,
+    wait_timeout_ms: Option<u64>,
+) -> ToolOutput {
+    let token = match params::parse_token_id(token_id, token_hash) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    let session = match params::load_wasm(session_wasm_base64, session_wasm_path) {
+        Ok(w) => w,
+        Err(e) => return format::err(e),
+    };
+    let client = need_client!(contract_hash, package_hash);
+    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
+    params::map_call(
+        client
+            .get_approved_session(&token, &key_name, &session, &deploy)
+            .await,
+    )
+}
+
+pub async fn is_approved_for_all_session(
+    contract_hash: String,
+    package_hash: Option<String>,
+    token_owner: String,
+    operator: String,
+    key_name: String,
+    secret_key_pem: String,
+    payment_amount: String,
+    session_wasm_path: Option<String>,
+    session_wasm_base64: Option<String>,
+    wait: Option<bool>,
+    wait_timeout_ms: Option<u64>,
+) -> ToolOutput {
+    let session = match params::load_wasm(session_wasm_base64, session_wasm_path) {
+        Ok(w) => w,
+        Err(e) => return format::err(e),
+    };
+    let client = need_client!(contract_hash, package_hash);
+    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
+    params::map_call(
+        client
+            .is_approved_for_all_session(&token_owner, &operator, &key_name, &session, &deploy)
+            .await,
+    )
 }

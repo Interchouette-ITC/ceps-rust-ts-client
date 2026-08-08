@@ -22,6 +22,7 @@ use casper_rust_wasm_sdk::types::transaction_params::transaction_builder_params:
 use casper_rust_wasm_sdk::types::transaction_params::transaction_str_params::TransactionStrParams;
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use casper_rust_wasm_sdk::SDK;
+use casper_rust_wasm_sdk::SSE::{CESEvent, CESParseResult, CESParser, EventName, RawEvent};
 use serde_json::Value;
 
 /// Default NCTL RPC endpoint.
@@ -242,6 +243,130 @@ impl CepCore {
         serde_json::to_value(event).map_err(|e| CepError::Other(e.to_string()))
     }
 
+    /// Build an SDK [`CESParser`] for one or more contract hashes (schemas from chain).
+    pub async fn ces_parser_create(
+        &self,
+        contract_hashes: &[String],
+        state_root_hash: Option<&str>,
+    ) -> Result<CESParser> {
+        self.sdk
+            .CES_parser(contract_hashes, state_root_hash, Some(self.rpc_url.clone()))
+            .await
+            .map_err(CepError::Other)
+    }
+
+    /// Parse CES events from an execution-result JSON value using schemas for `contract_hashes`.
+    pub async fn parse_ces_execution(
+        &self,
+        contract_hashes: &[String],
+        execution_result: &Value,
+    ) -> Result<Vec<CESParseResult>> {
+        let parser = self.ces_parser_create(contract_hashes, None).await?;
+        let body = extract_execution_for_ces(execution_result);
+        parser
+            .parse_execution_result(&body)
+            .map_err(CepError::Other)
+    }
+
+    /// Fetch a transaction and parse CES events for `contract_hashes`.
+    pub async fn parse_ces_transaction(
+        &self,
+        contract_hashes: &[String],
+        transaction_hash: &str,
+    ) -> Result<Vec<CESParseResult>> {
+        let tx_hash = TransactionHash::new(transaction_hash)
+            .map_err(|e| CepError::InvalidHash(format!("transaction hash: {e}")))?;
+        let mut json = None;
+        if let Ok(get_tx) = self
+            .sdk
+            .get_transaction(
+                tx_hash,
+                Some(false),
+                Some(self.verbosity),
+                Some(self.rpc_url.clone()),
+            )
+            .await
+        {
+            if let Ok(v) = serde_json::to_value(&get_tx.result) {
+                json = Some(v);
+            }
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        if json.as_ref().is_none_or(|j| !json_has_execution(j)) {
+            if let Ok(v) = fetch_transaction_json_raw(&self.rpc_url, transaction_hash).await {
+                json = Some(v);
+            }
+        }
+        let json = json.ok_or_else(|| {
+            CepError::Other(format!(
+                "could not load execution JSON for transaction {transaction_hash}"
+            ))
+        })?;
+        self.parse_ces_execution(contract_hashes, &json).await
+    }
+
+    /// Bounded SSE collect for node event kinds (not CES contract event names).
+    pub async fn sse_collect(
+        &self,
+        event_names: &[EventName],
+        max_events: usize,
+        timeout_ms: u64,
+        start_from: Option<u64>,
+    ) -> Result<Vec<RawEvent>> {
+        let sse_url = self
+            .sse_url
+            .as_deref()
+            .ok_or_else(|| CepError::WaitFailed("SSE URL is not configured".into()))?;
+        let client = self.sdk.SSE_client(sse_url);
+        client
+            .collect(event_names, max_events, timeout_ms, start_from)
+            .await
+            .map_err(CepError::Other)
+    }
+
+    /// Collect `TransactionProcessed` SSE frames, then decode CES for the bound contract.
+    ///
+    /// Filters decoded rows to `event_names` when non-empty (CES contract event names such as `Mint`).
+    pub async fn collect_ces_events(
+        &self,
+        ces_event_names: &[&str],
+        max_transactions: usize,
+        timeout_ms: u64,
+    ) -> Result<Vec<CESEvent>> {
+        let target = self.require_target()?;
+        let hash_key = format!("hash-{}", target.contract_hash);
+        let raws = self
+            .sse_collect(
+                &[EventName::TransactionProcessed],
+                max_transactions,
+                timeout_ms,
+                None,
+            )
+            .await?;
+        let parser = self.ces_parser_create(&[hash_key], None).await?;
+        let mut out = Vec::new();
+        for raw in raws {
+            let parsed = match parser.parse_transaction_processed_json(&raw.data) {
+                Ok(v) => v,
+                Err(_) => continue,
+            };
+            for row in parsed {
+                if row.error.is_some() {
+                    continue;
+                }
+                if !ces_event_names.is_empty()
+                    && !ces_event_names
+                        .iter()
+                        .any(|n| n.eq_ignore_ascii_case(&row.event.name))
+                {
+                    continue;
+                }
+                out.push(row.event);
+            }
+        }
+        Ok(out)
+    }
+
     pub(crate) fn builder_for_entrypoint(
         &self,
         entry_point: &str,
@@ -280,12 +405,17 @@ impl CepCore {
         let _event = self
             .wait_transaction(&result.transaction_hash, deploy.wait_timeout_ms)
             .await?;
+        let event = _event;
         let tx_hash = TransactionHash::new(&result.transaction_hash)
             .map_err(|e| CepError::InvalidHash(format!("transaction hash: {e}")))?;
 
         // After SSE reports processed: try to attach execution JSON when the node
         // can return it. Some large successful installs fail NCTL deserialize.
         let mut last_json = None;
+        // Prefer execution embedded in the SSE TransactionProcessed payload.
+        if json_has_execution(&event) {
+            last_json = Some(event.clone());
+        }
         for _ in 0..8 {
             if let Ok(get_tx) = self
                 .sdk
@@ -329,6 +459,35 @@ impl CepCore {
                 return Err(CepError::from_execution_message(err, self.cep_kind));
             }
             result = result.with_execution(json);
+            if let Some(target) = &self.target {
+                let keys = [
+                    format!("hash-{}", target.contract_hash),
+                    format!("entity-contract-{}", target.contract_hash),
+                ];
+                let exec = result.execution_result.as_ref().unwrap();
+                let parse_body = extract_execution_for_ces(exec);
+                let exec_str = exec.to_string();
+                for key in &keys {
+                    let Ok(parser) = self
+                        .ces_parser_create(std::slice::from_ref(key), None)
+                        .await
+                    else {
+                        continue;
+                    };
+                    let rows = parser
+                        .parse_transaction_processed_json(&exec_str)
+                        .or_else(|_| parser.parse_execution_result(&parse_body));
+                    if let Ok(rows) = rows {
+                        if !rows.is_empty() {
+                            result = result.with_ces_events(rows);
+                            break;
+                        }
+                        if result.ces_events.is_none() {
+                            result = result.with_ces_events(rows);
+                        }
+                    }
+                }
+            }
         }
         Ok(result)
     }
@@ -336,6 +495,20 @@ impl CepCore {
     pub(crate) fn runtime_v2(&self) -> Option<bool> {
         self.runtime_v2
     }
+}
+
+/// Prefer nested execution_result / execution_info bodies for CES parse.
+fn extract_execution_for_ces(json: &Value) -> Value {
+    if let Some(v) = json.get("execution_result").cloned() {
+        return v;
+    }
+    if let Some(v) = json.pointer("/execution_info/execution_result").cloned() {
+        return v;
+    }
+    if let Some(v) = json.pointer("/result/execution_result").cloned() {
+        return v;
+    }
+    json.clone()
 }
 
 fn json_has_execution(json: &Value) -> bool {
@@ -402,7 +575,11 @@ fn extract_execution_error(json: &Value) -> Option<String> {
         let slice: String = text[idx..].chars().take(80).collect();
         return Some(slice);
     }
-    if text.contains("\"Failure\"") || text.contains("\"failure\"") {
+    // Ignore `"Failure":null` / `"Failure": null` success shapes from SSE / get_tx JSON.
+    let has_real_failure = text.contains("\"Failure\":{")
+        || text.contains("\"Failure\" : {")
+        || text.contains("\"failure\":{");
+    if has_real_failure {
         if let Some(idx) = text.find("error_message") {
             let slice: String = text[idx..].chars().take(120).collect();
             return Some(format!("execution Failure: {slice}"));

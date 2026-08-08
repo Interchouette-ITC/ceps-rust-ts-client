@@ -1,6 +1,6 @@
 # ceps-client-mcp tools
 
-Total: **90** tools (`ceps_*`). Write tools take `secret_key_pem` + `payment_amount`.
+Total: **112** tools (`ceps_*`). Write tools take `secret_key_pem` + `payment_amount`.
 
 | Tool | Group |
 | --- | --- |
@@ -11,6 +11,8 @@ Total: **90** tools (`ceps_*`). Write tools take `secret_key_pem` + `payment_amo
 | `ceps_list_contract_wasms` | wasm |
 | `ceps_read_contract_wasm` | wasm |
 | `ceps_canonical_wasm_paths` | wasm |
+| `ceps_ces_parse_execution` | ces |
+| `ceps_ces_parse_transaction` | ces |
 | `ceps18_install` | cep18 |
 | `ceps18_upgrade` | cep18 |
 | `ceps18_transfer` | cep18 |
@@ -49,6 +51,26 @@ Total: **90** tools (`ceps_*`). Write tools take `secret_key_pem` + `payment_amo
 | `ceps78_total_token_supply` | cep78 |
 | `ceps78_number_of_minted_tokens` | cep78 |
 | `ceps78_events_mode` | cep78 |
+| `ceps78_allow_minting` | cep78 |
+| `ceps78_minting_mode` | cep78 |
+| `ceps78_whitelist_mode` | cep78 |
+| `ceps78_reporting_mode` | cep78 |
+| `ceps78_burn_mode` | cep78 |
+| `ceps78_operator_burn_mode` | cep78 |
+| `ceps78_holder_mode` | cep78 |
+| `ceps78_identifier_mode` | cep78 |
+| `ceps78_metadata_mutability` | cep78 |
+| `ceps78_nft_kind` | cep78 |
+| `ceps78_nft_metadata_kind` | cep78 |
+| `ceps78_ownership_mode` | cep78 |
+| `ceps78_package_operator_mode` | cep78 |
+| `ceps78_acl_package_mode` | cep78 |
+| `ceps78_json_schema` | cep78 |
+| `ceps78_is_acl_whitelisted` | cep78 |
+| `ceps78_owner_of_session` | cep78 |
+| `ceps78_balance_of_session` | cep78 |
+| `ceps78_get_approved_session` | cep78 |
+| `ceps78_is_approved_for_all_session` | cep78 |
 | `ceps78_owner_of` | cep78 |
 | `ceps78_balance_of` | cep78 |
 | `ceps78_get_approved` | cep78 |

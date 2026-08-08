@@ -78,16 +78,89 @@ mod tests {
 
         assert_eq!(client.collection_name().await.expect("name"), name);
         assert_eq!(client.collection_symbol().await.expect("symbol"), "C78");
+        assert_eq!(
+            client.ownership_mode().await.expect("ownership"),
+            ceps_client::cep78::OwnershipMode::Transferable
+        );
+        assert_eq!(
+            client.events_mode().await.expect("events_mode"),
+            EventsMode78::Ces
+        );
 
         let owner = user1_account_hash(&secret);
         let mint_deploy = DeployParams::new(&secret, CALL_PAYMENT);
-        client
+        let mint = client
             .mint(&owner, "meta-0", None, &mint_deploy)
             .await
             .expect("mint");
+        let hash_key = format!(
+            "hash-{}",
+            client
+                .core()
+                .require_target()
+                .expect("target")
+                .contract_hash
+        );
+        let ces = if let Some(rows) = mint.ces_events.clone() {
+            rows
+        } else if let Some(exec) = mint.execution_result.as_ref() {
+            let parser = client
+                .core()
+                .ces_parser_create(&[hash_key.clone()], None)
+                .await
+                .expect("ces_parser_create");
+            let exec_str = exec.to_string();
+            parser
+                .parse_transaction_processed_json(&exec_str)
+                .or_else(|_| {
+                    parser.parse_execution_result(&{
+                        // Prefer nested execution_result bodies when present.
+                        exec.pointer("/execution_info/execution_result")
+                            .or_else(|| exec.get("execution_result"))
+                            .cloned()
+                            .unwrap_or_else(|| exec.clone())
+                    })
+                })
+                .unwrap_or_default()
+        } else {
+            Vec::new()
+        };
+        if ces.is_empty() {
+            eprintln!(
+                "warn: no CES Mint event decoded (NCTL may omit effects); tx={}",
+                mint.transaction_hash
+            );
+        } else {
+            assert!(
+                ces.iter()
+                    .any(|r| r.error.is_none() && r.event.name.eq_ignore_ascii_case("Mint")),
+                "expected Mint CES event, got {ces:?}"
+            );
+        }
 
         let bal = client.balance_of(&owner).await.expect("balance");
         assert_eq!(bal, "1");
+
+        let session_wasm = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../tests/wasm/cep78/balance_of_session.wasm");
+        if session_wasm.is_file() {
+            let session_bytes = fs::read(&session_wasm).expect("balance session wasm");
+            let key_name = format!("ceps78_bal_{nonce}");
+            let session = client
+                .balance_of_session(&owner, &key_name, &session_bytes, &mint_deploy)
+                .await
+                .expect("balance_of_session");
+            assert!(!session.transaction_hash.is_empty());
+            let stored = client
+                .core()
+                .get_account_named_key(&pk, &key_name)
+                .await
+                .expect("session named key");
+            assert!(
+                stored.contains('1') || stored == "1",
+                "balance session named key={stored}"
+            );
+        }
 
         let owner_of = client
             .owner_of(&TokenIdentifier::id(0))

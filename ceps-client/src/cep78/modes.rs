@@ -127,26 +127,41 @@ pub enum NamedKeyConventionMode {
 }
 
 macro_rules! impl_mode_u8 {
-    ($ty:ty) => {
+    ($ty:ty; $($variant:ident = $n:expr),+ $(,)?) => {
         impl From<$ty> for u8 {
             fn from(value: $ty) -> Self {
                 value as u8
             }
         }
+
+        impl $ty {
+            /// Parse from on-chain `u8` discriminant.
+            pub fn from_u8(value: u8) -> Option<Self> {
+                match value {
+                    $($n => Some(Self::$variant),)+
+                    _ => None,
+                }
+            }
+        }
     };
 }
 
-impl_mode_u8!(OwnershipMode);
-impl_mode_u8!(NftKind);
-impl_mode_u8!(HolderMode);
-impl_mode_u8!(NftMetadataKind);
-impl_mode_u8!(IdentifierMode);
-impl_mode_u8!(MetadataMutability);
-impl_mode_u8!(MintingMode);
-impl_mode_u8!(BurnMode);
-impl_mode_u8!(WhitelistMode);
-impl_mode_u8!(OwnerReverseLookupMode);
-impl_mode_u8!(NamedKeyConventionMode);
+impl_mode_u8!(OwnershipMode; Minter = 0, Assigned = 1, Transferable = 2);
+impl_mode_u8!(NftKind; Physical = 0, Digital = 1, Virtual = 2);
+impl_mode_u8!(HolderMode; Accounts = 0, Contracts = 1, Mixed = 2);
+impl_mode_u8!(NftMetadataKind; Cep78 = 0, Nft721 = 1, Raw = 2, CustomValidated = 3);
+impl_mode_u8!(IdentifierMode; Ordinal = 0, Hash = 1);
+impl_mode_u8!(MetadataMutability; Immutable = 0, Mutable = 1);
+impl_mode_u8!(MintingMode; Installer = 0, Public = 1, Acl = 2);
+impl_mode_u8!(BurnMode; Burnable = 0, NonBurnable = 1);
+impl_mode_u8!(WhitelistMode; Unlocked = 0, Locked = 1);
+impl_mode_u8!(OwnerReverseLookupMode; NoLookup = 0, Complete = 1, TransfersOnly = 2);
+impl_mode_u8!(
+    NamedKeyConventionMode;
+    DerivedFromCollectionName = 0,
+    V1_0Standard = 1,
+    V1_0Custom = 2
+);
 
 #[cfg(test)]
 mod tests {

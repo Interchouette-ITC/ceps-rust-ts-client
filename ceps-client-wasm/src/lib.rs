@@ -36,6 +36,7 @@ fn call_result_json(result: CallResult) -> Result<String, JsValue> {
     serde_json::to_string(&serde_json::json!({
         "transactionHash": result.transaction_hash,
         "hasExecutionResult": result.execution_result.is_some(),
+        "cesEvents": result.ces_events,
     }))
     .map_err(|e| JsValue::from_str(&e.to_string()))
 }
@@ -229,6 +230,36 @@ impl WasmCep78Client {
     #[wasm_bindgen(js_name = balanceOf)]
     pub async fn balance_of(&self, owner: String) -> Result<String, JsValue> {
         self.inner.balance_of(&owner).await.map_err(map_err)
+    }
+
+    /// Ownership mode (`u8`).
+    #[wasm_bindgen(js_name = ownershipMode)]
+    pub async fn ownership_mode(&self) -> Result<u8, JsValue> {
+        self.inner
+            .ownership_mode()
+            .await
+            .map(u8::from)
+            .map_err(map_err)
+    }
+
+    /// Parse CES events for a transaction against the bound contract.
+    #[wasm_bindgen(js_name = parseCes)]
+    pub async fn parse_ces(&self, transaction_hash: String) -> Result<String, JsValue> {
+        let hash = self
+            .inner
+            .core()
+            .require_target()
+            .map_err(map_err)?
+            .contract_hash
+            .clone();
+        let key = format!("hash-{hash}");
+        let rows = self
+            .inner
+            .core()
+            .parse_ces_transaction(&[key], &transaction_hash)
+            .await
+            .map_err(map_err)?;
+        serde_json::to_string(&rows).map_err(|e| JsValue::from_str(&e.to_string()))
     }
 }
 

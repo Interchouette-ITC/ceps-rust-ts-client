@@ -15,6 +15,9 @@ pub mod error;
 pub mod types;
 
 pub use casper_rust_wasm_sdk::types::verbosity::Verbosity;
+pub use casper_rust_wasm_sdk::SSE::{
+    CESEvent, CESParseResult, CESParser, EventName, RawEvent, SSEClient,
+};
 pub use cep18::Cep18Client;
 pub use cep78::Cep78Client;
 pub use cep85::Cep85Client;
