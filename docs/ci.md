@@ -1,8 +1,8 @@
 # CI / CD
 
-Pipeline mirrors sibling products ([`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) gates/releases, [`casper-nctl-2-docker`](https://github.com/gRoussac/casper-nctl-2-docker) Hub+GHCR dual push). Quality stays on NCTL live tests; release ships the `ceps` CLI image and GitHub Release artefacts (binary + WASM packs).
+Pipeline mirrors [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) gates/releases and [`casper-nctl-2-docker`](https://github.com/gRoussac/casper-nctl-2-docker) Hub+GHCR dual push. Quality stays on NCTL live tests; release ships the `ceps` CLI image and GitHub Release artefacts (binary + WASM packs).
 
-crates.io / npm publish are not part of this line while the workspace path-deps `../rustSDK`.
+crates.io / npm publish are not part of this line while the workspace still path-depends on `casper-rust-wasm-sdk`.
 
 ## Flow
 
@@ -15,26 +15,26 @@ push tip docs          →  pages
 
 ## Workflows
 
-| Workflow | Trigger | Role |
-| --- | --- | --- |
-| `ci-test.yml` | push / PR to `dev`, `ceps-client-test`, `main` | Lint, unit, NCTL live integration, CLI smoke |
-| `nightly-test.yml` | cron `0 3 * * *` + `workflow_dispatch` | Same gate + `cargo audit` + `make nodejs` + Vitest |
-| `pages.yml` | push to `dev` / `ceps-client-test` + `workflow_dispatch` | `make doc` → GitHub Pages (`docs/`) |
-| `hub-images-dev.yml` | push `ceps-client-test` + `workflow_dispatch` | CLI image `:dev` → Hub + GHCR |
-| `hub-images-release.yml` | stable Release published + `workflow_dispatch` | `:semver` `:latest` `:dev` |
-| `release-github-assets.yml` | `workflow_call` | Build/upload CLI + WASM tarballs + `SHA256SUMS` |
-| `release-github-stable.yml` | Release published (not prerelease) | Attach assets to Latest |
-| `release-github-preview.yml` | nightly success / dispatch | Overwrite Pre-release `dev-preview` + assets |
+| Workflow                     | Trigger                                                  | Role                                               |
+| ---------------------------- | -------------------------------------------------------- | -------------------------------------------------- |
+| `ci-test.yml`                | push / PR to `dev`, `ceps-client-test`, `main`           | Lint, unit, NCTL live integration, CLI smoke       |
+| `nightly-test.yml`           | cron `0 3 * * *` + `workflow_dispatch`                   | Same gate + `cargo audit` + `make nodejs` + Vitest |
+| `pages.yml`                  | push to `dev` / `ceps-client-test` + `workflow_dispatch` | `make doc` → GitHub Pages (`docs/`)                |
+| `hub-images-dev.yml`         | push `ceps-client-test` + `workflow_dispatch`            | CLI image `:dev` → Hub + GHCR                      |
+| `hub-images-release.yml`     | stable Release published + `workflow_dispatch`           | `:semver` `:latest` `:dev`                         |
+| `release-github-assets.yml`  | `workflow_call`                                          | Build/upload CLI + WASM tarballs + `SHA256SUMS`    |
+| `release-github-stable.yml`  | Release published (not prerelease)                       | Attach assets to Latest                            |
+| `release-github-preview.yml` | nightly success / dispatch                               | Overwrite Pre-release `dev-preview` + assets       |
 
 ## Images
 
 Local name: `ceps-rust-ts-client`. Registries (same layout as NCTL):
 
-| Registry | Image |
-| --- | --- |
-| Docker Hub | `interchouette/ceps-rust-ts-client` |
-| GHCR (personal) | `ghcr.io/groussac/ceps-rust-ts-client` |
-| GHCR (org) | `ghcr.io/interchouette-itc/ceps-rust-ts-client` |
+| Registry        | Image                                           |
+| --------------- | ----------------------------------------------- |
+| Docker Hub      | `interchouette/ceps-rust-ts-client`             |
+| GHCR (personal) | `ghcr.io/groussac/ceps-rust-ts-client`          |
+| GHCR (org)      | `ghcr.io/interchouette-itc/ceps-rust-ts-client` |
 
 Build is **runtime-only**: CI builds a stripped `ceps` with the SDK path dep, then [`docker/Dockerfile`](../docker/Dockerfile) copies the binary into `debian:bookworm-slim`.
 
@@ -45,10 +45,10 @@ make docker-build IMAGE_TAG=local
 make docker-push IMAGE_TAG=dev
 ```
 
-| Event | Tags |
-| --- | --- |
-| Tip push `ceps-client-test` | `:dev` |
-| Stable Release `vX.Y.Z` | `:X.Y.Z`, `:latest`, `:dev` |
+| Event                       | Tags                        |
+| --------------------------- | --------------------------- |
+| Tip push `ceps-client-test` | `:dev`                      |
+| Stable Release `vX.Y.Z`     | `:X.Y.Z`, `:latest`, `:dev` |
 
 Stable tag (without `v`) **must** equal `[workspace.package].version` in root `Cargo.toml` or the release image job fails.
 
@@ -56,12 +56,12 @@ Stable tag (without `v`) **must** equal `[workspace.package].version` in root `C
 
 Attached to the GitHub Release (stable or `dev-preview`):
 
-| Asset | Contents |
-| --- | --- |
-| `ceps-{label}-linux-x86_64` | Stripped CLI |
-| `ceps-wasm-nodejs-{label}.tgz` | `make nodejs` pack |
-| `ceps-wasm-web-{label}.tgz` | `make web` pack |
-| `SHA256SUMS` | Checksums of the three files |
+| Asset                          | Contents                     |
+| ------------------------------ | ---------------------------- |
+| `ceps-{label}-linux-x86_64`    | Stripped CLI                 |
+| `ceps-wasm-nodejs-{label}.tgz` | `make nodejs` pack           |
+| `ceps-wasm-web-{label}.tgz`    | `make web` pack              |
+| `SHA256SUMS`                   | Checksums of the three files |
 
 `{label}` is the tag without a leading `v` (e.g. `1.0.0` or `dev-preview`).
 
@@ -69,41 +69,28 @@ Attached to the GitHub Release (stable or `dev-preview`):
 
 Reuse the **same names** as `casper-nctl-2-docker`:
 
-| Secret | Purpose |
-| --- | --- |
-| `DOCKER_USERNAME` | Docker Hub login |
-| `DOCKER_PASSWORD` | Docker Hub login |
-| `GHCR_USERNAME` | GHCR login |
-| `GHCR_PAT` | GHCR PAT with package write to `groussac` and `interchouette-itc` |
+| Secret            | Purpose                                                           |
+| ----------------- | ----------------------------------------------------------------- |
+| `DOCKER_USERNAME` | Docker Hub login                                                  |
+| `DOCKER_PASSWORD` | Docker Hub login                                                  |
+| `GHCR_USERNAME`   | GHCR login                                                        |
+| `GHCR_PAT`        | GHCR PAT with package write to `groussac` and `interchouette-itc` |
 
 `GITHUB_TOKEN` (Actions default) uploads release assets and moves the `dev-preview` tag. After the first GHCR push, set package visibility public (or grant org access) for both namespaces.
 
 NCTL live CI also mounts `assets/{users,faucet}` and exports `SECRET_KEY_USER_1` / `SECRET_KEY_USER_2` from those PEMs (public NCTL fixtures; not repo secrets).
 
-## Checkout layout (Actions)
-
-Path deps and `make wasm-from-ceps` expect siblings next to this repo:
-
-```text
-$GITHUB_WORKSPACE/
-  ceps-rust-ts-client/   # this repository
-  rustSDK/               # casper-rust-wasm-sdk @ pin
-  cep-18/                # tip branch (prebuilt tests/wasm; ci-test / nightly only)
-  cep-78-enhanced-nft/
-  cep-1155/              # remote gRoussac/cep-85
-```
-
-Release and hub image jobs checkout **client + SDK only** (no tip WASMs required for CLI/WASM pack builds).
+`ci-test` / `nightly-test` check out the SDK pin and CEP tip forks into the Actions workspace so path deps and `make wasm-from-ceps` resolve. Release and hub image jobs check out **client + SDK only** (no tip WASMs required for CLI/WASM pack builds).
 
 ## Pins
 
-| Dependency | CI source | Ref |
-| --- | --- | --- |
-| SDK | `casper-ecosystem/casper-rust-wasm-sdk` | tag `2.2.0` (bump with SDK line) |
-| CEP-18 tip | `gRoussac/cep18` | `ceps-client-test` |
-| CEP-78 tip | `gRoussac/cep-78-enhanced-nft` | `ceps-client-test` |
-| CEP-85 tip | `gRoussac/cep-85` | `ceps-client-test` |
-| NCTL | `interchouette/casper-nctl-2-docker:dev` | Docker Hub |
+| Dependency | CI source                                | Ref                              |
+| ---------- | ---------------------------------------- | -------------------------------- |
+| SDK        | `casper-ecosystem/casper-rust-wasm-sdk`  | tag `2.2.0` (bump with SDK line) |
+| CEP-18 tip | `gRoussac/cep18`                         | `ceps-client-test`               |
+| CEP-78 tip | `gRoussac/cep-78-enhanced-nft`           | `ceps-client-test`               |
+| CEP-85 tip | `gRoussac/cep-85`                        | `ceps-client-test`               |
+| NCTL       | `interchouette/casper-nctl-2-docker:dev` | Docker Hub                       |
 
 Contract WASMs are **copied** from each tip’s `tests/wasm/` (`make wasm-from-ceps`). CI does not rebuild CEP contracts.
 
@@ -120,7 +107,7 @@ Contract WASMs are **copied** from each tip’s `tests/wasm/` (`make wasm-from-c
 ```bash
 make check-lint
 make unit-test
-# with sibling NCTL + tips:
+# with NCTL + tip WASMs staged:
 make wasm-from-ceps
 make integration-test
 make e2e-test

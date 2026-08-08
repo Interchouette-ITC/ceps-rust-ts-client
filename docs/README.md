@@ -1,18 +1,18 @@
 # Documentation hub
 
-Unified **Rust** CEP client for Casper (CEP-18, CEP-78, CEP-85), with a thin WASM/TS surface and a clap CLI (`ceps`).
+Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**), with a thin WASM/TS surface and a clap CLI (`ceps`).
 
 ## Quick links
 
-| Page                                  | Content                                 |
-| ------------------------------------- | --------------------------------------- |
-| [Getting started](getting-started.md) | Install, NCTL, first client             |
-| [Architecture](architecture.md)       | lib ↔ CLI ↔ WASM ↔ SDK                  |
-| [CLI](cli.md)                         | Global flags and subcommands            |
+| Page                                  | Content                                   |
+| ------------------------------------- | ----------------------------------------- |
+| [Getting started](getting-started.md) | Install, NCTL, first client               |
+| [Architecture](architecture.md)       | lib ↔ CLI ↔ WASM ↔ SDK                    |
+| [CLI](cli.md)                         | Global flags and subcommands              |
 | [Testing](testing.md)                 | Unit / integration / CLI smoke / examples |
-| [CI / CD](ci.md)                      | Gates, Hub/GHCR images, GitHub Releases |
-| [Contributing](contributing.md)       | Tip checkout, `wasm-from-ceps`, SDK pin |
-| [WASM / TS](wasm-ts.md)               | `ceps-wasm` pack notes                  |
+| [CI / CD](ci.md)                      | Gates, Hub/GHCR images, GitHub Releases   |
+| [Contributing](contributing.md)       | Tip checkout, `wasm-from-ceps`, SDK pin   |
+| [WASM / TS](wasm-ts.md)               | `ceps-wasm` pack notes                    |
 
 ## CEP closets
 

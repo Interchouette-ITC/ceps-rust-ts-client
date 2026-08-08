@@ -1,8 +1,8 @@
 # Quickstart
 
 ```bash
-make wasm-from-ceps   # stages tests/wasm/cep78/*.wasm from sibling tip
-SECRET_KEY_USER_1="$(cat ../casper-nctl-2-docker/assets/users/user-1/secret_key.pem)" \
+make wasm-from-ceps   # stages tests/wasm/cep78/*.wasm from tip builds
+SECRET_KEY_USER_1="$(cat path/to/user-1/secret_key.pem)" \
   cargo run -p ceps-client --example cep78_install
 ```
 

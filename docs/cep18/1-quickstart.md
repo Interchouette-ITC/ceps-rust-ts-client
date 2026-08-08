@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - NCTL `dev` running (RPC `http://127.0.0.1:11101`, SSE `http://127.0.0.1:18101/events`)
-- Tip WASM staged: `make wasm-from-ceps` (needs `../cep-18` on `ceps-client-test`)
+- Tip WASM staged: `make wasm-from-ceps` (CEP-18 tip on `ceps-client-test`)
 - Installer secret key PEM (NCTL `user-1`)
 
 ## Rust

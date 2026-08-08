@@ -3,8 +3,8 @@
 ## Prerequisites
 
 - Rust stable (edition 2021)
-- Local [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) checkout as a sibling (`../rustSDK`) for the path dependency
-- Optional: sibling `casper-nctl-2-docker` for a local chain
+- [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) available for the workspace path dependency (see root `Cargo.toml`)
+- Optional: a local Casper NCTL `dev` network for live calls
 
 ## Build
 
@@ -23,11 +23,11 @@ cargo run -p cli -- cep18 info --json
 
 Defaults match NCTL `dev`:
 
-| Setting | Default |
-| --- | --- |
-| RPC | `http://127.0.0.1:11101` |
-| SSE | `http://127.0.0.1:18101/events` |
-| Chain | `casper-net-1` |
+| Setting | Default                         |
+| ------- | ------------------------------- |
+| RPC     | `http://127.0.0.1:11101`        |
+| SSE     | `http://127.0.0.1:18101/events` |
+| Chain   | `casper-net-1`                  |
 
 ## First Rust snippet
 
