@@ -96,6 +96,7 @@ impl WasmCep18Client {
 
     /// Install with required fields (+ optional CES events when `events_mode` is set).
     #[wasm_bindgen]
+    #[allow(clippy::too_many_arguments)]
     pub async fn install(
         &self,
         name: String,
@@ -189,6 +190,7 @@ impl WasmCep78Client {
 
     /// Install with defaults (Transferable / Raw / Ordinal) and optional events mode.
     #[wasm_bindgen]
+    #[allow(clippy::too_many_arguments)]
     pub async fn install(
         &self,
         collection_name: String,
@@ -200,7 +202,8 @@ impl WasmCep78Client {
         payment_amount: String,
         wait: Option<bool>,
     ) -> Result<String, JsValue> {
-        let mut args = Cep78InstallArgs::new(collection_name, collection_symbol, total_token_supply);
+        let mut args =
+            Cep78InstallArgs::new(collection_name, collection_symbol, total_token_supply);
         if let Some(mode) = events_mode {
             let mode = EventsMode78::from_u8(mode)
                 .ok_or_else(|| JsValue::from_str("invalid events_mode"))?;
@@ -275,6 +278,7 @@ impl WasmCep85Client {
 
     /// Install with URI and optional CES events / burn flag.
     #[wasm_bindgen]
+    #[allow(clippy::too_many_arguments)]
     pub async fn install(
         &self,
         name: String,
@@ -313,9 +317,6 @@ impl WasmCep85Client {
     /// Balance for account + token id.
     #[wasm_bindgen(js_name = balanceOf)]
     pub async fn balance_of(&self, account: String, id: String) -> Result<String, JsValue> {
-        self.inner
-            .balance_of(&account, &id)
-            .await
-            .map_err(map_err)
+        self.inner.balance_of(&account, &id).await.map_err(map_err)
     }
 }

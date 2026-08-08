@@ -30,3 +30,6 @@ tests/wasm/**/*.wasm
 .DS_Store
 
 # Nested itc-cursor is its own git clone (see .git/info/exclude)
+docs/api-rust/ceps_client/
+docs/api-rust/src/
+docs/api-rust/index.html

@@ -18,13 +18,25 @@ Build contracts in each sibling (`make build-contract` or the repo Makefile), th
 make wasm-from-ceps
 ```
 
-Pin tip SHAs in CI/docs when a phase ships so ABI drift is intentional.
+### Tip SHAs (documented for this client line)
+
+Recorded while shipping the unified client on branch `ceps-client-test`:
+
+| Product | Path | Branch | SHA |
+| --- | --- | --- | --- |
+| CEP-18 | `../cep-18` | `ceps-client-test` | `3e92164` |
+| CEP-78 | `../cep-78-enhanced-nft` | `ceps-client-test` | `d650a03` |
+| CEP-85 | `../cep-1155` | `ceps-client-test` | `9d437cd` |
+
+Re-pin these when intentionally rebasing tips. Prefer sibling `tests/wasm/` artifacts over stale `target/` builds (`make wasm-from-ceps` prefers `tests/wasm`).
 
 ## SDK pin
 
 Local path dependency: `../rustSDK` with features `transaction`, `contract`, `helpers`, `watcher`, `SSE`.
 
-CI should use a git/tag pin on the 2.2.x line (same feature set) and mirror `[patch.crates-io]` from the SDK when needed.
+CI uses git tag `2.2.0` of `casper-ecosystem/casper-rust-wasm-sdk` and mirrors `[patch.crates-io]` from this workspace.
+
+The SDK TUI (`examples/tui` in rustSDK) remains SDK-owned. Wire CEP installs by calling `ceps-client` from a TUI action or companion binary in that tree; this repo exposes the library surface (`Cep18Client` / `Cep78Client` / `Cep85Client`) for that integration.
 
 ## Lint gate
 

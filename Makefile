@@ -123,7 +123,16 @@ check:
 doc:
 	$(CARGO) doc -p $(COMMON_CRATE) --no-deps
 	@mkdir -p docs/api-rust
-	@echo "rustdoc written under target/doc; copy into docs/api-rust when publishing Pages"
+	@rm -rf docs/api-rust/ceps_client docs/api-rust/src
+	@cp -a target/doc/ceps_client docs/api-rust/
+	@cp -a target/doc/src docs/api-rust/ 2>/dev/null || true
+	@printf '%s\n' \
+		'<!DOCTYPE html><html><head><meta charset="utf-8">' \
+		'<meta http-equiv="refresh" content="0; url=ceps_client/index.html">' \
+		'<title>ceps-client rustdoc</title></head><body>' \
+		'<a href="ceps_client/index.html">ceps_client</a></body></html>' \
+		> docs/api-rust/index.html
+	@echo "doc: rustdoc → docs/api-rust/"
 
 doc-check:
 	@set -euo pipefail; \
@@ -131,7 +140,10 @@ doc-check:
 	for f in \
 		docs/README.md docs/getting-started.md docs/architecture.md docs/cli.md \
 		docs/testing.md docs/contributing.md docs/wasm-ts.md \
-		docs/cep18/README.md docs/cep78/README.md docs/cep85/README.md; do \
+		docs/api-wasm/README.md \
+		docs/cep18/README.md docs/cep18/1-quickstart.md docs/cep18/8-api.md \
+		docs/cep78/README.md docs/cep78/2-install-modes.md docs/cep78/5-session-wasms.md docs/cep78/9-api.md \
+		docs/cep85/README.md docs/cep85/6-entity-keys.md docs/cep85/9-api.md; do \
 		if [ ! -f "$$f" ]; then echo "doc-check: missing $$f"; missing=1; fi; \
 	done; \
 	exit $$missing
