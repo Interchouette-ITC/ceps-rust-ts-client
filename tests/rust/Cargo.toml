@@ -9,4 +9,5 @@ bench = false
 doctest = false
 
 [dependencies]
-common = { path = "../../common" }
+ceps-client = { path = "../../ceps-client" }
+tokio.workspace = true

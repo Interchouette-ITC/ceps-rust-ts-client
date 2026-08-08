@@ -1,0 +1,410 @@
+//! CEP-18 fungible token client.
+
+mod entity;
+mod error;
+mod keys;
+mod types;
+
+pub use error::Cep18Error;
+pub use types::{ChangeSecurityArgs, InstallArgs, UpgradeArgs};
+
+use crate::core::CepCore;
+use crate::core::{json_args, key_arg, key_list_arg, string_arg, u256_arg, u8_arg, JsonArg};
+use crate::error::{CepError, CepKind, Result};
+use crate::types::{CallResult, DeployParams, EventsMode};
+use casper_rust_wasm_sdk::types::verbosity::Verbosity;
+use entity::prefixed_key;
+use keys::{allowance_dictionary_key, balance_dictionary_key};
+use serde_json::Value;
+
+/// Client for CEP-18 fungible token contracts.
+pub struct Cep18Client {
+    core: CepCore,
+}
+
+impl Cep18Client {
+    /// Create a CEP-18 client.
+    pub fn new(
+        rpc_url: impl Into<String>,
+        sse_url: Option<String>,
+        chain_name: Option<String>,
+        verbosity: Option<Verbosity>,
+    ) -> Result<Self> {
+        let core =
+            CepCore::new(rpc_url, sse_url, chain_name, verbosity)?.with_cep_kind(CepKind::Cep18);
+        Ok(Self { core })
+    }
+
+    /// Borrow the shared core.
+    pub fn core(&self) -> &CepCore {
+        &self.core
+    }
+
+    /// Mutable core access.
+    pub fn core_mut(&mut self) -> &mut CepCore {
+        &mut self.core
+    }
+
+    /// RPC URL.
+    pub fn rpc_url(&self) -> &str {
+        self.core.rpc_url()
+    }
+
+    /// SSE URL when set.
+    pub fn sse_url(&self) -> Option<&str> {
+        self.core.sse_url()
+    }
+
+    /// Chain name.
+    pub fn chain_name(&self) -> &str {
+        self.core.chain_name()
+    }
+
+    /// Verbosity.
+    pub fn verbosity(&self) -> Verbosity {
+        self.core.verbosity()
+    }
+
+    /// Set RPC URL.
+    pub fn set_rpc_url(&mut self, rpc_url: impl Into<String>) -> Result<()> {
+        self.core.set_rpc_url(rpc_url)
+    }
+
+    /// Set SSE URL.
+    pub fn set_sse_url(&mut self, sse_url: impl Into<String>) -> Result<()> {
+        self.core.set_sse_url(sse_url)
+    }
+
+    /// Set chain name.
+    pub fn set_chain_name(&mut self, chain_name: impl Into<String>) {
+        self.core.set_chain_name(chain_name);
+    }
+
+    /// Set verbosity.
+    pub fn set_verbosity(&mut self, verbosity: Verbosity) {
+        self.core.set_verbosity(verbosity);
+    }
+
+    /// Bind contract and optional package hash.
+    pub fn set_contract_hash(
+        &mut self,
+        contract_hash: impl AsRef<str>,
+        package_hash: Option<impl AsRef<str>>,
+    ) -> Result<()> {
+        self.core.set_contract_hash(contract_hash, package_hash)
+    }
+
+    /// Install a CEP-18 contract from WASM bytes.
+    pub async fn install(
+        &self,
+        args: &InstallArgs,
+        wasm: &[u8],
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let args_json = install_args_json(args)?;
+        self.core.install_wasm(wasm, deploy, &args_json).await
+    }
+
+    /// Upgrade an existing CEP-18 package.
+    pub async fn upgrade(
+        &self,
+        args: &UpgradeArgs,
+        wasm: &[u8],
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let mut json_args_vec = vec![string_arg("name", &args.name)];
+        if let Some(mode) = args.events_mode {
+            json_args_vec.push(u8_arg("events_mode", mode.into()));
+        }
+        let args_json = json_args(&json_args_vec);
+        self.core.install_wasm(wasm, deploy, &args_json).await
+    }
+
+    /// Transfer tokens to `recipient`.
+    pub async fn transfer(
+        &self,
+        recipient: &str,
+        amount: &str,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let args = json_args(&[
+            key_arg("recipient", &prefixed_key(recipient)?),
+            u256_arg("amount", amount),
+        ]);
+        self.core.call_entrypoint("transfer", deploy, &args).await
+    }
+
+    /// Transfer tokens from `owner` to `recipient` using allowance.
+    pub async fn transfer_from(
+        &self,
+        owner: &str,
+        recipient: &str,
+        amount: &str,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let args = json_args(&[
+            key_arg("owner", &prefixed_key(owner)?),
+            key_arg("recipient", &prefixed_key(recipient)?),
+            u256_arg("amount", amount),
+        ]);
+        self.core
+            .call_entrypoint("transfer_from", deploy, &args)
+            .await
+    }
+
+    /// Approve `spender` for `amount`.
+    pub async fn approve(
+        &self,
+        spender: &str,
+        amount: &str,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let args = json_args(&[
+            key_arg("spender", &prefixed_key(spender)?),
+            u256_arg("amount", amount),
+        ]);
+        self.core.call_entrypoint("approve", deploy, &args).await
+    }
+
+    /// Increase allowance for `spender`.
+    pub async fn increase_allowance(
+        &self,
+        spender: &str,
+        amount: &str,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let args = json_args(&[
+            key_arg("spender", &prefixed_key(spender)?),
+            u256_arg("amount", amount),
+        ]);
+        self.core
+            .call_entrypoint("increase_allowance", deploy, &args)
+            .await
+    }
+
+    /// Decrease allowance for `spender`.
+    pub async fn decrease_allowance(
+        &self,
+        spender: &str,
+        amount: &str,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let args = json_args(&[
+            key_arg("spender", &prefixed_key(spender)?),
+            u256_arg("amount", amount),
+        ]);
+        self.core
+            .call_entrypoint("decrease_allowance", deploy, &args)
+            .await
+    }
+
+    /// Mint tokens to `owner`.
+    pub async fn mint(
+        &self,
+        owner: &str,
+        amount: &str,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let args = json_args(&[
+            key_arg("owner", &prefixed_key(owner)?),
+            u256_arg("amount", amount),
+        ]);
+        self.core.call_entrypoint("mint", deploy, &args).await
+    }
+
+    /// Burn tokens from `owner`.
+    pub async fn burn(
+        &self,
+        owner: &str,
+        amount: &str,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let args = json_args(&[
+            key_arg("owner", &prefixed_key(owner)?),
+            u256_arg("amount", amount),
+        ]);
+        self.core.call_entrypoint("burn", deploy, &args).await
+    }
+
+    /// Change security lists (at least one list required).
+    pub async fn change_security(
+        &self,
+        args: &ChangeSecurityArgs,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let mut json_args_vec: Vec<JsonArg> = Vec::new();
+        if let Some(list) = &args.admin_list {
+            let keys = map_keys(list)?;
+            json_args_vec.push(key_list_arg("admin_list", &keys));
+        }
+        if let Some(list) = &args.minter_list {
+            let keys = map_keys(list)?;
+            json_args_vec.push(key_list_arg("minter_list", &keys));
+        }
+        if let Some(list) = &args.none_list {
+            let keys = map_keys(list)?;
+            json_args_vec.push(key_list_arg("none_list", &keys));
+        }
+        if json_args_vec.is_empty() {
+            return Err(CepError::MissingArgument(
+                "change_security requires at least one list".into(),
+            ));
+        }
+        let args_json = json_args(&json_args_vec);
+        self.core
+            .call_entrypoint("change_security", deploy, &args_json)
+            .await
+    }
+
+    /// Change events mode.
+    pub async fn change_events_mode(
+        &self,
+        events_mode: EventsMode,
+        deploy: &DeployParams,
+    ) -> Result<CallResult> {
+        let args = json_args(&[u8_arg("events_mode", events_mode.into())]);
+        self.core
+            .call_entrypoint("change_events_mode", deploy, &args)
+            .await
+    }
+
+    /// Token name (named key).
+    pub async fn name(&self) -> Result<String> {
+        decode_string_cl(self.core.query_contract_key(&["name"]).await?)
+    }
+
+    /// Token symbol (named key).
+    pub async fn symbol(&self) -> Result<String> {
+        decode_string_cl(self.core.query_contract_key(&["symbol"]).await?)
+    }
+
+    /// Token decimals (named key).
+    pub async fn decimals(&self) -> Result<u8> {
+        decode_u8_cl(self.core.query_contract_key(&["decimals"]).await?)
+    }
+
+    /// Total supply (named key).
+    pub async fn total_supply(&self) -> Result<String> {
+        decode_u256_cl(self.core.query_contract_key(&["total_supply"]).await?)
+    }
+
+    /// Events mode (named key).
+    pub async fn events_mode(&self) -> Result<EventsMode> {
+        let v = decode_u8_cl(self.core.query_contract_key(&["events_mode"]).await?)?;
+        EventsMode::from_u8(v).ok_or_else(|| CepError::Decode(format!("unknown events_mode {v}")))
+    }
+
+    /// Whether mint/burn is enabled.
+    pub async fn is_mint_and_burn_enabled(&self) -> Result<bool> {
+        let v = decode_u8_cl(self.core.query_contract_key(&["enable_mint_burn"]).await?)?;
+        Ok(v != 0)
+    }
+
+    /// Balance of `account` (prefixed key or raw public-key hex with `account-hash-` / `hash-`).
+    pub async fn balance_of(&self, account: &str) -> Result<String> {
+        let item_key = balance_dictionary_key(account)?;
+        let raw = self.core.query_dictionary("balances", &item_key).await?;
+        decode_u256_cl(raw)
+    }
+
+    /// Allowance from `owner` to `spender`.
+    pub async fn allowances(&self, owner: &str, spender: &str) -> Result<String> {
+        let item_key = allowance_dictionary_key(owner, spender)?;
+        let raw = self.core.query_dictionary("allowances", &item_key).await?;
+        decode_u256_cl(raw)
+    }
+}
+
+fn install_args_json(args: &InstallArgs) -> Result<String> {
+    let mut v = vec![
+        string_arg("name", &args.name),
+        string_arg("symbol", &args.symbol),
+        u8_arg("decimals", args.decimals),
+        u256_arg("total_supply", &args.total_supply),
+    ];
+    if let Some(mode) = args.events_mode {
+        v.push(u8_arg("events_mode", mode.into()));
+    }
+    if let Some(enable) = args.enable_mint_and_burn {
+        v.push(u8_arg("enable_mint_burn", u8::from(enable)));
+    }
+    if let Some(list) = &args.admin_list {
+        v.push(key_list_arg("admin_list", &map_keys(list)?));
+    }
+    if let Some(list) = &args.minter_list {
+        v.push(key_list_arg("minter_list", &map_keys(list)?));
+    }
+    Ok(json_args(&v))
+}
+
+fn map_keys(list: &[String]) -> Result<Vec<String>> {
+    list.iter().map(|k| prefixed_key(k)).collect()
+}
+
+fn decode_string_cl(value: Value) -> Result<String> {
+    // Prefer parsed CLValue JSON shapes from query_global_state.
+    if let Some(s) = value
+        .pointer("/stored_value/CLValue/parsed")
+        .and_then(|v| v.as_str())
+    {
+        return Ok(s.to_string());
+    }
+    if let Some(s) = value.pointer("/CLValue/parsed").and_then(|v| v.as_str()) {
+        return Ok(s.to_string());
+    }
+    if let Some(s) = value.as_str() {
+        return Ok(s.to_string());
+    }
+    Err(CepError::Decode(format!(
+        "expected string CLValue, got {value}"
+    )))
+}
+
+fn decode_u8_cl(value: Value) -> Result<u8> {
+    let parsed = value
+        .pointer("/stored_value/CLValue/parsed")
+        .or_else(|| value.pointer("/CLValue/parsed"))
+        .cloned()
+        .unwrap_or(value);
+    match parsed {
+        Value::Number(n) => n
+            .as_u64()
+            .and_then(|v| u8::try_from(v).ok())
+            .ok_or_else(|| CepError::Decode(format!("invalid u8: {n}"))),
+        Value::String(s) => s
+            .parse()
+            .map_err(|e| CepError::Decode(format!("invalid u8 string: {e}"))),
+        other => Err(CepError::Decode(format!("expected u8, got {other}"))),
+    }
+}
+
+fn decode_u256_cl(value: Value) -> Result<String> {
+    let parsed = value
+        .pointer("/stored_value/CLValue/parsed")
+        .or_else(|| value.pointer("/CLValue/parsed"))
+        .cloned()
+        .unwrap_or(value);
+    match parsed {
+        Value::String(s) => Ok(s),
+        Value::Number(n) => Ok(n.to_string()),
+        other => Err(CepError::Decode(format!("expected U256, got {other}"))),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn constructs_client() {
+        let client = Cep18Client::new(
+            "http://127.0.0.1:11101",
+            Some("http://127.0.0.1:18101".into()),
+            None,
+            Some(Verbosity::Low),
+        )
+        .unwrap();
+        assert_eq!(client.rpc_url(), "http://127.0.0.1:11101/rpc");
+        assert_eq!(client.sse_url(), Some("http://127.0.0.1:18101/events"));
+    }
+}

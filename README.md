@@ -1,6 +1,6 @@
 # ceps-rust-ts-client
 
-Unified Rust (+ thin WASM) client for Casper CEPs (18 / 78 / 85), built on [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/rustSDK).
+Unified Rust (+ thin WASM) client for Casper CEPs **18 / 78 / 85**, built on [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
 
 ## Quick start
 
@@ -9,39 +9,45 @@ make help
 make prepare
 make build
 make check-lint
-make test
+make unit-test
+cargo run -p cli -- --help
+cargo run -p cli -- status
 ```
-
-## Make (primary entry)
-
-| Target | Purpose |
-| --- | --- |
-| `make build` / `check` / `check-lint` | Native workspace |
-| `make test` | Unit + integration |
-| `make pack` / `web` / `nodejs` | wasm-pack |
-| `make run-cli` | CLI binary (`console` crate today; rename → `cli`) |
-| `make nctl-start` / `nctl-status` | Forward to sibling `casper-nctl-2-docker` (profile `dev`) |
-| `make sdk-mcp-http` | SDK MCP HTTP on `:5790` |
-| `make wasm-from-ceps` | Stage contract WASMs from sibling CEP repos |
-
-Agents driving NCTL/SDK should use Cursor MCP (`nctl_*` / `sdk_*`), not invent docker compose in this repo. See [`.cursor/README.md`](.cursor/README.md).
 
 ## Layout
 
 | Path | Role |
 | --- | --- |
-| `common/` | Shared CEP client library (→ `ceps-client`) |
-| `ceps-ts-client/` | wasm-bindgen bindings (→ `ceps-wasm`) |
-| `console/` | CLI binary (→ `cli`) |
+| `ceps-client/` | Native CEP library (`Cep18Client`, `Cep78Client`, `Cep85Client`) |
+| `cli/` | Clap binary `ceps` |
+| `ceps-wasm/` | Thin `wasm-bindgen` CEP exports |
 | `tests/rust/` | Integration tests |
-| `tests/ts/` | Vitest against packed nodejs WASM |
+| `tests/e2e/` | CLI e2e scenarios |
+| `tests/wasm/` | Staged contract WASMs from sibling tips |
+| `docs/` | Hub + one closet per CEP |
 
-## Remotes / siblings
+## Contract tips
 
-App git: `git@github.com:gRoussac/ceps-rust-ts-client.git`
+Develop against sibling checkouts on branch **`ceps-client-test`**:
 
-Expected siblings (Make / MCP wrappers):
+```bash
+# in each of ../cep-18, ../cep-78-enhanced-nft, ../cep-1155
+git fetch dev && git checkout ceps-client-test && git pull --ff-only dev ceps-client-test
+# build contracts there, then:
+make wasm-from-ceps
+```
 
-- `../rustSDK`
-- `../casper-nctl-2-docker`
-- `../cep-18`, `../cep-78-enhanced-nft`, `../cep-1155`
+See [docs/contributing.md](docs/contributing.md).
+
+## Make
+
+| Target | Purpose |
+| --- | --- |
+| `make build` / `check` / `check-lint` | Native workspace |
+| `make unit-test` / `integration-test` / `e2e-test` | Tests |
+| `make pack` / `nodejs` | wasm-pack |
+| `make run-cli` | `ceps` binary |
+| `make nctl-start` / `nctl-status` | Sibling NCTL (`dev` profile) |
+| `make wasm-from-ceps` | Stage tip WASMs |
+
+Agents driving NCTL/SDK should use Cursor MCP (`nctl_*` / `sdk_*`).

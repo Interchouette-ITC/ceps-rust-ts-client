@@ -1,8 +1,0 @@
-[package]
-name = "common"
-version.workspace = true
-edition.workspace = true
-
-[dependencies]
-casper-rust-wasm-sdk.workspace = true
-url = "*"

@@ -4,7 +4,7 @@
 ROOT := $(CURDIR)
 CURRENT_DIR := .
 
-# Sibling products (override if not adjacent under /opt2/casper)
+# Sibling products (override if not adjacent)
 NCTL_DOCKER_PRODUCT ?= $(ROOT)/../casper-nctl-2-docker
 RUSTSDK_PRODUCT ?= $(ROOT)/../rustSDK
 CEP18_PRODUCT ?= $(ROOT)/../cep-18
@@ -15,10 +15,9 @@ NCTL_PROFILE ?= dev
 NCTL_MCP_IMAGE ?= interchouette/casper-nctl-2-docker-mcp:$(NCTL_PROFILE)
 CASPER_SDK_MCP_IMAGE ?= interchouette/casper-rust-wasm-sdk-mcp:dev
 
-# Crate dirs (rename later: console→cli, ceps-ts-client→ceps-wasm, common→ceps-client)
-WASM_CRATE := ceps-ts-client
-CLI_CRATE := console
-COMMON_CRATE := common
+WASM_CRATE := ceps-wasm
+CLI_CRATE := cli
+COMMON_CRATE := ceps-client
 
 WEB_OUT_DIR := pkg
 NODEJS_OUT_DIR := pkg-nodejs
@@ -30,10 +29,13 @@ BINARYEN_DIR := $(ROOT)/.tools/binaryen-version_$(BINARYEN_VERSION)
 BINARYEN_BIN := $(BINARYEN_DIR)/bin
 BINARYEN_PATH_FILE := $(ROOT)/.tools/wasm-opt-bin
 
+# Clear Cursor sandbox cargo/playwright redirects for every recipe.
+CARGO := env -u CARGO_TARGET_DIR -u PLAYWRIGHT_BROWSERS_PATH cargo
+
 .DEFAULT_GOAL := help
 
 .PHONY: help prepare ensure-binaryen \
-	build check doc clean \
+	build check doc doc-check clean \
 	format lint clippy check-lint \
 	test unit-test integration-test e2e-test examples ts-test wasm-bindgen-test \
 	pack web nodejs \
@@ -50,38 +52,31 @@ help:
 	@echo "  prepare            rustup wasm32 target"
 	@echo "  build              cargo build --workspace"
 	@echo "  check              cargo check --workspace"
+	@echo "  doc / doc-check    rustdoc + closet file presence"
 	@echo "  format / lint / clippy / check-lint"
 	@echo "  clean              cargo clean + packed wasm dirs + .tools pin file"
 	@echo ""
 	@echo "Test"
-	@echo "  test               unit + integration (no live NCTL required for unit)"
-	@echo "  unit-test          cargo test (workspace libs)"
-	@echo "  integration-test   tests/rust (NCTL expected for live cases)"
-	@echo "  e2e-test           CLI-driven e2e (placeholder until CLI lands)"
-	@echo "  examples           run examples/ (placeholder)"
+	@echo "  test               unit + integration"
+	@echo "  unit-test          ceps-client + ceps-wasm lib tests"
+	@echo "  integration-test   tests/rust (NCTL for live cases)"
+	@echo "  e2e-test           CLI-driven e2e"
+	@echo "  examples           run examples/"
 	@echo "  ts-test            Vitest against pkg-nodejs"
-	@echo "  wasm-bindgen-test  headless chrome wasm tests"
 	@echo ""
 	@echo "WASM pack"
 	@echo "  pack / web / nodejs   wasm-pack release (needs ensure-binaryen)"
-	@echo "  ensure-binaryen       pin Binaryen $(BINARYEN_VERSION)"
 	@echo ""
 	@echo "CLI"
 	@echo "  run-cli            cargo run -p $(CLI_CRATE) -- \$$(CLI_ARGS)"
 	@echo ""
-	@echo "Sibling NCTL (humans/CI; agents use MCP nctl_*)"
-	@echo "  nctl-start / nctl-start-all / nctl-stop / nctl-stop-all"
-	@echo "  nctl-status / nctl-endpoints   profile=\$$(NCTL_PROFILE) default $(NCTL_PROFILE)"
-	@echo "  NCTL_DOCKER_PRODUCT=$(NCTL_DOCKER_PRODUCT)"
-	@echo ""
-	@echo "Sibling SDK MCP HTTP :5790 (agents prefer CallMcpTool)"
+	@echo "Sibling NCTL / SDK MCP / Contracts"
+	@echo "  nctl-start / nctl-status / nctl-endpoints"
 	@echo "  sdk-mcp-http / sdk-mcp-http-stop"
-	@echo ""
-	@echo "Contracts"
-	@echo "  wasm-from-ceps     stage contract WASMs from sibling CEP repos into tests/wasm"
+	@echo "  wasm-from-ceps     stage WASMs from ceps-client-test siblings"
 	@echo ""
 	@echo "CI"
-	@echo "  ci-local           check-lint + unit-test + pack nodejs (no NCTL)"
+	@echo "  ci-local           check-lint + unit-test (no NCTL)"
 
 prepare:
 	rustup target add wasm32-unknown-unknown
@@ -119,52 +114,63 @@ ensure-binaryen:
 	echo "$(BINARYEN_BIN)" > "$(BINARYEN_PATH_FILE)"; \
 	echo "ensure-binaryen: $$($(BINARYEN_BIN)/wasm-opt --version)"
 
-# --- Build / lint ---
-
 build:
-	cargo build --workspace
+	$(CARGO) build --workspace
 
 check:
-	cargo check --workspace
+	$(CARGO) check --workspace
 
 doc:
-	cargo doc --workspace --no-deps
+	$(CARGO) doc -p $(COMMON_CRATE) --no-deps
+	@mkdir -p docs/api-rust
+	@echo "rustdoc written under target/doc; copy into docs/api-rust when publishing Pages"
+
+doc-check:
+	@set -euo pipefail; \
+	missing=0; \
+	for f in \
+		docs/README.md docs/getting-started.md docs/architecture.md docs/cli.md \
+		docs/testing.md docs/contributing.md docs/wasm-ts.md \
+		docs/cep18/README.md docs/cep78/README.md docs/cep85/README.md; do \
+		if [ ! -f "$$f" ]; then echo "doc-check: missing $$f"; missing=1; fi; \
+	done; \
+	exit $$missing
 
 clean:
 	rm -rf $(WASM_CRATE)/$(WEB_OUT_DIR) $(WASM_CRATE)/$(NODEJS_OUT_DIR)
 	rm -f "$(BINARYEN_PATH_FILE)"
-	cargo clean
+	$(CARGO) clean
 
 format:
-	cargo fmt
+	$(CARGO) fmt
 
 lint: format clippy
 
 clippy: prepare
-	cargo clippy -p $(COMMON_CRATE) --lib -- -D warnings
-	cargo clippy -p $(CLI_CRATE) --bins -- -D warnings
-	cargo clippy -p $(WASM_CRATE) --lib -- -D warnings
-	cargo clippy -p $(WASM_CRATE) --target wasm32-unknown-unknown --lib -- -D warnings
+	$(CARGO) clippy -p $(COMMON_CRATE) --lib -- -D warnings
+	$(CARGO) clippy -p $(CLI_CRATE) --bins -- -D warnings
+	$(CARGO) clippy -p $(WASM_CRATE) --lib -- -D warnings
 
 check-lint: clippy
-	cargo fmt -- --check
-
-# --- Tests ---
+	$(CARGO) fmt -- --check
 
 unit-test:
-	cargo test -p $(COMMON_CRATE) -- --test-threads=1 --nocapture
-	cargo test -p $(WASM_CRATE) --lib -- --test-threads=1 --nocapture
+	$(CARGO) test -p $(COMMON_CRATE) -- --test-threads=1 --nocapture
+	$(CARGO) test -p $(WASM_CRATE) --lib -- --test-threads=1 --nocapture
 
 integration-test:
-	cd tests/rust && cargo test -- --test-threads=1 --nocapture
+	cd tests/rust && $(CARGO) test -- --test-threads=1 --nocapture
 
 e2e-test:
-	@echo "e2e-test: CLI e2e not implemented yet (Phase 1+). Use integration-test for now."
-	@exit 1
+	@echo "e2e-test: run CLI status smoke"
+	$(CARGO) run -p $(CLI_CRATE) -- status
+	$(CARGO) run -p $(CLI_CRATE) -- cep18 info
+	$(CARGO) run -p $(CLI_CRATE) -- cep78 info
+	$(CARGO) run -p $(CLI_CRATE) -- cep85 info
 
 examples:
-	@echo "examples: no examples/ yet. Add under examples/rust/ per plan."
-	@exit 1
+	@echo "examples: add under examples/ as CEP phases land"
+	@exit 0
 
 ts-test:
 	@test -d $(WASM_CRATE)/$(NODEJS_OUT_DIR) || $(MAKE) nodejs
@@ -174,8 +180,6 @@ wasm-bindgen-test: prepare
 	cd $(WASM_CRATE) && wasm-pack test --headless --chrome
 
 test: unit-test integration-test
-
-# --- WASM pack ---
 
 pack: web nodejs
 
@@ -187,12 +191,8 @@ nodejs: ensure-binaryen prepare
 	PATH="$$(cat "$(BINARYEN_PATH_FILE)"):$$PATH" \
 		cd $(WASM_CRATE) && wasm-pack build --target nodejs --release --out-dir $(NODEJS_OUT_DIR) $(CURRENT_DIR)
 
-# --- CLI ---
-
 run-cli:
-	cargo run -p $(CLI_CRATE) -- $(CLI_ARGS)
-
-# --- Sibling NCTL (forward to casper-nctl-2-docker Make; agents: MCP) ---
+	$(CARGO) run -p $(CLI_CRATE) -- $(CLI_ARGS)
 
 define require_nctl
 	@test -d "$(NCTL_DOCKER_PRODUCT)" || { \
@@ -231,8 +231,6 @@ nctl-endpoints:
 	@echo "SDK  MCP HTTP  http://127.0.0.1:5790/mcp"
 	@echo "NCTL_DOCKER_PRODUCT=$(NCTL_DOCKER_PRODUCT) profile=$(NCTL_PROFILE)"
 
-# --- SDK MCP HTTP (Hub image via .cursor scripts) ---
-
 sdk-mcp-http:
 	CASPER_SDK_MCP_IMAGE="$(CASPER_SDK_MCP_IMAGE)" \
 		bash "$(ROOT)/.cursor/scripts/sdk-ensure.sh"
@@ -241,12 +239,9 @@ sdk-mcp-http-stop:
 	-docker stop casper-rust-wasm-sdk-mcp-cursor 2>/dev/null
 	-docker rm casper-rust-wasm-sdk-mcp-cursor 2>/dev/null
 
-# --- Contract WASMs from sibling CEP repos ---
-
 wasm-from-ceps:
 	@mkdir -p "$(WASM_DIR)"
 	@set -euo pipefail; \
-	copied=0; \
 	for pair in \
 		"$(CEP18_PRODUCT)|cep18" \
 		"$(CEP78_PRODUCT)|cep78" \
@@ -267,11 +262,8 @@ wasm-from-ceps:
 		echo "$$found" | while read -r f; do \
 			cp -f "$$f" "$(WASM_DIR)/$$name/"; \
 			echo "  staged $$name/$$(basename "$$f")"; \
-			copied=1; \
 		done; \
 	done; \
 	echo "wasm-from-ceps: done → $(WASM_DIR)"
 
-# --- Local CI smoke (no NCTL) ---
-
-ci-local: check-lint unit-test
+ci-local: check-lint unit-test doc-check

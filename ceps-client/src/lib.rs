@@ -1,0 +1,25 @@
+//! Unified Casper CEP client library (CEP-18, CEP-78, CEP-85).
+//!
+//! Builds on [`casper_rust_wasm_sdk`]. CEP-specific enums, dictionary-key
+//! helpers, and contract error maps live here; RPC, transactions, and wait
+//! helpers stay in the SDK.
+
+#![deny(missing_docs)]
+
+pub mod cep18;
+pub mod cep78;
+pub mod cep85;
+pub mod core;
+pub mod error;
+pub mod types;
+
+pub use casper_rust_wasm_sdk::types::verbosity::Verbosity;
+pub use cep18::Cep18Client;
+pub use cep78::Cep78Client;
+pub use cep85::Cep85Client;
+pub use core::CepCore;
+pub use error::{CepError, Result};
+pub use types::{CallResult, DeployParams, EventsMode, EventsMode78};
+
+/// Re-export of the underlying SDK type for advanced callers.
+pub use casper_rust_wasm_sdk::SDK;

@@ -1,29 +1,43 @@
 [workspace]
-members = ["common", "console", "ceps-ts-client", "tests/rust"]
-
-default-members = ["console", "ceps-ts-client"]
+members = ["ceps-client", "cli", "ceps-wasm", "tests/rust"]
+default-members = ["cli", "ceps-client"]
 resolver = "2"
 
 [workspace.package]
 version = "1.0.0"
 edition = "2021"
-description = "A library for interacting with Casper CEPs for the Casper network."
+description = "Unified Rust (+ thin WASM) client for Casper CEPs (18 / 78 / 85)."
 readme = "README.md"
-homepage = "https://github.com/gRoussac/ceps-rust-ts-client.git"
-repository = "https://github.com/gRoussac/ceps-rust-ts-client.git"
+homepage = "https://github.com/gRoussac/ceps-rust-ts-client"
+repository = "https://github.com/gRoussac/ceps-rust-ts-client"
 authors = ["3099551+gRoussac@users.noreply.github.com"]
 license-file = "LICENSE"
 
-
 [workspace.dependencies]
-casper-rust-wasm-sdk = { version = "2.0.0", git = "https://github.com/casper-ecosystem/rustSDK", branch = "dev" }
+casper-rust-wasm-sdk = { path = "../rustSDK", default-features = false, features = [
+  "transaction",
+  "contract",
+  "helpers",
+  "watcher",
+  "SSE",
+] }
+thiserror = "2"
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+serde_json = "1.0"
+url = "2"
+hex = "0.4"
+base64 = "0.22"
+blake2 = "0.10"
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "time"] }
+clap = { version = "4", features = ["derive", "env"] }
+anyhow = "1"
 
 [profile.release]
 codegen-units = 1
 lto = true
 
 [patch.crates-io]
-casper-types = { version = "5.0.0", git = "https://github.com/casper-network/casper-node", branch = "dev" }
-casper-client = { version = "3.0.1", git = "https://github.com/casper-ecosystem/casper-client-rs", branch = "feat-track-node-2.0" }
-casper-binary-port = { version = "1.0.0", git = "https://github.com/casper-network/casper-node", branch = "dev" }
-casper-binary-port-access = { version = "0.1.0", git = "https://github.com/gRoussac/casper-binary-port-client", branch = "binary_response_changes" }
+casper-client = { version = "5", git = "https://github.com/casper-ecosystem/casper-client-rs", branch = "dev" }
+casper-types = { git = "https://github.com/casper-network/casper-node", tag = "v2.2.2" }
+casper-binary-port = { git = "https://github.com/casper-network/casper-node", tag = "v2.2.2" }
+casper-binary-port-access = { git = "https://github.com/gRoussac/casper-binary-port-client", branch = "casper_2.2.2" }

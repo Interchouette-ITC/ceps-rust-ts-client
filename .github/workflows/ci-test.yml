@@ -1,0 +1,54 @@
+name: ci-test
+
+on:
+  push:
+    branches: [dev, ceps-client-test, main]
+  pull_request:
+    branches: [dev, ceps-client-test, main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  lint-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Checkout rustSDK (path dep)
+        uses: actions/checkout@v4
+        with:
+          repository: casper-ecosystem/casper-rust-wasm-sdk
+          path: ../rustSDK
+          ref: 2.2.0
+
+      - name: Fmt
+        run: cargo fmt -- --check
+
+      - name: Clippy
+        run: |
+          cargo clippy -p ceps-client --lib -- -D warnings
+          cargo clippy -p cli --bins -- -D warnings
+          cargo clippy -p ceps-wasm --lib -- -D warnings
+
+      - name: Unit tests
+        run: |
+          cargo test -p ceps-client -- --test-threads=1
+          cargo test -p ceps-wasm --lib -- --test-threads=1
+
+      - name: Doc closet check
+        run: make doc-check
+
+      - name: CLI smoke
+        run: |
+          cargo run -p cli -- status
+          cargo run -p cli -- cep18 info

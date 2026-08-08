@@ -1,6 +1,0 @@
-[package]
-name = "console"
-version.workspace = true
-edition.workspace = true
-
-[dependencies]

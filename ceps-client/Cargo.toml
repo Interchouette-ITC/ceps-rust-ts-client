@@ -1,0 +1,27 @@
+[package]
+name = "ceps-client"
+version.workspace = true
+edition.workspace = true
+description = "Native CEP-18 / CEP-78 / CEP-85 client library for Casper."
+readme.workspace = true
+homepage.workspace = true
+repository.workspace = true
+authors.workspace = true
+license-file.workspace = true
+
+[lib]
+name = "ceps_client"
+path = "src/lib.rs"
+
+[dependencies]
+casper-rust-wasm-sdk.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+url.workspace = true
+hex.workspace = true
+base64.workspace = true
+blake2.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true
