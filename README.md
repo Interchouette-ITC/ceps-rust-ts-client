@@ -12,12 +12,42 @@ CEP-85 client-js  ─┘
 
 ## What you get
 
-| Piece               | Name               | Role                                                                  | In-tree path                                    |
-| ------------------- | ------------------ | --------------------------------------------------------------------- | ----------------------------------------------- |
-| Rust library        | `ceps-client`      | CEP API for native Rust apps                                          | `ceps-client/`                                  |
-| CLI                 | `ceps-client-cli`  | Status and common queries from the shell                              | `ceps-client-cli/`                              |
-| Client JS packs     | `ceps-client-wasm` | Same CEP classes for Node and browsers (replaces per-CEP `client-js`) | `ceps-client-wasm/pkg`&nbsp;/&nbsp;`pkg-nodejs` |
-| Demo contract WASMs | `ceps-contracts`   | On-chain bytecode for `install` (demo tips)                           | `tests/wasm/{cep18,cep78,cep85}/`               |
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Name</th>
+<th>Role</th>
+<th>In-tree path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rust library</td>
+<td><span style="white-space: nowrap;"><code>ceps-client</code></span></td>
+<td>CEP API for native Rust apps</td>
+<td><code>ceps-client/</code></td>
+</tr>
+<tr>
+<td>CLI</td>
+<td><span style="white-space: nowrap;"><code>ceps-client-cli</code></span></td>
+<td>Status and common queries from the shell</td>
+<td><code>ceps-client-cli/</code></td>
+</tr>
+<tr>
+<td>Client JS packs</td>
+<td><span style="white-space: nowrap;"><code>ceps-client-wasm</code></span></td>
+<td>Same CEP classes for Node and browsers (replaces per-CEP <code>client-js</code>)</td>
+<td><code>ceps-client-wasm/pkg</code> / <code>pkg-nodejs</code></td>
+</tr>
+<tr>
+<td>Demo contract WASMs</td>
+<td><span style="white-space: nowrap;"><code>ceps-contracts</code></span></td>
+<td>On-chain bytecode for <code>install</code> (demo tips)</td>
+<td><code>tests/wasm/{cep18,cep78,cep85}/</code></td>
+</tr>
+</tbody>
+</table>
 
 Release downloads use the same names: `ceps-client-cli-*-linux-x86_64`, `ceps-client-wasm-*.tgz`, and `ceps-contracts-*.tgz`. The first three rows are this client; the last row is sample contract bytecode, not the JS library.
 
