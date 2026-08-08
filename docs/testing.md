@@ -9,4 +9,4 @@
 | TS smoke    | `make ts-test`          | Vitest on `pkg-nodejs`                           |
 | CI          | see [ci.md](ci.md)      | Gates, Hub/GHCR, Release assets                  |
 
-Contract WASMs for demos/CI: demo tip forks on branch `ceps-client-test` (see [contributing.md](contributing.md)), then `make wasm-from-ceps` → `tests/wasm/{cep18,cep78,cep85}/`.
+Contract WASMs for demos/CI: demo tip forks on branch `ceps-client-test` (see [contributing.md](contributing.md)), then `make wasm-from-ceps` → `tests/wasm/{cep18,cep78,cep85,cep95}/`.

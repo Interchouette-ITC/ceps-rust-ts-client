@@ -1,0 +1,76 @@
+//! Dictionary item key helpers for CEP-95 (Odra / JS storage encodings).
+
+use super::entity::prefixed_key;
+use crate::error::{CepError, Result};
+use base64::engine::general_purpose::STANDARD as BASE64;
+use base64::Engine;
+use casper_rust_wasm_sdk::helpers::{
+    get_base64_key_from_account_hash, get_base64_key_from_key_hash, make_dictionary_item_key,
+};
+use casper_rust_wasm_sdk::types::key::Key;
+use casper_types::bytesrepr::ToBytes;
+use casper_types::U256;
+use std::str::FromStr;
+
+/// Balance dictionary item key: Base64(Key.to_bytes()) under dict `balances`.
+pub fn balance_dictionary_key(owner: &str) -> Result<String> {
+    let prefixed = prefixed_key(owner)?;
+    if prefixed.starts_with("account-hash-") {
+        get_base64_key_from_account_hash(&prefixed)
+            .map_err(|e| CepError::InvalidHash(format!("balance key: {e}")))
+    } else {
+        get_base64_key_from_key_hash(&prefixed)
+            .map_err(|e| CepError::InvalidHash(format!("balance key: {e}")))
+    }
+}
+
+/// Token-id dictionary item key (owners / approvals / token_metadata):
+/// Base64(U256.to_bytes()) as used by Odra `base64_encoded_key_value_storage`.
+pub fn token_id_dictionary_key(token_id: &str) -> Result<String> {
+    let id = U256::from_str(token_id.trim())
+        .map_err(|e| CepError::InvalidArgument(format!("token_id U256: {e}")))?;
+    let bytes = id
+        .to_bytes()
+        .map_err(|e| CepError::InvalidArgument(format!("token_id bytes: {e}")))?;
+    Ok(BASE64.encode(bytes))
+}
+
+/// Operator dictionary item key: hex(blake2b-256(owner.bytes ‖ operator.bytes)).
+pub fn operator_dictionary_key(owner: &str, operator: &str) -> Result<String> {
+    let owner_key = Key::from_formatted_str(&prefixed_key(owner)?)
+        .map_err(|e| CepError::InvalidHash(format!("owner key: {e}")))?;
+    let operator_key = Key::from_formatted_str(&prefixed_key(operator)?)
+        .map_err(|e| CepError::InvalidHash(format!("operator key: {e}")))?;
+    Ok(make_dictionary_item_key(&owner_key, &operator_key))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn balance_key_from_account_hash() {
+        let account =
+            "account-hash-b485c074cef7ccaccd0302949d2043ab7133abdb14cfa87e8392945c0bd80a5f";
+        let key = balance_dictionary_key(account).unwrap();
+        assert!(!key.is_empty());
+    }
+
+    #[test]
+    fn token_id_key_is_stable_base64() {
+        let a = token_id_dictionary_key("42").unwrap();
+        let b = token_id_dictionary_key("42").unwrap();
+        assert_eq!(a, b);
+        assert!(!a.is_empty());
+    }
+
+    #[test]
+    fn operator_key_is_hex() {
+        let owner = "account-hash-b485c074cef7ccaccd0302949d2043ab7133abdb14cfa87e8392945c0bd80a5f";
+        let operator =
+            "account-hash-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        let key = operator_dictionary_key(owner, operator).unwrap();
+        assert_eq!(key.len(), 64);
+        assert!(key.chars().all(|c| c.is_ascii_hexdigit()));
+    }
+}

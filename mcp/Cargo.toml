@@ -2,7 +2,7 @@
 name = "ceps-client-mcp"
 version.workspace = true
 edition.workspace = true
-description = "MCP server for ceps-client (stdio + Streamable HTTP): CEP-18/78/85 + contract WASM helpers"
+description = "MCP server for ceps-client (stdio + Streamable HTTP): CEP-18/78/85/95 + contract WASM helpers"
 readme = "README.md"
 homepage.workspace = true
 repository.workspace = true

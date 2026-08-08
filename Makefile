@@ -12,6 +12,7 @@ RUSTSDK_PRODUCT ?= $(ROOT)/../rustSDK
 CEP18_PRODUCT ?= $(ROOT)/../cep-18
 CEP78_PRODUCT ?= $(ROOT)/../cep-78-enhanced-nft
 CEP85_PRODUCT ?= $(ROOT)/../cep-1155
+CEP95_PRODUCT ?= $(ROOT)/../cep-95
 
 NCTL_PROFILE ?= dev
 NCTL_MCP_IMAGE ?= interchouette/casper-nctl-2-docker-mcp:$(NCTL_PROFILE)
@@ -171,7 +172,8 @@ doc-check:
 		docs/api-wasm/README.md \
 		docs/cep18/README.md docs/cep18/1-quickstart.md docs/cep18/8-api.md \
 		docs/cep78/README.md docs/cep78/2-install-modes.md docs/cep78/5-session-wasms.md docs/cep78/9-api.md \
-		docs/cep85/README.md docs/cep85/6-entity-keys.md docs/cep85/9-api.md; do \
+		docs/cep85/README.md docs/cep85/6-entity-keys.md docs/cep85/9-api.md \
+		docs/cep95/README.md docs/cep95/1-quickstart.md docs/cep95/8-api.md; do \
 		if [ ! -f "$$f" ]; then echo "doc-check: missing $$f"; missing=1; fi; \
 	done; \
 	exit $$missing
@@ -207,11 +209,13 @@ e2e-test:
 	$(CARGO) run -p $(CLI_CRATE) -- cep18 info
 	$(CARGO) run -p $(CLI_CRATE) -- cep78 info
 	$(CARGO) run -p $(CLI_CRATE) -- cep85 info
+	$(CARGO) run -p $(CLI_CRATE) -- cep95 info
 
 examples:
 	$(CARGO) run -p $(COMMON_CRATE) --example cep18_install
 	$(CARGO) run -p $(COMMON_CRATE) --example cep78_install
 	$(CARGO) run -p $(COMMON_CRATE) --example cep85_install
+	$(CARGO) run -p $(COMMON_CRATE) --example cep95_install
 
 ts-test:
 	@test -d $(WASM_CRATE)/$(NODEJS_OUT_DIR) || $(MAKE) nodejs
@@ -371,7 +375,8 @@ wasm-from-ceps:
 	for pair in \
 		"$(CEP18_PRODUCT)|cep18" \
 		"$(CEP78_PRODUCT)|cep78" \
-		"$(CEP85_PRODUCT)|cep85"; do \
+		"$(CEP85_PRODUCT)|cep85" \
+		"$(CEP95_PRODUCT)|cep95"; do \
 		root="$${pair%%|*}"; name="$${pair##*|}"; \
 		if [ ! -d "$$root" ]; then \
 			echo "wasm-from-ceps: skip $$name (missing $$root)"; \

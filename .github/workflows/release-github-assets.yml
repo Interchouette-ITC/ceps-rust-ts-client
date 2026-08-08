@@ -70,6 +70,13 @@ jobs:
           ref: ceps-client-test
           path: cep-1155
 
+      - name: Checkout CEP-95 demo tip
+        uses: actions/checkout@v5
+        with:
+          repository: Interchouette-ITC/cep-95
+          ref: ceps-client-test
+          path: cep-95
+
       - name: Swatinem cache
         uses: Swatinem/rust-cache@v2
         with:
@@ -135,13 +142,14 @@ jobs:
           tar -czf "$STAGE/ceps-client-wasm-nodejs-${LABEL}.tgz" -C ceps-client-wasm pkg-nodejs
           tar -czf "$STAGE/ceps-client-wasm-web-${LABEL}.tgz" -C ceps-client-wasm pkg
 
-          # Demo on-chain contracts (cep18 / cep78 / cep85); not rebuilt here, copied from tip tests/wasm.
+          # Demo on-chain contracts (cep18 / cep78 / cep85 / cep95); not rebuilt here, copied from tip tests/wasm.
           test -d tests/wasm/cep18
           test -d tests/wasm/cep78
           test -d tests/wasm/cep85
+          test -d tests/wasm/cep95
           {
             echo "Demo tip contract WASMs for ceps-rust-ts-client ${LABEL}"
-            echo "Sources: Interchouette-ITC/{cep-18,cep-78-enhanced-nft,cep-85} @ ceps-client-test"
+            echo "Sources: Interchouette-ITC/{cep-18,cep-78-enhanced-nft,cep-85,cep-95} @ ceps-client-test"
             echo "Staged via make wasm-from-ceps (prefer tip tests/wasm/)."
             echo
             find tests/wasm -type f -name '*.wasm' | sort

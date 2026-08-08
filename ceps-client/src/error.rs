@@ -75,6 +75,8 @@ pub enum CepKind {
     Cep78,
     /// CEP-85 multi-token (user errors `1..=91`).
     Cep85,
+    /// CEP-95 NFT (Odra tip errors `20000+` / `40000+`).
+    Cep95,
 }
 
 impl fmt::Display for CepKind {
@@ -83,6 +85,7 @@ impl fmt::Display for CepKind {
             Self::Cep18 => write!(f, "CEP-18"),
             Self::Cep78 => write!(f, "CEP-78"),
             Self::Cep85 => write!(f, "CEP-85"),
+            Self::Cep95 => write!(f, "CEP-95"),
         }
     }
 }

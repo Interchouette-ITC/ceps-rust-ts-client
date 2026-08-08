@@ -11,13 +11,14 @@ pub use types::{ChangeSecurityArgs, InstallArgs, UpgradeArgs};
 
 use crate::core::CepCore;
 use crate::core::{
-    bool_arg, json_args, key_arg, key_list_arg, string_arg, u256_arg, u8_arg, JsonArg,
+    bool_arg, json_args, key_arg, key_list_arg, string_arg, u256_arg, u256_list_arg, u8_arg,
+    JsonArg,
 };
 use crate::error::{CepError, CepKind, Result};
 use crate::types::{CallResult, DeployParams, EventsMode};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use keys::{balance_dictionary_key, operator_dictionary_key};
-use serde_json::{json, Value};
+use serde_json::Value;
 
 /// Client for CEP-85 multi-token contracts.
 pub struct Cep85Client {
@@ -429,10 +430,6 @@ impl Cep85Client {
 
 fn map_keys(list: &[String]) -> Result<Vec<String>> {
     list.iter().map(|k| prefixed_key(k)).collect()
-}
-
-fn u256_list_arg(name: &str, values: &[&str]) -> JsonArg {
-    JsonArg::new(name, "List (U256)", json!(values))
 }
 
 fn decode_string_cl(value: Value) -> Result<String> {

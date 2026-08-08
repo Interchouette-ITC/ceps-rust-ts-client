@@ -61,6 +61,13 @@ jobs:
           ref: ceps-client-test
           path: cep-1155
 
+      - name: Checkout CEP-95 tip
+        uses: actions/checkout@v5
+        with:
+          repository: Interchouette-ITC/cep-95
+          ref: ceps-client-test
+          path: cep-95
+
       - name: Swatinem cache
         uses: Swatinem/rust-cache@v2
         with:

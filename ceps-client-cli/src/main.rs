@@ -2,15 +2,18 @@
 
 use anyhow::{bail, Context, Result};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
-use ceps_client::{Cep18Client, Cep78Client, Cep85Client};
+use ceps_client::cep95::InstallArgs as Cep95InstallArgs;
+use ceps_client::{Cep18Client, Cep78Client, Cep85Client, Cep95Client, DeployParams};
 use clap::{Parser, Subcommand, ValueEnum};
+use std::fs;
+use std::path::PathBuf;
 use std::process::ExitCode;
 
 #[derive(Debug, Parser)]
 #[command(
     name = "ceps-client-cli",
     version,
-    about = "Unified Casper CEP client (18 / 78 / 85)"
+    about = "Unified Casper CEP client (18 / 78 / 85 / 95)"
 )]
 struct Cli {
     /// JSON-RPC URL (NCTL default: http://127.0.0.1:11101).
@@ -77,6 +80,11 @@ enum Commands {
         #[command(subcommand)]
         command: Cep85Commands,
     },
+    /// CEP-95 NFT commands.
+    Cep95 {
+        #[command(subcommand)]
+        command: Cep95Commands,
+    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -129,6 +137,191 @@ enum Cep85Commands {
         #[arg(long)]
         id: String,
     },
+}
+
+#[derive(Debug, Subcommand)]
+enum Cep95Commands {
+    /// Print client endpoint configuration.
+    Info,
+    /// Install Odra OwnedCep95 WASM (`--wasm`, `--secret-key`).
+    Install {
+        #[arg(long)]
+        name: String,
+        #[arg(long)]
+        symbol: String,
+        #[arg(long)]
+        package_key_name: String,
+        #[arg(long)]
+        wasm: PathBuf,
+        #[arg(long)]
+        secret_key: PathBuf,
+        #[arg(long, default_value = "600000000000")]
+        payment: String,
+    },
+    /// Mint a token (owner-gated on tip).
+    Mint {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        to: String,
+        #[arg(long)]
+        token_id: String,
+        #[arg(long)]
+        secret_key: PathBuf,
+        #[arg(long, default_value = "5000000000")]
+        payment: String,
+    },
+    /// Burn a token.
+    Burn {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        token_id: String,
+        #[arg(long)]
+        secret_key: PathBuf,
+        #[arg(long, default_value = "5000000000")]
+        payment: String,
+    },
+    /// `transfer_from`.
+    TransferFrom {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        from: String,
+        #[arg(long)]
+        to: String,
+        #[arg(long)]
+        token_id: String,
+        #[arg(long)]
+        secret_key: PathBuf,
+        #[arg(long, default_value = "5000000000")]
+        payment: String,
+    },
+    /// Approve a spender for one token.
+    Approve {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        spender: String,
+        #[arg(long)]
+        token_id: String,
+        #[arg(long)]
+        secret_key: PathBuf,
+        #[arg(long, default_value = "5000000000")]
+        payment: String,
+    },
+    /// Revoke single-token approval.
+    RevokeApproval {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        token_id: String,
+        #[arg(long)]
+        secret_key: PathBuf,
+        #[arg(long, default_value = "5000000000")]
+        payment: String,
+    },
+    /// Approve operator for all tokens.
+    ApproveForAll {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        operator: String,
+        #[arg(long)]
+        secret_key: PathBuf,
+        #[arg(long, default_value = "5000000000")]
+        payment: String,
+    },
+    /// Revoke operator for all tokens.
+    RevokeApprovalForAll {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        operator: String,
+        #[arg(long)]
+        secret_key: PathBuf,
+        #[arg(long, default_value = "5000000000")]
+        payment: String,
+    },
+    /// Query collection name.
+    Name {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+    },
+    /// Query collection symbol.
+    Symbol {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+    },
+    /// Query balance for an account.
+    Balance {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        account: String,
+    },
+    /// Query owner of a token id.
+    OwnerOf {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        token_id: String,
+    },
+    /// Query approved spender for a token id.
+    GetApproved {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        token_id: String,
+    },
+    /// Query operator approval.
+    IsApprovedForAll {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        owner: String,
+        #[arg(long)]
+        operator: String,
+    },
+}
+
+fn read_secret(path: &PathBuf) -> Result<String> {
+    fs::read_to_string(path).with_context(|| format!("read secret key {}", path.display()))
+}
+
+fn print_tx(hash: &str, json: bool) -> Result<()> {
+    if json {
+        println!("{}", serde_json::json!({ "transactionHash": hash }));
+    } else {
+        println!("{hash}");
+    }
+    Ok(())
 }
 
 #[tokio::main]
@@ -282,6 +475,328 @@ async fn run() -> Result<()> {
                 }
             }
         },
+        Commands::Cep95 { command } => {
+            run_cep95(&cli.rpc_url, sse, chain, verbosity, cli.json, command).await?
+        }
+    }
+    Ok(())
+}
+
+async fn run_cep95(
+    rpc_url: &str,
+    sse: Option<String>,
+    chain: Option<String>,
+    verbosity: Option<Verbosity>,
+    json: bool,
+    command: Cep95Commands,
+) -> Result<()> {
+    match command {
+        Cep95Commands::Info => {
+            let client =
+                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            print_info(
+                "cep95",
+                client.rpc_url(),
+                client.sse_url(),
+                client.chain_name(),
+                json,
+            )?;
+        }
+        Cep95Commands::Install {
+            name,
+            symbol,
+            package_key_name,
+            wasm,
+            secret_key,
+            payment,
+        } => {
+            let secret = read_secret(&secret_key)?;
+            let bytes = fs::read(&wasm).with_context(|| format!("read wasm {}", wasm.display()))?;
+            let mut client =
+                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            let args = Cep95InstallArgs::new(&name, &symbol, &package_key_name);
+            let deploy = DeployParams::new(&secret, &payment);
+            let put = client
+                .install(&args, &bytes, &deploy)
+                .await
+                .context("install")?;
+            let pk = casper_rust_wasm_sdk::helpers::public_key_from_secret_key(&secret)
+                .context("public key")?;
+            let (contract, package) = client
+                .bind_odra_install(&pk, &package_key_name)
+                .await
+                .context("bind_odra_install")?;
+            if json {
+                println!(
+                    "{}",
+                    serde_json::json!({
+                        "transactionHash": put.transaction_hash,
+                        "contractHash": contract,
+                        "packageHash": package,
+                    })
+                );
+            } else {
+                println!("tx={}", put.transaction_hash);
+                println!("contract={contract}");
+                println!("package={package}");
+            }
+        }
+        Cep95Commands::Mint {
+            contract_hash,
+            package_hash,
+            to,
+            token_id,
+            secret_key,
+            payment,
+        } => {
+            let secret = read_secret(&secret_key)?;
+            let mut client =
+                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let put = client
+                .mint(&to, &token_id, None, &DeployParams::new(&secret, &payment))
+                .await
+                .context("mint")?;
+            print_tx(&put.transaction_hash, json)?;
+        }
+        Cep95Commands::Burn {
+            contract_hash,
+            package_hash,
+            token_id,
+            secret_key,
+            payment,
+        } => {
+            let secret = read_secret(&secret_key)?;
+            let mut client =
+                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let put = client
+                .burn(&token_id, &DeployParams::new(&secret, &payment))
+                .await
+                .context("burn")?;
+            print_tx(&put.transaction_hash, json)?;
+        }
+        Cep95Commands::TransferFrom {
+            contract_hash,
+            package_hash,
+            from,
+            to,
+            token_id,
+            secret_key,
+            payment,
+        } => {
+            let secret = read_secret(&secret_key)?;
+            let mut client =
+                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let put = client
+                .transfer_from(&from, &to, &token_id, &DeployParams::new(&secret, &payment))
+                .await
+                .context("transfer_from")?;
+            print_tx(&put.transaction_hash, json)?;
+        }
+        Cep95Commands::Approve {
+            contract_hash,
+            package_hash,
+            spender,
+            token_id,
+            secret_key,
+            payment,
+        } => {
+            let secret = read_secret(&secret_key)?;
+            let mut client =
+                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let put = client
+                .approve(&spender, &token_id, &DeployParams::new(&secret, &payment))
+                .await
+                .context("approve")?;
+            print_tx(&put.transaction_hash, json)?;
+        }
+        Cep95Commands::RevokeApproval {
+            contract_hash,
+            package_hash,
+            token_id,
+            secret_key,
+            payment,
+        } => {
+            let secret = read_secret(&secret_key)?;
+            let mut client =
+                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let put = client
+                .revoke_approval(&token_id, &DeployParams::new(&secret, &payment))
+                .await
+                .context("revoke_approval")?;
+            print_tx(&put.transaction_hash, json)?;
+        }
+        Cep95Commands::ApproveForAll {
+            contract_hash,
+            package_hash,
+            operator,
+            secret_key,
+            payment,
+        } => {
+            let secret = read_secret(&secret_key)?;
+            let mut client =
+                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let put = client
+                .approve_for_all(&operator, &DeployParams::new(&secret, &payment))
+                .await
+                .context("approve_for_all")?;
+            print_tx(&put.transaction_hash, json)?;
+        }
+        Cep95Commands::RevokeApprovalForAll {
+            contract_hash,
+            package_hash,
+            operator,
+            secret_key,
+            payment,
+        } => {
+            let secret = read_secret(&secret_key)?;
+            let mut client =
+                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let put = client
+                .revoke_approval_for_all(&operator, &DeployParams::new(&secret, &payment))
+                .await
+                .context("revoke_approval_for_all")?;
+            print_tx(&put.transaction_hash, json)?;
+        }
+        Cep95Commands::Name {
+            contract_hash,
+            package_hash,
+        } => {
+            let mut client =
+                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let name = client.name().await.context("name")?;
+            if json {
+                println!("{}", serde_json::json!({ "name": name }));
+            } else {
+                println!("{name}");
+            }
+        }
+        Cep95Commands::Symbol {
+            contract_hash,
+            package_hash,
+        } => {
+            let mut client =
+                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let symbol = client.symbol().await.context("symbol")?;
+            if json {
+                println!("{}", serde_json::json!({ "symbol": symbol }));
+            } else {
+                println!("{symbol}");
+            }
+        }
+        Cep95Commands::Balance {
+            contract_hash,
+            package_hash,
+            account,
+        } => {
+            let mut client =
+                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let bal = client.balance_of(&account).await.context("balance_of")?;
+            if json {
+                println!(
+                    "{}",
+                    serde_json::json!({ "account": account, "balance": bal })
+                );
+            } else {
+                println!("{bal}");
+            }
+        }
+        Cep95Commands::OwnerOf {
+            contract_hash,
+            package_hash,
+            token_id,
+        } => {
+            let mut client =
+                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let owner = client.owner_of(&token_id).await.context("owner_of")?;
+            if json {
+                println!(
+                    "{}",
+                    serde_json::json!({ "token_id": token_id, "owner": owner })
+                );
+            } else {
+                println!("{owner}");
+            }
+        }
+        Cep95Commands::GetApproved {
+            contract_hash,
+            package_hash,
+            token_id,
+        } => {
+            let mut client =
+                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let approved = client
+                .get_approved(&token_id)
+                .await
+                .context("get_approved")?;
+            if json {
+                println!(
+                    "{}",
+                    serde_json::json!({ "token_id": token_id, "approved": approved })
+                );
+            } else {
+                match approved {
+                    Some(a) => println!("{a}"),
+                    None => println!(),
+                }
+            }
+        }
+        Cep95Commands::IsApprovedForAll {
+            contract_hash,
+            package_hash,
+            owner,
+            operator,
+        } => {
+            let mut client =
+                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let ok = client
+                .is_approved_for_all(&owner, &operator)
+                .await
+                .context("is_approved_for_all")?;
+            if json {
+                println!("{}", serde_json::json!({ "approved": ok }));
+            } else {
+                println!("{ok}");
+            }
+        }
     }
     Ok(())
 }
@@ -362,5 +877,25 @@ mod tests {
                 command: Cep78Commands::Name { .. }
             }
         ));
+    }
+
+    #[test]
+    fn parses_cep95_owner_of() {
+        let cli = Cli::try_parse_from([
+            "ceps",
+            "cep95",
+            "owner-of",
+            "--contract-hash",
+            "b485c074cef7ccaccd0302949d2043ab7133abdb14cfa87e8392945c0bd80a5f",
+            "--token-id",
+            "1",
+        ])
+        .expect("parse");
+        match cli.command {
+            Commands::Cep95 {
+                command: Cep95Commands::OwnerOf { token_id, .. },
+            } => assert_eq!(token_id, "1"),
+            other => panic!("unexpected {other:?}"),
+        }
     }
 }

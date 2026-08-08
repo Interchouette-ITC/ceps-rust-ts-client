@@ -12,7 +12,7 @@ resolver = "2"
 [workspace.package]
 version = "1.0.0"
 edition = "2021"
-description = "Unified Rust client for Casper CEP-18, CEP-78, and CEP-85 (library, CLI, and WASM packs for Node/web)."
+description = "Unified Rust client for Casper CEP-18, CEP-78, CEP-85, and CEP-95 (library, CLI, and WASM packs for Node/web)."
 readme = "README.md"
 homepage = "https://github.com/Interchouette-ITC/ceps-rust-ts-client"
 repository = "https://github.com/Interchouette-ITC/ceps-rust-ts-client"

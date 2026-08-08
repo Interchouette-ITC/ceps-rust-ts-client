@@ -1,6 +1,6 @@
 # ceps-client-mcp tools
 
-Total: **72** tools (`ceps_*`). Write tools take `secret_key_pem` + `payment_amount`.
+Total: **90** tools (`ceps_*`). Write tools take `secret_key_pem` + `payment_amount`.
 
 | Tool | Group |
 | --- | --- |
@@ -76,10 +76,25 @@ Total: **72** tools (`ceps_*`). Write tools take `secret_key_pem` + `payment_amo
 | `ceps85_total_supply_of` | cep85 |
 | `ceps85_uri` | cep85 |
 | `ceps85_is_non_fungible` | cep85 |
+| `ceps95_install` | cep95 |
+| `ceps95_bind_odra_install` | cep95 |
+| `ceps95_mint` | cep95 |
+| `ceps95_burn` | cep95 |
+| `ceps95_transfer_from` | cep95 |
+| `ceps95_safe_transfer_from` | cep95 |
+| `ceps95_approve` | cep95 |
+| `ceps95_revoke_approval` | cep95 |
+| `ceps95_approve_for_all` | cep95 |
+| `ceps95_revoke_approval_for_all` | cep95 |
+| `ceps95_name` | cep95 |
+| `ceps95_symbol` | cep95 |
+| `ceps95_total_supply` | cep95 |
+| `ceps95_balance_of` | cep95 |
+| `ceps95_owner_of` | cep95 |
+| `ceps95_get_approved` | cep95 |
+| `ceps95_is_approved_for_all` | cep95 |
+| `ceps95_token_metadata` | cep95 |
 
 ## Write legend
 
-- **Write**: install/upgrade/mutate (signs with PEM, may put on-chain).
-- **Read**: queries and WASM helpers (no chain write).
-
-Pair with `sdk_*` for raw RPC and `nctl_*` for local net lifecycle.
+Mutating tools require a funded signer PEM and payment in motes. Query tools need `contract_hash` (and usually `package_hash` for entrypoint calls).

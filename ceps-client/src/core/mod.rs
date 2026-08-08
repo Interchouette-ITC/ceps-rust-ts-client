@@ -7,8 +7,8 @@ mod query;
 mod urls;
 
 pub use args::{
-    bool_arg, json_arg, json_args, key_arg, key_list_arg, string_arg, u256_arg, u64_arg, u8_arg,
-    JsonArg,
+    bool_arg, json_arg, json_args, key_arg, key_list_arg, option_byte_list_arg, string_arg,
+    string_pair_list_arg, u256_arg, u256_list_arg, u64_arg, u8_arg, JsonArg,
 };
 pub use urls::{normalize_rpc_url, normalize_sse_url};
 

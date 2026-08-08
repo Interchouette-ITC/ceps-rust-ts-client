@@ -33,24 +33,40 @@ pub fn user1_secret_pem() -> Option<String> {
             return Some(pem);
         }
     }
-    let path = env::var("SECRET_KEY_NCTL_PATH").unwrap_or_else(|_| {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../casper-nctl-2-docker/assets/users/user-1")
-            .to_string_lossy()
-            .into_owned()
-    });
-    let file = {
-        let p = PathBuf::from(&path);
-        if p.is_dir() {
-            p.join("secret_key.pem")
-        } else {
-            p
+    if let Ok(path) = env::var("SECRET_KEY_NCTL_PATH") {
+        let file = {
+            let p = PathBuf::from(&path);
+            if p.is_dir() {
+                p.join("secret_key.pem")
+            } else {
+                p
+            }
+        };
+        if let Ok(pem) = fs::read_to_string(file) {
+            return Some(pem);
         }
-    };
-    fs::read_to_string(file).ok()
+    }
+    user_secret_pem(1, "SECRET_KEY_USER_1")
+}
+
+/// Load user-N secret key PEM from sibling NCTL assets (or `env_key`).
+pub fn user_secret_pem(user_n: u8, env_key: &str) -> Option<String> {
+    if let Ok(pem) = env::var(env_key) {
+        if !pem.trim().is_empty() {
+            return Some(pem);
+        }
+    }
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(format!(
+        "../../../casper-nctl-2-docker/assets/users/user-{user_n}/secret_key.pem"
+    ));
+    fs::read_to_string(path).ok()
 }
 
 pub fn user1_account_hash(secret_pem: &str) -> String {
+    account_hash_from_secret(secret_pem)
+}
+
+pub fn account_hash_from_secret(secret_pem: &str) -> String {
     let pk_hex = public_key_from_secret_key(secret_pem).expect("public key from secret");
     let public = PublicKey::new(&pk_hex).expect("parse public key");
     public.to_account_hash().to_formatted_string()
