@@ -152,7 +152,9 @@ impl Cep78Client {
         if let Some(hash) = token_hash {
             v.push(string_arg("token_hash", hash));
         }
-        self.core.call_entrypoint("mint", deploy, &json_args(&v)).await
+        self.core
+            .call_entrypoint("mint", deploy, &json_args(&v))
+            .await
     }
 
     /// Mint via `mint_session.wasm` (registers owner + writes receipts).
@@ -178,13 +180,11 @@ impl Cep78Client {
     }
 
     /// Burn a token.
-    pub async fn burn(
-        &self,
-        token: &TokenIdentifier,
-        deploy: &DeployParams,
-    ) -> Result<CallResult> {
+    pub async fn burn(&self, token: &TokenIdentifier, deploy: &DeployParams) -> Result<CallResult> {
         let v = token_args(token)?;
-        self.core.call_entrypoint("burn", deploy, &json_args(&v)).await
+        self.core
+            .call_entrypoint("burn", deploy, &json_args(&v))
+            .await
     }
 
     /// Transfer a token.
@@ -353,11 +353,7 @@ impl Cep78Client {
 
     /// Collection symbol.
     pub async fn collection_symbol(&self) -> Result<String> {
-        decode_string_cl(
-            self.core
-                .query_contract_key(&["collection_symbol"])
-                .await?,
-        )
+        decode_string_cl(self.core.query_contract_key(&["collection_symbol"]).await?)
     }
 
     /// Total token supply.
@@ -421,11 +417,7 @@ impl Cep78Client {
     }
 
     /// Token metadata for the given kind dictionary.
-    pub async fn metadata(
-        &self,
-        token: &TokenIdentifier,
-        kind: NftMetadataKind,
-    ) -> Result<String> {
+    pub async fn metadata(&self, token: &TokenIdentifier, kind: NftMetadataKind) -> Result<String> {
         let dict = match kind {
             NftMetadataKind::Cep78 => "metadata_cep78",
             NftMetadataKind::Nft721 => "metadata_nft721",
@@ -440,7 +432,10 @@ impl Cep78Client {
     }
 
     fn contract_hash_key(&self) -> Result<String> {
-        Ok(format!("hash-{}", self.core.require_target()?.contract_hash))
+        Ok(format!(
+            "hash-{}",
+            self.core.require_target()?.contract_hash
+        ))
     }
 }
 

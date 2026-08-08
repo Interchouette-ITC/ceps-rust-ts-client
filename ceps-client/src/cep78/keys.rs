@@ -56,8 +56,7 @@ mod tests {
 
     #[test]
     fn operator_key_len() {
-        let owner =
-            "account-hash-b485c074cef7ccaccd0302949d2043ab7133abdb14cfa87e8392945c0bd80a5f";
+        let owner = "account-hash-b485c074cef7ccaccd0302949d2043ab7133abdb14cfa87e8392945c0bd80a5f";
         let op = "account-hash-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         assert_eq!(operator_dictionary_key(owner, op).unwrap().len(), 64);
     }
