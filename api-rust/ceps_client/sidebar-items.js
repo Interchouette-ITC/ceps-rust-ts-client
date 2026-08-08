@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Verbosity"],"mod":["cep18","cep78","cep85","core","error","types"],"struct":["SDK"]};
+window.SIDEBAR_ITEMS = {"enum":["Verbosity"],"mod":["cep18","cep78","cep85","cep95","core","error","types"],"struct":["SDK"]};

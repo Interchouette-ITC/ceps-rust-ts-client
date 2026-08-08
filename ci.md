@@ -101,6 +101,7 @@ NCTL live CI also mounts `assets/{users,faucet}` and exports `SECRET_KEY_USER_1`
 | CEP-18 tip | `Interchouette-ITC/cep-18` | `ceps-client-test` |
 | CEP-78 tip | `Interchouette-ITC/cep-78-enhanced-nft` | `ceps-client-test` |
 | CEP-85 tip | `Interchouette-ITC/cep-85` | `ceps-client-test` |
+| CEP-95 tip | `Interchouette-ITC/cep-95` | `ceps-client-test` |
 | NCTL | `interchouette/casper-nctl-2-docker:dev` | Docker Hub |
 
 Demo tip WASMs are **copied** from each ITC tip’s `tests/wasm/` (`make wasm-from-ceps`). CI does not rebuild CEP contracts. See [contributing.md](contributing.md).

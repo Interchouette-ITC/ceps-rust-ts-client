@@ -23,6 +23,9 @@ ceps-client-cli cep78 balance --contract-hash <hash> --account <account-hash-…
 ceps-client-cli cep85 info
 ceps-client-cli cep85 name --contract-hash <hash> [--package-hash <hash>]
 ceps-client-cli cep85 balance --contract-hash <hash> --account <…> --id <id>
+ceps-client-cli cep95 info
+ceps-client-cli cep95 name --contract-hash <hash> [--package-hash <hash>]
+ceps-client-cli cep95 owner-of --contract-hash <hash> --token-id <id>
 ```
 
-Install and other mutations are on the Rust library / examples (`cargo run -p ceps-client --example cep18_install`, and the CEP-78 / CEP-85 counterparts). Closet `*-cli.md` pages match this surface.
+CEP-95 also exposes install / mint / burn / transfer / approve on the CLI (see [docs/cep95/7-cli.md](cep95/7-cli.md)). Other CEPs keep mutations on the Rust library / examples (`cargo run -p ceps-client --example cep18_install`, and the CEP-78 / CEP-85 / CEP-95 counterparts). Closet `*-cli.md` pages match this surface.

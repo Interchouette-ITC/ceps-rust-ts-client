@@ -13,16 +13,17 @@ For examples, live tests, and CI we use **demo tip** branches **`ceps-client-tes
 | 18 | [Interchouette-ITC/cep-18](https://github.com/Interchouette-ITC/cep-18) | `ceps-client-test` | [`casper-ecosystem/cep18`](https://github.com/casper-ecosystem/cep18) (no dash) |
 | 78 | [Interchouette-ITC/cep-78-enhanced-nft](https://github.com/Interchouette-ITC/cep-78-enhanced-nft) | `ceps-client-test` | [`casper-ecosystem/cep-78-enhanced-nft`](https://github.com/casper-ecosystem/cep-78-enhanced-nft) |
 | 85 | [Interchouette-ITC/cep-85](https://github.com/Interchouette-ITC/cep-85) | `ceps-client-test` | [`casper-ecosystem/cep-85`](https://github.com/casper-ecosystem/cep-85) |
+| 95 | [Interchouette-ITC/cep-95](https://github.com/Interchouette-ITC/cep-95) | `ceps-client-test` | Odra tip (no ecosystem contract repo) |
 
-1. Clone/check out each tip at `ceps-client-test` (remotes: `origin` = ITC, `ecosystem` = upstream, `dev` = personal fork).
+1. Clone/check out each tip at `ceps-client-test` (remotes: `origin` = ITC, `ecosystem` = upstream where applicable, `dev` = personal fork).
 2. Build contracts there (`make build-contract` or the repo Makefile).
 3. From this client:
 
 ```bash
-make wasm-from-ceps   # → tests/wasm/{cep18,cep78,cep85}/
+make wasm-from-ceps   # → tests/wasm/{cep18,cep78,cep85,cep95}/
 ```
 
-Override roots with `CEP18_PRODUCT`, `CEP78_PRODUCT`, `CEP85_PRODUCT`. Prefer each tip’s `tests/wasm/` over stale `target/` builds.
+Override roots with `CEP18_PRODUCT`, `CEP78_PRODUCT`, `CEP85_PRODUCT`, `CEP95_PRODUCT`. Prefer each tip’s `tests/wasm/` over stale `target/` builds.
 
 ## Remotes (this client)
 
