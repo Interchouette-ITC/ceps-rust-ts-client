@@ -9,13 +9,15 @@ pub use error::Cep95Error;
 pub use types::InstallArgs;
 
 use crate::core::CepCore;
-use crate::core::{bool_arg, json_arg, json_args, key_arg, string_arg, u256_arg};
+use crate::core::{
+    bool_arg, json_args, key_arg, option_byte_list_arg, string_arg, string_pair_list_arg, u256_arg,
+};
 use crate::error::{CepError, CepKind, Result};
 use crate::types::{CallResult, DeployParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use entity::prefixed_key;
 use keys::{balance_dictionary_key, operator_dictionary_key, token_id_dictionary_key};
-use serde_json::{json, Value};
+use serde_json::Value;
 
 /// Client for CEP-95 NFT contracts (Odra OwnedCep95 tip and compatible ABIs).
 pub struct Cep95Client {
@@ -132,12 +134,7 @@ impl Cep95Client {
         data: Option<&[u8]>,
         deploy: &DeployParams,
     ) -> Result<CallResult> {
-        let data_arg = match data {
-            Some(bytes) if !bytes.is_empty() => {
-                json_arg("data", "Option (List (U8))", json!(bytes.to_vec()))
-            }
-            _ => json_arg("data", "Option (List (U8))", Value::Null),
-        };
+        let data_arg = option_byte_list_arg("data", data);
         let args = json_args(&[
             key_arg("from", &prefixed_key(from)?),
             key_arg("to", &prefixed_key(to)?),
@@ -207,15 +204,11 @@ impl Cep95Client {
         metadata: Option<&[(String, String)]>,
         deploy: &DeployParams,
     ) -> Result<CallResult> {
-        let pairs: Vec<Value> = metadata
-            .unwrap_or(&[])
-            .iter()
-            .map(|(k, v)| json!([k, v]))
-            .collect();
+        let pairs: &[(String, String)] = metadata.unwrap_or(&[]);
         let args = json_args(&[
             key_arg("to", &prefixed_key(to)?),
             u256_arg("token_id", token_id),
-            json_arg("metadata", "List (String, String)", json!(pairs)),
+            string_pair_list_arg("metadata", pairs),
         ]);
         self.core.call_entrypoint("mint", deploy, &args).await
     }
