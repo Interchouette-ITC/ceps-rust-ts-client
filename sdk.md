@@ -16,6 +16,8 @@ casper-rust-wasm-sdk = { path = "../rustSDK", default-features = false, features
 ] }
 ```
 
+Deliberately omit SDK feature `js` (wasm-bindgen / js-sys surface). This workspace uses the SDK as a Rust library; CEP JS packs do their own bindgen in `ceps-client-wasm`. Enabling SDK `js` would re-export SDK classes into the CEP `.wasm` / `.d.ts`.
+
 Point `path` at your SDK checkout (or set `RUSTSDK_PRODUCT` for Make wrappers). Workspace `[patch.crates-io]` keeps Casper crates aligned with that SDK line.
 
 ## CI / release
@@ -34,4 +36,4 @@ Release artefacts (CLI binary, `ceps-client-wasm` packs) build against that pin.
 
 ## `ceps-client-wasm`
 
-JS packs for the CEP **client** (not contracts). Committed under `ceps-client-wasm/pkg` and `pkg-nodejs`; rebuild with `make nodejs` / `make web`. Generated `.d.ts` may also list transitive SDK symbols from `wasm-bindgen`; those are not a supported re-export. Import `casper-rust-wasm-sdk` directly when you need raw RPC helpers.
+JS packs for the CEP **client** (not contracts). Committed under `ceps-client-wasm/pkg` and `pkg-nodejs`; rebuild with `make nodejs` / `make web`. With SDK `js` omitted, the generated `.d.ts` exports CEP clients only (`Cep18Client` / `Cep78Client` / `Cep85Client` / `Cep95Client` and related helpers). For raw RPC / transfers from JS, depend on the SDK packs (`casper-rust-wasm-sdk`) separately.
