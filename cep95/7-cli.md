@@ -12,3 +12,5 @@ ceps-client-cli cep95 owner-of --contract-hash <hash> --token-id 1
 ```
 
 Also: `burn`, `transfer-from`, `approve`, `revoke-approval`, `approve-for-all`, `revoke-approval-for-all`, `symbol`, `get-approved`, `is-approved-for-all`.
+
+Write commands support `--make-only` (same flag as CEP-18 / 78 / 85).

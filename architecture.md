@@ -30,6 +30,13 @@ casper-rust-wasm-sdk          (RPC, tx, install, query, wait, CES)
 
 All share `CepCore` for endpoints, contract targeting, install/call/query/wait, and CES parse helpers.
 
+## Put vs make
+
+Mutate and install take `&TransactionParams`:
+
+- **Put (default):** SDK make + put. `CallResult.transaction_hash` from the put response. When `wait` is true (default), SSE `wait_transaction` attaches execution (and CES when bound).
+- **Make only:** `TransactionParams::make_only()` (or CLI/MCP `make_only`). Same CEP args/entrypoints, SDK `make_transaction` only, no put. `CallResult.transaction` holds puttable Transaction JSON. PEM is optional; unsigned make needs `initiator_addr`. Wait is skipped.
+
 ## CLI vs library
 
 The CLI exposes status and selected queries. Install and most mutations live on the library (and `ceps-client` examples). Closet `*-cli.md` pages document the shipped surface only.

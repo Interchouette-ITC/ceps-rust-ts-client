@@ -2,30 +2,33 @@
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span><span class="kw">super</span>::CepCore;
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::error::{CepError, <span class="prelude-ty">Result</span>};
-<a href=#5 id=5 data-nosnippet>5</a><span class="kw">use </span><span class="kw">crate</span>::types::{CallResult, DeployParams};
+<a href=#5 id=5 data-nosnippet>5</a><span class="kw">use </span><span class="kw">crate</span>::types::{CallResult, TransactionParams};
 <a href=#6 id=6 data-nosnippet>6</a><span class="kw">use </span>casper_rust_wasm_sdk::types::hash::transaction_hash::TransactionHash;
 <a href=#7 id=7 data-nosnippet>7</a>
 <a href=#8 id=8 data-nosnippet>8</a><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">async fn </span>call_entrypoint(
 <a href=#9 id=9 data-nosnippet>9</a>    core: <span class="kw-2">&amp;</span>CepCore,
 <a href=#10 id=10 data-nosnippet>10</a>    entry_point: <span class="kw-2">&amp;</span>str,
-<a href=#11 id=11 data-nosnippet>11</a>    deploy: <span class="kw-2">&amp;</span>DeployParams,
+<a href=#11 id=11 data-nosnippet>11</a>    tx: <span class="kw-2">&amp;</span>TransactionParams,
 <a href=#12 id=12 data-nosnippet>12</a>    args_json: <span class="kw-2">&amp;</span>str,
 <a href=#13 id=13 data-nosnippet>13</a>) -&gt; <span class="prelude-ty">Result</span>&lt;CallResult&gt; {
 <a href=#14 id=14 data-nosnippet>14</a>    <span class="kw">let </span>builder = core.builder_for_entrypoint(entry_point)<span class="question-mark">?</span>;
-<a href=#15 id=15 data-nosnippet>15</a>    <span class="kw">let </span>params = core.build_tx_params(deploy, args_json);
-<a href=#16 id=16 data-nosnippet>16</a>    <span class="kw">let </span>put = core
-<a href=#17 id=17 data-nosnippet>17</a>        .sdk()
-<a href=#18 id=18 data-nosnippet>18</a>        .call_entrypoint(
-<a href=#19 id=19 data-nosnippet>19</a>            builder,
-<a href=#20 id=20 data-nosnippet>20</a>            params,
-<a href=#21 id=21 data-nosnippet>21</a>            <span class="prelude-val">Some</span>(core.rpc_url().to_string()),
-<a href=#22 id=22 data-nosnippet>22</a>            core.runtime_v2(),
-<a href=#23 id=23 data-nosnippet>23</a>        )
-<a href=#24 id=24 data-nosnippet>24</a>        .<span class="kw">await</span><span class="question-mark">?</span>;
-<a href=#25 id=25 data-nosnippet>25</a>    <span class="kw">let </span>tx_hash = TransactionHash::from(put.result.transaction_hash).to_string();
-<a href=#26 id=26 data-nosnippet>26</a>    <span class="kw">let </span>put_json = serde_json::to_value(<span class="kw-2">&amp;</span>put.result)
-<a href=#27 id=27 data-nosnippet>27</a>        .map_err(|e| CepError::Other(<span class="macro">format!</span>(<span class="string">"serialize put result: {e}"</span>)))<span class="question-mark">?</span>;
-<a href=#28 id=28 data-nosnippet>28</a>    <span class="kw">let </span>result = CallResult::new(tx_hash, put_json);
-<a href=#29 id=29 data-nosnippet>29</a>    core.maybe_wait(deploy, result).<span class="kw">await
-<a href=#30 id=30 data-nosnippet>30</a></span>}
+<a href=#15 id=15 data-nosnippet>15</a>    <span class="kw">let </span>params = core.build_tx_params(tx, args_json)<span class="question-mark">?</span>;
+<a href=#16 id=16 data-nosnippet>16</a>    <span class="kw">if </span>!tx.put {
+<a href=#17 id=17 data-nosnippet>17</a>        <span class="kw">return </span>core.make_only_result(builder, params);
+<a href=#18 id=18 data-nosnippet>18</a>    }
+<a href=#19 id=19 data-nosnippet>19</a>    <span class="kw">let </span>put = core
+<a href=#20 id=20 data-nosnippet>20</a>        .sdk()
+<a href=#21 id=21 data-nosnippet>21</a>        .call_entrypoint(
+<a href=#22 id=22 data-nosnippet>22</a>            builder,
+<a href=#23 id=23 data-nosnippet>23</a>            params,
+<a href=#24 id=24 data-nosnippet>24</a>            <span class="prelude-val">Some</span>(core.rpc_url().to_string()),
+<a href=#25 id=25 data-nosnippet>25</a>            core.runtime_v2(),
+<a href=#26 id=26 data-nosnippet>26</a>        )
+<a href=#27 id=27 data-nosnippet>27</a>        .<span class="kw">await</span><span class="question-mark">?</span>;
+<a href=#28 id=28 data-nosnippet>28</a>    <span class="kw">let </span>tx_hash = TransactionHash::from(put.result.transaction_hash).to_string();
+<a href=#29 id=29 data-nosnippet>29</a>    <span class="kw">let </span>put_json = serde_json::to_value(<span class="kw-2">&amp;</span>put.result)
+<a href=#30 id=30 data-nosnippet>30</a>        .map_err(|e| CepError::Other(<span class="macro">format!</span>(<span class="string">"serialize put result: {e}"</span>)))<span class="question-mark">?</span>;
+<a href=#31 id=31 data-nosnippet>31</a>    <span class="kw">let </span>result = CallResult::new(tx_hash, put_json);
+<a href=#32 id=32 data-nosnippet>32</a>    core.maybe_wait(tx, result).<span class="kw">await
+<a href=#33 id=33 data-nosnippet>33</a></span>}
 </code></pre></div></section></main></body></html>

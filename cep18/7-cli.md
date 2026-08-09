@@ -4,8 +4,18 @@
 ceps-client-cli [--rpc-url …] [--sse-url …] [--chain-name …] [--json] cep18 <cmd>
 ```
 
-| Command | Behavior                                 |
-| ------- | ---------------------------------------- |
-| `info`  | Prints bound RPC / SSE / chain endpoints |
+| Command | Behavior |
+| --- | --- |
+| `info` | Prints bound RPC / SSE / chain endpoints |
+| `install` | Install WASM (`--wasm`, `--secret-key` or `--make-only`) |
+| `transfer` / `transfer-from` / `approve` / `mint` / `burn` | Mutates (`--make-only` supported) |
+| `name` / `balance` | Queries |
 
-Install, transfer, mint, and other mutations are on `Cep18Client` (see examples and [8-api.md](8-api.md)). Global defaults match NCTL `dev`. See [docs/cli.md](../cli.md).
+Example make-only transfer:
+
+```bash
+ceps-client-cli cep18 transfer --contract-hash <hash> --recipient <account-hash-…> \
+  --amount 10 --make-only --initiator-addr <pubkey-hex>
+```
+
+See [docs/cli.md](../cli.md) and [8-api.md](8-api.md).

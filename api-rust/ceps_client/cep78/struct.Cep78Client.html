@@ -24,40 +24,40 @@
     &amp;self,
     args: &amp;<a class="struct" href="struct.InstallArgs.html" title="struct ceps_client::cep78::InstallArgs">InstallArgs</a>,
     wasm: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.u8.html">u8</a>],
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Install a CEP-78 contract.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.upgrade" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#115-138">Source</a><h4 class="code-header">pub async fn <a href="#method.upgrade" class="fn">upgrade</a>(
     &amp;self,
     args: &amp;<a class="struct" href="struct.UpgradeArgs.html" title="struct ceps_client::cep78::UpgradeArgs">UpgradeArgs</a>,
     wasm: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.u8.html">u8</a>],
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Upgrade an existing CEP-78 package (same installer WASM).</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.mint" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#141-158">Source</a><h4 class="code-header">pub async fn <a href="#method.mint" class="fn">mint</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.mint" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#141-156">Source</a><h4 class="code-header">pub async fn <a href="#method.mint" class="fn">mint</a>(
     &amp;self,
     token_owner: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     token_meta_data: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     token_hash: <a class="enum" href="https://doc.rust-lang.org/1.97.1/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>&gt;,
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Mint via entrypoint.</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.mint_session" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#161-180">Source</a><h4 class="code-header">pub async fn <a href="#method.mint_session" class="fn">mint_session</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.mint_session" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#159-178">Source</a><h4 class="code-header">pub async fn <a href="#method.mint_session" class="fn">mint_session</a>(
     &amp;self,
     token_owner: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     token_meta_data: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     token_hash: <a class="enum" href="https://doc.rust-lang.org/1.97.1/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;&amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>&gt;,
     session_wasm: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.u8.html">u8</a>],
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Mint via <code>mint_session.wasm</code> (registers owner + writes receipts).</p>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.burn" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#183-188">Source</a><h4 class="code-header">pub async fn <a href="#method.burn" class="fn">burn</a>(
+</div></details><details class="toggle method-toggle" open><summary><section id="method.burn" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#181-188">Source</a><h4 class="code-header">pub async fn <a href="#method.burn" class="fn">burn</a>(
     &amp;self,
     token: &amp;<a class="enum" href="enum.TokenIdentifier.html" title="enum ceps_client::cep78::TokenIdentifier">TokenIdentifier</a>,
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Burn a token.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.transfer" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#191-206">Source</a><h4 class="code-header">pub async fn <a href="#method.transfer" class="fn">transfer</a>(
     &amp;self,
     source: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     target: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     token: &amp;<a class="enum" href="enum.TokenIdentifier.html" title="enum ceps_client::cep78::TokenIdentifier">TokenIdentifier</a>,
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Transfer a token.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.transfer_session" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#209-226">Source</a><h4 class="code-header">pub async fn <a href="#method.transfer_session" class="fn">transfer_session</a>(
     &amp;self,
@@ -65,46 +65,46 @@
     target: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     token: &amp;<a class="enum" href="enum.TokenIdentifier.html" title="enum ceps_client::cep78::TokenIdentifier">TokenIdentifier</a>,
     session_wasm: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.u8.html">u8</a>],
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Transfer via <code>transfer_session.wasm</code>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.register_owner" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#229-238">Source</a><h4 class="code-header">pub async fn <a href="#method.register_owner" class="fn">register_owner</a>(
     &amp;self,
     token_owner: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Register an owner for reverse-lookup pages.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.approve" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#241-252">Source</a><h4 class="code-header">pub async fn <a href="#method.approve" class="fn">approve</a>(
     &amp;self,
     operator: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     token: &amp;<a class="enum" href="enum.TokenIdentifier.html" title="enum ceps_client::cep78::TokenIdentifier">TokenIdentifier</a>,
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Approve an operator for one token.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.revoke" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#255-266">Source</a><h4 class="code-header">pub async fn <a href="#method.revoke" class="fn">revoke</a>(
     &amp;self,
     operator: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     token: &amp;<a class="enum" href="enum.TokenIdentifier.html" title="enum ceps_client::cep78::TokenIdentifier">TokenIdentifier</a>,
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Revoke approval for one token.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.set_approval_for_all" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#269-282">Source</a><h4 class="code-header">pub async fn <a href="#method.set_approval_for_all" class="fn">set_approval_for_all</a>(
     &amp;self,
     operator: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     approve_all: <a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.bool.html">bool</a>,
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Set approval for all.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.set_token_metadata" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#285-296">Source</a><h4 class="code-header">pub async fn <a href="#method.set_token_metadata" class="fn">set_token_metadata</a>(
     &amp;self,
     token_meta_data: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     token: &amp;<a class="enum" href="enum.TokenIdentifier.html" title="enum ceps_client::cep78::TokenIdentifier">TokenIdentifier</a>,
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Update token metadata (mutable collections only).</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.set_variables" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#299-329">Source</a><h4 class="code-header">pub async fn <a href="#method.set_variables" class="fn">set_variables</a>(
     &amp;self,
     args: &amp;<a class="struct" href="struct.SetVariablesArgs.html" title="struct ceps_client::cep78::SetVariablesArgs">SetVariablesArgs</a>,
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Update collection variables.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.updated_receipts" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#332-347">Source</a><h4 class="code-header">pub async fn <a href="#method.updated_receipts" class="fn">updated_receipts</a>(
     &amp;self,
     session_wasm: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.u8.html">u8</a>],
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Refresh receipt pages via <code>updated_receipts.wasm</code> (package hash as <code>nft_contract_hash</code>).</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.collection_name" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#350-352">Source</a><h4 class="code-header">pub async fn <a href="#method.collection_name" class="fn">collection_name</a>(&amp;self) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/1.97.1/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>&gt;</h4></section></summary><div class="docblock"><p>Collection name.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.collection_symbol" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#355-357">Source</a><h4 class="code-header">pub async fn <a href="#method.collection_symbol" class="fn">collection_symbol</a>(&amp;self) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/1.97.1/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>&gt;</h4></section></summary><div class="docblock"><p>Collection symbol.</p>
@@ -132,21 +132,21 @@
     token: &amp;<a class="enum" href="enum.TokenIdentifier.html" title="enum ceps_client::cep78::TokenIdentifier">TokenIdentifier</a>,
     key_name: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     session_wasm: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.u8.html">u8</a>],
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Persist owner under caller named key via <code>owner_of_session.wasm</code>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.balance_of_session" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#495-510">Source</a><h4 class="code-header">pub async fn <a href="#method.balance_of_session" class="fn">balance_of_session</a>(
     &amp;self,
     token_owner: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     key_name: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     session_wasm: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.u8.html">u8</a>],
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Persist balance under caller named key via <code>balance_of_session.wasm</code>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.get_approved_session" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#513-528">Source</a><h4 class="code-header">pub async fn <a href="#method.get_approved_session" class="fn">get_approved_session</a>(
     &amp;self,
     token: &amp;<a class="enum" href="enum.TokenIdentifier.html" title="enum ceps_client::cep78::TokenIdentifier">TokenIdentifier</a>,
     key_name: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     session_wasm: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.u8.html">u8</a>],
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Persist approval under caller named key via <code>get_approved_session.wasm</code>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.is_approved_for_all_session" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#531-548">Source</a><h4 class="code-header">pub async fn <a href="#method.is_approved_for_all_session" class="fn">is_approved_for_all_session</a>(
     &amp;self,
@@ -154,7 +154,7 @@
     operator: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     key_name: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>,
     session_wasm: &amp;[<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.u8.html">u8</a>],
-    deploy: &amp;<a class="struct" href="../types/struct.DeployParams.html" title="struct ceps_client::types::DeployParams">DeployParams</a>,
+    tx: &amp;<a class="struct" href="../types/struct.TransactionParams.html" title="struct ceps_client::types::TransactionParams">TransactionParams</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Persist operator flag under caller named key via <code>is_approved_for_all_session.wasm</code>.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.owner_of" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#551-554">Source</a><h4 class="code-header">pub async fn <a href="#method.owner_of" class="fn">owner_of</a>(&amp;self, token: &amp;<a class="enum" href="enum.TokenIdentifier.html" title="enum ceps_client::cep78::TokenIdentifier">TokenIdentifier</a>) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/1.97.1/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>&gt;</h4></section></summary><div class="docblock"><p>Owner of a token (dictionary query).</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.balance_of" class="method"><a class="src rightside" href="../../src/ceps_client/cep78/mod.rs.html#557-564">Source</a><h4 class="code-header">pub async fn <a href="#method.balance_of" class="fn">balance_of</a>(&amp;self, owner: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.97.1/std/primitive.str.html">str</a>) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/1.97.1/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>&gt;</h4></section></summary><div class="docblock"><p>Balance of an owner (dictionary query). Returns <code>"0"</code> when missing.</p>

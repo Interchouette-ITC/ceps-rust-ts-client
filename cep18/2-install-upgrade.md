@@ -2,7 +2,7 @@
 
 ## Install
 
-`Cep18Client::install(args, wasm, deploy)`
+`Cep18Client::install(args, wasm, tx)`
 
 | Arg | CL type | Notes |
 | --- | --- | --- |
@@ -27,4 +27,4 @@ Call `set_contract_hash` before queries or entrypoint calls.
 
 ## Upgrade
 
-`Cep18Client::upgrade(args, wasm, deploy)` with `UpgradeArgs { name, events_mode? }`.
+`Cep18Client::upgrade(args, wasm, tx)` with `UpgradeArgs { name, events_mode? }`.

@@ -2,7 +2,7 @@
 
 ```rust
 use ceps_client::cep95::InstallArgs;
-use ceps_client::{Cep95Client, DeployParams, Verbosity};
+use ceps_client::{Cep95Client, TransactionParams, Verbosity};
 
 let mut client = Cep95Client::new(
     "http://127.0.0.1:11101",
@@ -11,10 +11,10 @@ let mut client = Cep95Client::new(
     Some(Verbosity::Low),
 )?;
 let args = InstallArgs::new("MyNft", "MNFT", "cep95_pkg_demo");
-client.install(&args, &wasm, &DeployParams::new(&secret, "600000000000")).await?;
+client.install(&args, &wasm, &TransactionParams::new(&secret, "600000000000")).await?;
 let pk = /* installer public key hex */;
 client.bind_odra_install(&pk, "cep95_pkg_demo").await?;
-client.mint(&owner, "1", None, &DeployParams::new(&secret, "5000000000")).await?;
+client.mint(&owner, "1", None, &TransactionParams::new(&secret, "5000000000")).await?;
 let bal = client.balance_of(&owner).await?;
 ```
 
