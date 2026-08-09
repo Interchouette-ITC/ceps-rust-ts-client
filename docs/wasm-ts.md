@@ -18,13 +18,14 @@ Or download `ceps-client-wasm-nodejs-*.tgz` / `ceps-client-wasm-web-*.tgz` from 
 
 ## Bound methods (today)
 
-| Client | Methods |
-| --- | --- |
+| Client | Methods                                                                                      |
+| ------ | -------------------------------------------------------------------------------------------- |
 | CEP-18 | `rpcUrl`, `sseUrl`, `chainName`, `setContractHash`, `install`, `name`, `symbol`, `balanceOf` |
-| CEP-78 | `rpcUrl`, `sseUrl`, `setContractHash`, `install`, `collectionName`, `balanceOf` |
-| CEP-85 | `rpcUrl`, `sseUrl`, `setContractHash`, `install`, `collectionName`, `balanceOf` |
+| CEP-78 | `rpcUrl`, `sseUrl`, `setContractHash`, `install`, `collectionName`, `balanceOf`              |
+| CEP-85 | `rpcUrl`, `sseUrl`, `setContractHash`, `install`, `collectionName`, `balanceOf`              |
+| CEP-95 | `rpcUrl`, `sseUrl`, `setContractHash`, `install`, `name`, `symbol`, `balanceOf`, `ownerOf`   |
 
-Full mutate/query parity lives in Rust `ceps-client`. Generated `.d.ts` may also list transitive SDK symbols; treat those as SDK surface.
+Full mutate/query parity lives in Rust `ceps-client`. The pack `.d.ts` exports CEP clients only (SDK feature `js` is not enabled on the path dependency).
 
 ## Node example
 
