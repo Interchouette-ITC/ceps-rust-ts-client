@@ -13,15 +13,12 @@ tests/ts/node_modules/
 # Keys / env
 *.pem
 .env
-.github_credentials
 
 # Editor / OS
 **/*.rs.bk
 *.pdb
 .DS_Store
 
-# Nested itc-cursor product config (separate git)
-.cursor/
 docs/api-rust/ceps_client/
 docs/api-rust/src/
 docs/api-rust/index.html
