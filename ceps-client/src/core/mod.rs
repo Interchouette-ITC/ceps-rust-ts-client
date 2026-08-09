@@ -13,7 +13,7 @@ pub use args::{
 pub use urls::{normalize_rpc_url, normalize_sse_url};
 
 use crate::error::{CepError, CepKind, Result};
-use crate::types::{CallResult, ContractTarget, DeployParams};
+use crate::types::{CallResult, ContractTarget, TransactionParams};
 use casper_rust_wasm_sdk::types::cl::bytes::Bytes;
 use casper_rust_wasm_sdk::types::hash::addressable_entity_hash::AddressableEntityHash;
 use casper_rust_wasm_sdk::types::hash::package_hash::PackageHash;
@@ -159,50 +159,81 @@ impl CepCore {
         self.target.as_ref().ok_or(CepError::ContractHashMissing)
     }
 
-    /// Build [`TransactionStrParams`] from deploy options and JSON session args.
-    pub fn build_tx_params(&self, deploy: &DeployParams, args_json: &str) -> TransactionStrParams {
+    /// Build [`TransactionStrParams`] from transaction options and JSON session args.
+    pub fn build_tx_params(
+        &self,
+        tx: &TransactionParams,
+        args_json: &str,
+    ) -> Result<TransactionStrParams> {
+        tx.validate().map_err(CepError::InvalidArgument)?;
         let params = TransactionStrParams::default();
-        let chain = deploy
-            .chain_name
-            .as_deref()
-            .unwrap_or(self.chain_name.as_str());
+        let chain = tx.chain_name.as_deref().unwrap_or(self.chain_name.as_str());
         params.set_chain_name(chain);
-        params.set_secret_key(&deploy.secret_key_pem);
-        params.set_payment_amount(&deploy.payment_amount);
+        params.set_payment_amount(&tx.payment_amount);
+        if let Some(pem) = tx
+            .secret_key_pem
+            .as_deref()
+            .filter(|s| !s.trim().is_empty())
+        {
+            params.set_secret_key(pem);
+        }
+        if let Some(addr) = tx
+            .initiator_addr
+            .as_deref()
+            .filter(|s| !s.trim().is_empty())
+        {
+            params.set_initiator_addr(addr);
+        }
         if !args_json.is_empty() {
             params.set_session_args_json(args_json);
         }
-        params
+        Ok(params)
+    }
+
+    /// Make a Transaction without putting it; serialize via SDK `to_json_string`.
+    pub(crate) fn make_only_result(
+        &self,
+        builder: TransactionBuilderParams,
+        params: TransactionStrParams,
+    ) -> Result<CallResult> {
+        let transaction = self.sdk().make_transaction(builder, params)?;
+        let hash = transaction.hash().to_string();
+        let json_str = transaction
+            .to_json_string()
+            .map_err(|e| CepError::Other(format!("serialize transaction: {e}")))?;
+        let value: Value = serde_json::from_str(&json_str)
+            .map_err(|e| CepError::Other(format!("parse transaction JSON: {e}")))?;
+        Ok(CallResult::from_make(hash, value))
     }
 
     /// Install a session WASM (install or upgrade path).
     pub async fn install_wasm(
         &self,
         wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
         args_json: &str,
     ) -> Result<CallResult> {
-        install::install_wasm(self, wasm, deploy, args_json).await
+        install::install_wasm(self, wasm, tx, args_json).await
     }
 
     /// Call a contract entrypoint by package hash (preferred) or entity hash.
     pub async fn call_entrypoint(
         &self,
         entry_point: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
         args_json: &str,
     ) -> Result<CallResult> {
-        call::call_entrypoint(self, entry_point, deploy, args_json).await
+        call::call_entrypoint(self, entry_point, tx, args_json).await
     }
 
     /// Call a companion session WASM (CEP-78 session helpers).
     pub async fn call_session(
         &self,
         wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
         args_json: &str,
     ) -> Result<CallResult> {
-        install::call_session(self, wasm, deploy, args_json).await
+        install::call_session(self, wasm, tx, args_json).await
     }
 
     /// Query a named key under the bound contract (`hash-{contract}`).
@@ -396,14 +427,14 @@ impl CepCore {
 
     pub(crate) async fn maybe_wait(
         &self,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
         mut result: CallResult,
     ) -> Result<CallResult> {
-        if !deploy.wait {
+        if !tx.put || !tx.wait {
             return Ok(result);
         }
         let _event = self
-            .wait_transaction(&result.transaction_hash, deploy.wait_timeout_ms)
+            .wait_transaction(&result.transaction_hash, tx.wait_timeout_ms)
             .await?;
         let event = _event;
         let tx_hash = TransactionHash::new(&result.transaction_hash)
@@ -634,5 +665,102 @@ mod tests {
             }
         });
         assert!(extract_execution_error(&json).is_none());
+    }
+
+    fn sample_pem_and_pk() -> (String, String) {
+        let sk = casper_types::SecretKey::generate_ed25519().expect("generate key");
+        let pem = sk.to_pem().expect("to_pem");
+        let pk = casper_rust_wasm_sdk::helpers::public_key_from_secret_key(&pem).expect("pk");
+        (pem, pk)
+    }
+
+    #[test]
+    fn build_tx_params_put_requires_secret() {
+        let core = CepCore::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let mut tx = TransactionParams::new("pem", "1000000000");
+        tx.secret_key_pem = None;
+        let err = core.build_tx_params(&tx, "[]").unwrap_err();
+        assert!(err.to_string().contains("secret_key_pem"));
+    }
+
+    #[test]
+    fn build_tx_params_unsigned_make_needs_initiator() {
+        let core = CepCore::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let tx = TransactionParams::for_make("1000000000");
+        assert!(core.build_tx_params(&tx, "[]").is_err());
+        let tx = tx.with_initiator_addr(
+            "010101010101010101010101010101010101010101010101010101010101010101",
+        );
+        // validation passes; SDK make may still reject a fake initiator later
+        assert!(core.build_tx_params(&tx, "[]").is_ok());
+    }
+
+    #[tokio::test]
+    async fn make_only_install_returns_transaction_json_without_put() {
+        let (pem, _pk) = sample_pem_and_pk();
+        let core = CepCore::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let tx = TransactionParams::new(&pem, "1000000000").make_only();
+        // Minimal empty Wasm module header (make does not execute it).
+        let wasm = [0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00];
+        let result = core
+            .install_wasm(&wasm, &tx, "[]")
+            .await
+            .expect("make-only install");
+        assert!(result.put_result.is_null());
+        assert!(!result.transaction_hash.is_empty());
+        assert!(result.execution_result.is_none());
+        assert!(result.ces_events.as_ref().is_none_or(|v| v.is_empty()));
+        let body = result.transaction.expect("transaction json");
+        assert!(body.is_object(), "transaction must be a JSON object");
+        let hash_in_body = body
+            .get("hash")
+            .or_else(|| body.pointer("/TransactionV1/hash"))
+            .or_else(|| body.pointer("/transaction/hash"));
+        assert!(
+            hash_in_body.is_some() || body.to_string().contains(&result.transaction_hash),
+            "transaction JSON should carry the hash ({})",
+            result.transaction_hash
+        );
+    }
+
+    #[tokio::test]
+    async fn make_only_call_with_initiator_addr() {
+        let (_pem, pk) = sample_pem_and_pk();
+        let mut core = CepCore::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        core.set_contract_hash(
+            "cfa781f5eb69c3eee952c2944ce9670a049f88c5e46b83fb5881ebe13fb98e6d",
+            None::<&str>,
+        )
+        .unwrap();
+        let tx = TransactionParams::for_make("1000000000").with_initiator_addr(&pk);
+        let result = core
+            .call_entrypoint("mint", &tx, "[]")
+            .await
+            .expect("make-only call");
+        assert!(result.put_result.is_null());
+        assert!(result.execution_result.is_none());
+        assert!(!result.transaction_hash.is_empty());
+        let body = result.transaction.expect("transaction json");
+        assert!(body.is_object());
+    }
+
+    #[tokio::test]
+    async fn make_only_rejects_put_without_secret() {
+        let core = CepCore::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let tx = TransactionParams::for_make("1000000000");
+        // for_make already put=false; force invalid put without secret via validate path
+        let mut bad = TransactionParams::new("x", "1");
+        bad.secret_key_pem = None;
+        assert!(bad.validate().is_err());
+        let unsigned = TransactionParams::for_make("1");
+        assert!(unsigned.validate().is_err());
+        let wasm = [0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00];
+        let err = core.install_wasm(&wasm, &tx, "[]").await.unwrap_err();
+        assert!(
+            err.to_string().contains("initiator_addr")
+                || err.to_string().contains("secret_key")
+                || err.to_string().contains("make-only"),
+            "unexpected error: {err}"
+        );
     }
 }

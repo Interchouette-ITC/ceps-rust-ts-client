@@ -42,7 +42,7 @@ pub async fn install(
     symbol: String,
     decimals: u8,
     total_supply: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wasm_path: Option<String>,
     wasm_base64: Option<String>,
@@ -52,6 +52,8 @@ pub async fn install(
     minter_list: Option<Vec<String>>,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let args = match params::cep18_install_args(
         name,
@@ -70,23 +72,36 @@ pub async fn install(
         Ok(w) => w,
         Err(e) => return format::err(e),
     };
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
     let client = match params::cep18_client(None, None) {
         Ok(c) => c,
         Err(e) => return format::err(e),
     };
-    params::map_call(client.install(&args, &wasm, &deploy).await)
+    params::map_call(client.install(&args, &wasm, &tx).await)
 }
 
 pub async fn upgrade(
     name: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wasm_path: Option<String>,
     wasm_base64: Option<String>,
     events_mode: Option<u8>,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let args = match params::cep18_upgrade_args(name, events_mode) {
         Ok(a) => a,
@@ -96,12 +111,23 @@ pub async fn upgrade(
         Ok(w) => w,
         Err(e) => return format::err(e),
     };
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
     let client = match params::cep18_client(None, None) {
         Ok(c) => c,
         Err(e) => return format::err(e),
     };
-    params::map_call(client.upgrade(&args, &wasm, &deploy).await)
+    params::map_call(client.upgrade(&args, &wasm, &tx).await)
 }
 
 pub async fn transfer(
@@ -109,14 +135,27 @@ pub async fn transfer(
     package_hash: Option<String>,
     recipient: String,
     amount: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.transfer(&recipient, &amount, &deploy).await)
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.transfer(&recipient, &amount, &tx).await)
 }
 
 pub async fn transfer_from(
@@ -125,18 +164,27 @@ pub async fn transfer_from(
     owner: String,
     recipient: String,
     amount: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(
-        client
-            .transfer_from(&owner, &recipient, &amount, &deploy)
-            .await,
-    )
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.transfer_from(&owner, &recipient, &amount, &tx).await)
 }
 
 pub async fn approve(
@@ -144,14 +192,27 @@ pub async fn approve(
     package_hash: Option<String>,
     spender: String,
     amount: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.approve(&spender, &amount, &deploy).await)
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.approve(&spender, &amount, &tx).await)
 }
 
 pub async fn increase_allowance(
@@ -159,14 +220,27 @@ pub async fn increase_allowance(
     package_hash: Option<String>,
     spender: String,
     amount: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.increase_allowance(&spender, &amount, &deploy).await)
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.increase_allowance(&spender, &amount, &tx).await)
 }
 
 pub async fn decrease_allowance(
@@ -174,14 +248,27 @@ pub async fn decrease_allowance(
     package_hash: Option<String>,
     spender: String,
     amount: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.decrease_allowance(&spender, &amount, &deploy).await)
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.decrease_allowance(&spender, &amount, &tx).await)
 }
 
 pub async fn mint(
@@ -189,14 +276,27 @@ pub async fn mint(
     package_hash: Option<String>,
     owner: String,
     amount: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.mint(&owner, &amount, &deploy).await)
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.mint(&owner, &amount, &tx).await)
 }
 
 pub async fn burn(
@@ -204,53 +304,92 @@ pub async fn burn(
     package_hash: Option<String>,
     owner: String,
     amount: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.burn(&owner, &amount, &deploy).await)
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.burn(&owner, &amount, &tx).await)
 }
 
 pub async fn change_security(
     contract_hash: String,
     package_hash: Option<String>,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     admin_list: Option<Vec<String>>,
     minter_list: Option<Vec<String>>,
     none_list: Option<Vec<String>>,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
     let args = ChangeSecurityArgs {
         admin_list,
         minter_list,
         none_list,
     };
-    params::map_call(client.change_security(&args, &deploy).await)
+    params::map_call(client.change_security(&args, &tx).await)
 }
 
 pub async fn change_events_mode(
     contract_hash: String,
     package_hash: Option<String>,
     events_mode: u8,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let mode = match EventsMode::from_u8(events_mode) {
         Some(m) => m,
         None => return format::err(format!("invalid events_mode: {events_mode}")),
     };
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.change_events_mode(mode, &deploy).await)
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.change_events_mode(mode, &tx).await)
 }
 
 pub async fn name(contract_hash: String, package_hash: Option<String>) -> ToolOutput {

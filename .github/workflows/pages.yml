@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  build-and-deploy:
+  build-and-publish:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -49,9 +49,9 @@ jobs:
 
       # Nested checkout leaves .git under ceps-rust-ts-client/; JamesIves expects
       # workspace-root git. peaceiris publishes from a path without that constraint.
-      - name: Deploy GitHub Pages
+      - name: Publish GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./ceps-rust-ts-client/docs
-          commit_message: "Deploy documentation for ${{ github.ref_name }}"
+          commit_message: "Publish documentation for ${{ github.ref_name }}"

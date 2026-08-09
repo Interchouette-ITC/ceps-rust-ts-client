@@ -24,7 +24,7 @@ pub use cep85::Cep85Client;
 pub use cep95::Cep95Client;
 pub use core::CepCore;
 pub use error::{CepError, Result};
-pub use types::{CallResult, DeployParams, EventsMode, EventsMode78};
+pub use types::{CallResult, EventsMode, EventsMode78, TransactionParams};
 
 /// Re-export of the underlying SDK type for advanced callers.
 pub use casper_rust_wasm_sdk::SDK;

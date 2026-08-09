@@ -13,7 +13,7 @@ use crate::core::{
     bool_arg, json_args, key_arg, option_byte_list_arg, string_arg, string_pair_list_arg, u256_arg,
 };
 use crate::error::{CepError, CepKind, Result};
-use crate::types::{CallResult, DeployParams};
+use crate::types::{CallResult, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use entity::prefixed_key;
 use keys::{balance_dictionary_key, operator_dictionary_key, token_id_dictionary_key};
@@ -101,10 +101,10 @@ impl Cep95Client {
         &self,
         args: &InstallArgs,
         wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args_json = install_args_json(args);
-        self.core.install_wasm(wasm, deploy, &args_json).await
+        self.core.install_wasm(wasm, tx, &args_json).await
     }
 
     /// Transfer without recipient check (`transfer_from`).
@@ -113,16 +113,14 @@ impl Cep95Client {
         from: &str,
         to: &str,
         token_id: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
             key_arg("from", &prefixed_key(from)?),
             key_arg("to", &prefixed_key(to)?),
             u256_arg("token_id", token_id),
         ]);
-        self.core
-            .call_entrypoint("transfer_from", deploy, &args)
-            .await
+        self.core.call_entrypoint("transfer_from", tx, &args).await
     }
 
     /// Safe transfer with optional receiver data.
@@ -132,7 +130,7 @@ impl Cep95Client {
         to: &str,
         token_id: &str,
         data: Option<&[u8]>,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let data_arg = option_byte_list_arg("data", data);
         let args = json_args(&[
@@ -142,7 +140,7 @@ impl Cep95Client {
             data_arg,
         ]);
         self.core
-            .call_entrypoint("safe_transfer_from", deploy, &args)
+            .call_entrypoint("safe_transfer_from", tx, &args)
             .await
     }
 
@@ -151,24 +149,24 @@ impl Cep95Client {
         &self,
         spender: &str,
         token_id: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
             key_arg("spender", &prefixed_key(spender)?),
             u256_arg("token_id", token_id),
         ]);
-        self.core.call_entrypoint("approve", deploy, &args).await
+        self.core.call_entrypoint("approve", tx, &args).await
     }
 
     /// Revoke single-token approval.
     pub async fn revoke_approval(
         &self,
         token_id: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[u256_arg("token_id", token_id)]);
         self.core
-            .call_entrypoint("revoke_approval", deploy, &args)
+            .call_entrypoint("revoke_approval", tx, &args)
             .await
     }
 
@@ -176,11 +174,11 @@ impl Cep95Client {
     pub async fn approve_for_all(
         &self,
         operator: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[key_arg("operator", &prefixed_key(operator)?)]);
         self.core
-            .call_entrypoint("approve_for_all", deploy, &args)
+            .call_entrypoint("approve_for_all", tx, &args)
             .await
     }
 
@@ -188,11 +186,11 @@ impl Cep95Client {
     pub async fn revoke_approval_for_all(
         &self,
         operator: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[key_arg("operator", &prefixed_key(operator)?)]);
         self.core
-            .call_entrypoint("revoke_approval_for_all", deploy, &args)
+            .call_entrypoint("revoke_approval_for_all", tx, &args)
             .await
     }
 
@@ -202,7 +200,7 @@ impl Cep95Client {
         to: &str,
         token_id: &str,
         metadata: Option<&[(String, String)]>,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let pairs: &[(String, String)] = metadata.unwrap_or(&[]);
         let args = json_args(&[
@@ -210,13 +208,13 @@ impl Cep95Client {
             u256_arg("token_id", token_id),
             string_pair_list_arg("metadata", pairs),
         ]);
-        self.core.call_entrypoint("mint", deploy, &args).await
+        self.core.call_entrypoint("mint", tx, &args).await
     }
 
     /// Burn a token (token-owner gated on OwnedCep95).
-    pub async fn burn(&self, token_id: &str, deploy: &DeployParams) -> Result<CallResult> {
+    pub async fn burn(&self, token_id: &str, tx: &TransactionParams) -> Result<CallResult> {
         let args = json_args(&[u256_arg("token_id", token_id)]);
-        self.core.call_entrypoint("burn", deploy, &args).await
+        self.core.call_entrypoint("burn", tx, &args).await
     }
 
     /// Collection name (named key).

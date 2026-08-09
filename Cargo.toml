@@ -49,5 +49,3 @@ lto = true
 [patch.crates-io]
 casper-client = { version = "5", git = "https://github.com/casper-ecosystem/casper-client-rs", branch = "dev" }
 casper-types = { git = "https://github.com/casper-network/casper-node", tag = "v2.2.2" }
-casper-binary-port = { git = "https://github.com/casper-network/casper-node", tag = "v2.2.2" }
-casper-binary-port-access = { git = "https://github.com/gRoussac/casper-binary-port-client", branch = "casper_2.2.2" }

@@ -10,7 +10,7 @@
 
 ```rust
 use ceps_client::cep18::InstallArgs;
-use ceps_client::{Cep18Client, DeployParams, EventsMode, Verbosity};
+use ceps_client::{Cep18Client, TransactionParams, EventsMode, Verbosity};
 use std::fs;
 
 let mut client = Cep18Client::new(
@@ -25,8 +25,8 @@ let wasm = fs::read("tests/wasm/cep18/cep18.wasm")?;
 let args = InstallArgs::new("MyToken", "MTK", 9, "1000000000")
     .with_events_mode(EventsMode::Ces)
     .with_mint_and_burn(true);
-let deploy = DeployParams::new(&secret, "400000000000");
-let result = client.install(&args, &wasm, &deploy).await?;
+let tx = TransactionParams::new(&secret, "400000000000");
+let result = client.install(&args, &wasm, &tx).await?;
 
 // Bind hashes from installer named keys:
 //   cep18_contract_hash_MyToken

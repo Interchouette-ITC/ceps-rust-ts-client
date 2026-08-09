@@ -5,7 +5,7 @@ use crate::error::{CepError, Result};
 use casper_rust_wasm_sdk::helpers::contract_hash_key_for_global_state;
 use casper_rust_wasm_sdk::rpcs::get_dictionary_item::DictionaryItemInput;
 use casper_rust_wasm_sdk::rpcs::query_global_state::PathIdentifierInput;
-use casper_rust_wasm_sdk::types::deploy_params::dictionary_item_str_params::DictionaryItemStrParams;
+use casper_rust_wasm_sdk::types::identifier::dictionary_item_identifier::DictionaryItemIdentifier;
 use serde_json::Value;
 
 pub(super) async fn query_contract_key(core: &CepCore, path: &[&str]) -> Result<Value> {
@@ -40,9 +40,10 @@ pub(super) async fn query_dictionary(
 ) -> Result<Value> {
     let target = core.require_target()?;
     let key = contract_hash_key_for_global_state(&target.query_key());
-    let mut params = DictionaryItemStrParams::new();
-    params.set_contract_named_key(&key, dictionary_name, item_key);
-    let input = DictionaryItemInput::Params(Box::new(params));
+    let identifier =
+        DictionaryItemIdentifier::new_from_contract_info(&key, dictionary_name, item_key)
+            .map_err(|e| CepError::InvalidHash(format!("dictionary item: {e}")))?;
+    let input = DictionaryItemInput::Identifier(identifier);
     let response = core
         .sdk()
         .query_contract_dict(

@@ -7,7 +7,7 @@ mod tests {
         wasm_path, CALL_PAYMENT, INSTALL_PAYMENT,
     };
     use ceps_client::cep18::InstallArgs;
-    use ceps_client::types::{DeployParams, EventsMode};
+    use ceps_client::types::{EventsMode, TransactionParams};
     use std::fs;
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -38,11 +38,8 @@ mod tests {
             .with_events_mode(EventsMode::Ces)
             .with_mint_and_burn(true);
 
-        let deploy = DeployParams::new(&secret, INSTALL_PAYMENT);
-        let install = client
-            .install(&args, &wasm, &deploy)
-            .await
-            .expect("install");
+        let tx = TransactionParams::new(&secret, INSTALL_PAYMENT);
+        let install = client.install(&args, &wasm, &tx).await.expect("install");
         assert!(!install.transaction_hash.is_empty());
 
         let pk = user1_public_key_hex(&secret);
@@ -71,8 +68,8 @@ mod tests {
             "1000000000000"
         );
 
-        let burn_deploy = DeployParams::new(&secret, CALL_PAYMENT);
-        let burned = client.burn(&owner, "1", &burn_deploy).await.expect("burn");
+        let burn_tx = TransactionParams::new(&secret, CALL_PAYMENT);
+        let burned = client.burn(&owner, "1", &burn_tx).await.expect("burn");
         assert!(!burned.transaction_hash.is_empty());
         assert_eq!(
             client.balance_of(&owner).await.expect("balance after"),

@@ -2,18 +2,23 @@
 
 use super::CepCore;
 use crate::error::{CepError, Result};
-use crate::types::{CallResult, DeployParams};
+use crate::types::{CallResult, TransactionParams};
 use casper_rust_wasm_sdk::types::hash::transaction_hash::TransactionHash;
 use casper_rust_wasm_sdk::types::transaction_params::transaction_builder_params::TransactionBuilderParams;
 
 pub(super) async fn install_wasm(
     core: &CepCore,
     wasm: &[u8],
-    deploy: &DeployParams,
+    tx: &TransactionParams,
     args_json: &str,
 ) -> Result<CallResult> {
-    let params = core.build_tx_params(deploy, args_json);
+    let params = core.build_tx_params(tx, args_json)?;
     let bytes = CepCore::bytes_from_slice(wasm);
+    if !tx.put {
+        let mut builder = TransactionBuilderParams::new_session(Some(bytes), Some(true));
+        apply_runtime_v2(&mut builder, core.runtime_v2());
+        return core.make_only_result(builder, params);
+    }
     let put = core
         .sdk()
         .install(
@@ -27,19 +32,23 @@ pub(super) async fn install_wasm(
     let put_json = serde_json::to_value(&put.result)
         .map_err(|e| CepError::Other(format!("serialize put result: {e}")))?;
     let result = CallResult::new(tx_hash, put_json);
-    core.maybe_wait(deploy, result).await
+    core.maybe_wait(tx, result).await
 }
 
 /// Run a session WASM that is not an install/upgrade (companion session).
 pub(super) async fn call_session(
     core: &CepCore,
     wasm: &[u8],
-    deploy: &DeployParams,
+    tx: &TransactionParams,
     args_json: &str,
 ) -> Result<CallResult> {
-    let params = core.build_tx_params(deploy, args_json);
+    let params = core.build_tx_params(tx, args_json)?;
     let bytes = CepCore::bytes_from_slice(wasm);
-    let builder = TransactionBuilderParams::new_session(Some(bytes), Some(false));
+    let mut builder = TransactionBuilderParams::new_session(Some(bytes), Some(false));
+    apply_runtime_v2(&mut builder, core.runtime_v2());
+    if !tx.put {
+        return core.make_only_result(builder, params);
+    }
     let put = core
         .sdk()
         .call_entrypoint(
@@ -53,5 +62,12 @@ pub(super) async fn call_session(
     let put_json = serde_json::to_value(&put.result)
         .map_err(|e| CepError::Other(format!("serialize put result: {e}")))?;
     let result = CallResult::new(tx_hash, put_json);
-    core.maybe_wait(deploy, result).await
+    core.maybe_wait(tx, result).await
+}
+
+fn apply_runtime_v2(builder: &mut TransactionBuilderParams, runtime_v2: Option<bool>) {
+    match runtime_v2 {
+        None | Some(true) => {}
+        Some(false) => builder.set_runtime_v1(),
+    }
 }

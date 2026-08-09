@@ -84,7 +84,7 @@ install → named keys cep18_contract_hash_* / package_*
 
 ```rust
 use ceps_client::cep18::InstallArgs;
-use ceps_client::{Cep18Client, DeployParams, EventsMode, Verbosity};
+use ceps_client::{Cep18Client, TransactionParams, EventsMode, Verbosity};
 
 let mut client = Cep18Client::new(
     "http://127.0.0.1:11101",
@@ -99,7 +99,7 @@ let put = client
             .with_events_mode(EventsMode::Ces)
             .with_mint_and_burn(true),
         &contract_wasm_bytes,
-        &DeployParams::new(&secret_pem, "400000000000"),
+        &TransactionParams::new(&secret_pem, "400000000000"),
     )
     .await?;
 client.set_contract_hash(&contract_hash, Some(&package_hash))?;
@@ -118,14 +118,14 @@ install → named keys cep78_contract_hash_* / package_*
 
 ```rust
 use ceps_client::cep78::InstallArgs;
-use ceps_client::{Cep78Client, DeployParams, EventsMode78, Verbosity};
+use ceps_client::{Cep78Client, TransactionParams, EventsMode78, Verbosity};
 
 let mut client = Cep78Client::new(/* rpc, sse, chain, verbosity */)?;
 client
     .install(
         &InstallArgs::new("MyNft", "NFT", 100).with_events_mode(EventsMode78::Ces),
         &contract_wasm_bytes,
-        &DeployParams::new(&secret_pem, "600000000000"),
+        &TransactionParams::new(&secret_pem, "600000000000"),
     )
     .await?;
 client.set_contract_hash(&contract_hash, Some(&package_hash))?;
@@ -134,7 +134,7 @@ client
         "account-hash-…",
         r#"{"name":"token-1"}"#,
         None,
-        &DeployParams::new(&secret_pem, "5000000000"),
+        &TransactionParams::new(&secret_pem, "5000000000"),
     )
     .await?;
 let owner = client.owner_of(&token_id).await?;
@@ -152,7 +152,7 @@ install → named keys cep85_contract_hash_* / package_*
 
 ```rust
 use ceps_client::cep85::InstallArgs;
-use ceps_client::{Cep85Client, DeployParams, EventsMode, Verbosity};
+use ceps_client::{Cep85Client, TransactionParams, EventsMode, Verbosity};
 
 let mut client = Cep85Client::new(/* rpc, sse, chain, verbosity */)?;
 client
@@ -161,11 +161,11 @@ client
             .with_events_mode(EventsMode::Ces)
             .with_enable_burn(true),
         &contract_wasm_bytes,
-        &DeployParams::new(&secret_pem, "550000000000"),
+        &TransactionParams::new(&secret_pem, "550000000000"),
     )
     .await?;
 client.set_contract_hash(&contract_hash, Some(&package_hash))?;
-client.mint(&owner, "1", "10", None, &DeployParams::new(&secret_pem, "5000000000")).await?;
+client.mint(&owner, "1", "10", None, &TransactionParams::new(&secret_pem, "5000000000")).await?;
 let bal = client.balance_of(&owner, "1").await?;
 ```
 
@@ -181,18 +181,18 @@ install (odra_cfg_package_hash_key_name) → bind_odra_install
 
 ```rust
 use ceps_client::cep95::InstallArgs;
-use ceps_client::{Cep95Client, DeployParams, Verbosity};
+use ceps_client::{Cep95Client, TransactionParams, Verbosity};
 
 let mut client = Cep95Client::new(/* rpc, sse, chain, verbosity */)?;
 client
     .install(
         &InstallArgs::new("MyNft", "MNFT", "cep95_pkg_demo"),
         &contract_wasm_bytes,
-        &DeployParams::new(&secret_pem, "600000000000"),
+        &TransactionParams::new(&secret_pem, "600000000000"),
     )
     .await?;
 client.bind_odra_install(&installer_public_key, "cep95_pkg_demo").await?;
-client.mint(&owner, "1", None, &DeployParams::new(&secret_pem, "5000000000")).await?;
+client.mint(&owner, "1", None, &TransactionParams::new(&secret_pem, "5000000000")).await?;
 let owner_of = client.owner_of("1").await?;
 ```
 

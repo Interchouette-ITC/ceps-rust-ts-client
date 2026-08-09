@@ -7,7 +7,7 @@ mod tests {
         user1_secret_pem, user_secret_pem, CALL_PAYMENT,
     };
     use ceps_client::cep95::InstallArgs;
-    use ceps_client::{Cep95Client, DeployParams, Verbosity};
+    use ceps_client::{Cep95Client, TransactionParams, Verbosity};
     use std::env;
     use std::fs;
     use std::path::PathBuf;
@@ -60,11 +60,8 @@ mod tests {
         let name = format!("Ceps95{nonce}");
         let package_key = format!("cep95_pkg_{nonce}");
         let args = InstallArgs::new(&name, "C95", &package_key);
-        let deploy = DeployParams::new(&secret, INSTALL_PAYMENT);
-        let put = client
-            .install(&args, &wasm, &deploy)
-            .await
-            .expect("install");
+        let tx = TransactionParams::new(&secret, INSTALL_PAYMENT);
+        let put = client.install(&args, &wasm, &tx).await.expect("install");
         assert!(!put.transaction_hash.is_empty());
 
         let pk = user1_public_key_hex(&secret);
@@ -83,9 +80,9 @@ mod tests {
 
         let owner = user1_account_hash(&secret);
         let spender = account_hash_from_secret(&spender_secret);
-        let mint_deploy = DeployParams::new(&secret, CALL_PAYMENT);
+        let mint_tx = TransactionParams::new(&secret, CALL_PAYMENT);
         client
-            .mint(&owner, "1", None, &mint_deploy)
+            .mint(&owner, "1", None, &mint_tx)
             .await
             .expect("mint");
 
@@ -102,7 +99,7 @@ mod tests {
 
         // Self-transfer keeps ownership; exercises transfer_from entrypoint.
         client
-            .transfer_from(&owner, &owner, "1", &mint_deploy)
+            .transfer_from(&owner, &owner, "1", &mint_tx)
             .await
             .expect("transfer_from");
         assert_eq!(
@@ -112,7 +109,7 @@ mod tests {
 
         // Approve a different account (cannot approve current owner: user error 40003).
         client
-            .approve(&spender, "1", &mint_deploy)
+            .approve(&spender, "1", &mint_tx)
             .await
             .expect("approve");
         let approved = client.get_approved("1").await.expect("get_approved");

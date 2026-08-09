@@ -15,7 +15,7 @@ use crate::core::{
     JsonArg,
 };
 use crate::error::{CepError, CepKind, Result};
-use crate::types::{CallResult, DeployParams, EventsMode};
+use crate::types::{CallResult, EventsMode, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use keys::{balance_dictionary_key, operator_dictionary_key};
 use serde_json::Value;
@@ -102,7 +102,7 @@ impl Cep85Client {
         &self,
         args: &InstallArgs,
         wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![string_arg("name", &args.name), string_arg("uri", &args.uri)];
         if let Some(mode) = args.events_mode {
@@ -123,7 +123,7 @@ impl Cep85Client {
         if let Some(list) = &args.meta_list {
             v.push(key_list_arg("meta_list", &map_keys(list)?));
         }
-        self.core.install_wasm(wasm, deploy, &json_args(&v)).await
+        self.core.install_wasm(wasm, tx, &json_args(&v)).await
     }
 
     /// Upgrade with `upgrade: true`.
@@ -131,10 +131,10 @@ impl Cep85Client {
         &self,
         args: &UpgradeArgs,
         wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![string_arg("name", &args.name), bool_arg("upgrade", true)];
-        self.core.install_wasm(wasm, deploy, &json_args(&v)).await
+        self.core.install_wasm(wasm, tx, &json_args(&v)).await
     }
 
     /// Mint one token id.
@@ -144,7 +144,7 @@ impl Cep85Client {
         id: &str,
         amount: &str,
         uri: Option<&str>,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![
             key_arg("recipient", &prefixed_key(recipient)?),
@@ -154,9 +154,7 @@ impl Cep85Client {
         if let Some(uri) = uri {
             v.push(string_arg("uri", uri));
         }
-        self.core
-            .call_entrypoint("mint", deploy, &json_args(&v))
-            .await
+        self.core.call_entrypoint("mint", tx, &json_args(&v)).await
     }
 
     /// Batch mint.
@@ -166,7 +164,7 @@ impl Cep85Client {
         ids: &[&str],
         amounts: &[&str],
         uri: Option<&str>,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![
             key_arg("recipient", &prefixed_key(recipient)?),
@@ -177,7 +175,7 @@ impl Cep85Client {
             v.push(string_arg("uri", uri));
         }
         self.core
-            .call_entrypoint("batch_mint", deploy, &json_args(&v))
+            .call_entrypoint("batch_mint", tx, &json_args(&v))
             .await
     }
 
@@ -187,16 +185,14 @@ impl Cep85Client {
         owner: &str,
         id: &str,
         amount: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![
             key_arg("owner", &prefixed_key(owner)?),
             u256_arg("id", id),
             u256_arg("amount", amount),
         ];
-        self.core
-            .call_entrypoint("burn", deploy, &json_args(&v))
-            .await
+        self.core.call_entrypoint("burn", tx, &json_args(&v)).await
     }
 
     /// Batch burn.
@@ -205,7 +201,7 @@ impl Cep85Client {
         owner: &str,
         ids: &[&str],
         amounts: &[&str],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![
             key_arg("owner", &prefixed_key(owner)?),
@@ -213,7 +209,7 @@ impl Cep85Client {
             u256_list_arg("amounts", amounts),
         ];
         self.core
-            .call_entrypoint("batch_burn", deploy, &json_args(&v))
+            .call_entrypoint("batch_burn", tx, &json_args(&v))
             .await
     }
 
@@ -224,7 +220,7 @@ impl Cep85Client {
         to: &str,
         id: &str,
         amount: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![
             key_arg("from", &prefixed_key(from)?),
@@ -233,7 +229,7 @@ impl Cep85Client {
             u256_arg("amount", amount),
         ];
         self.core
-            .call_entrypoint("transfer_from", deploy, &json_args(&v))
+            .call_entrypoint("transfer_from", tx, &json_args(&v))
             .await
     }
 
@@ -244,7 +240,7 @@ impl Cep85Client {
         to: &str,
         ids: &[&str],
         amounts: &[&str],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![
             key_arg("from", &prefixed_key(from)?),
@@ -253,7 +249,7 @@ impl Cep85Client {
             u256_list_arg("amounts", amounts),
         ];
         self.core
-            .call_entrypoint("batch_transfer_from", deploy, &json_args(&v))
+            .call_entrypoint("batch_transfer_from", tx, &json_args(&v))
             .await
     }
 
@@ -262,14 +258,14 @@ impl Cep85Client {
         &self,
         operator: &str,
         approved: bool,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![
             key_arg("operator", &prefixed_key(operator)?),
             bool_arg("approved", approved),
         ];
         self.core
-            .call_entrypoint("set_approval_for_all", deploy, &json_args(&v))
+            .call_entrypoint("set_approval_for_all", tx, &json_args(&v))
             .await
     }
 
@@ -278,14 +274,14 @@ impl Cep85Client {
         &self,
         uri: &str,
         id: Option<&str>,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![string_arg("uri", uri)];
         if let Some(id) = id {
             v.push(u256_arg("id", id));
         }
         self.core
-            .call_entrypoint("set_uri", deploy, &json_args(&v))
+            .call_entrypoint("set_uri", tx, &json_args(&v))
             .await
     }
 
@@ -294,11 +290,11 @@ impl Cep85Client {
         &self,
         id: &str,
         total_supply: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![u256_arg("id", id), u256_arg("total_supply", total_supply)];
         self.core
-            .call_entrypoint("set_total_supply_of", deploy, &json_args(&v))
+            .call_entrypoint("set_total_supply_of", tx, &json_args(&v))
             .await
     }
 
@@ -307,14 +303,14 @@ impl Cep85Client {
         &self,
         ids: &[&str],
         total_supplies: &[&str],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![
             u256_list_arg("ids", ids),
             u256_list_arg("total_supplies", total_supplies),
         ];
         self.core
-            .call_entrypoint("set_total_supply_of_batch", deploy, &json_args(&v))
+            .call_entrypoint("set_total_supply_of_batch", tx, &json_args(&v))
             .await
     }
 
@@ -322,7 +318,7 @@ impl Cep85Client {
     pub async fn change_security(
         &self,
         args: &ChangeSecurityArgs,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v: Vec<JsonArg> = Vec::new();
         if let Some(list) = &args.admin_list {
@@ -346,7 +342,7 @@ impl Cep85Client {
             ));
         }
         self.core
-            .call_entrypoint("change_security", deploy, &json_args(&v))
+            .call_entrypoint("change_security", tx, &json_args(&v))
             .await
     }
 
@@ -355,7 +351,7 @@ impl Cep85Client {
         &self,
         enable_burn: Option<bool>,
         events_mode: Option<EventsMode>,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = Vec::new();
         if let Some(b) = enable_burn {
@@ -370,7 +366,7 @@ impl Cep85Client {
             ));
         }
         self.core
-            .call_entrypoint("set_modalities", deploy, &json_args(&v))
+            .call_entrypoint("set_modalities", tx, &json_args(&v))
             .await
     }
 
@@ -507,6 +503,49 @@ mod tests {
         assert!(s.contains("Bag"));
         assert!(s.contains("enable_burn"));
         assert!(s.contains("events_mode"));
+    }
+
+    #[tokio::test]
+    async fn make_only_install_returns_transaction_json() {
+        let client = Cep85Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let tx = TransactionParams::for_make("1000000000").with_initiator_addr(
+            "010101010101010101010101010101010101010101010101010101010101010101",
+        );
+        let wasm = [0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00];
+        let args = InstallArgs::new("Bag", "https://x/{id}.json");
+        let result = client
+            .install(&args, &wasm, &tx)
+            .await
+            .expect("make-only install");
+        assert!(result.put_result.is_null());
+        assert!(result.transaction.is_some());
+        assert!(!result.transaction_hash.is_empty());
+    }
+
+    #[tokio::test]
+    async fn make_only_mint_returns_transaction_json() {
+        let mut client = Cep85Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        client
+            .set_contract_hash(
+                "cfa781f5eb69c3eee952c2944ce9670a049f88c5e46b83fb5881ebe13fb98e6d",
+                None::<&str>,
+            )
+            .unwrap();
+        let tx = TransactionParams::for_make("1000000000").with_initiator_addr(
+            "010101010101010101010101010101010101010101010101010101010101010101",
+        );
+        let result = client
+            .mint(
+                "account-hash-b485c074cef7ccaccd0302949d2043ab7133abdb14cfa87e8392945c0bd80a5f",
+                "1",
+                "10",
+                None,
+                &tx,
+            )
+            .await
+            .expect("make-only mint");
+        assert!(result.put_result.is_null());
+        assert!(result.transaction.expect("json").is_object());
     }
 
     #[test]

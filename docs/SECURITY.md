@@ -10,7 +10,7 @@ This repository is **not** a custodian, wallet, or hosted signing service. Calle
 
 | Concern | Behavior |
 | --- | --- |
-| Private keys / PEM / mnemonics | Supplied by the caller (CLI flags/env, library `DeployParams`, test env). The crates do not generate or store wallet seeds. |
+| Private keys / PEM / mnemonics | Supplied by the caller (CLI flags/env, library `TransactionParams`, test env). The crates do not generate or store wallet seeds. |
 | Where keys live | Process memory / caller-provided files only. Do not commit PEMs; `*.pem` is gitignored. |
 | NCTL fixtures | Live tests may load public NCTL `user-*` PEMs or `SECRET_KEY_USER_*` env vars. Those keys are **testnet-only**. Never reuse them on mainnet. |
 | WASM / Node | `ceps-client-wasm` install helpers accept PEM strings the same way; treat them as secrets in your app. |

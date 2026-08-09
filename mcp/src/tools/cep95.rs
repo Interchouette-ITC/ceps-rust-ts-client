@@ -38,7 +38,7 @@ pub async fn install(
     name: String,
     symbol: String,
     package_hash_key_name: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wasm_path: Option<String>,
     wasm_base64: Option<String>,
@@ -47,6 +47,8 @@ pub async fn install(
     is_upgrade: Option<bool>,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let args = params::cep95_install_args(
         name,
@@ -60,12 +62,23 @@ pub async fn install(
         Ok(w) => w,
         Err(e) => return format::err(e),
     };
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
     let client = match params::cep95_client(None, None) {
         Ok(c) => c,
         Err(e) => return format::err(e),
     };
-    params::map_call(client.install(&args, &wasm, &deploy).await)
+    params::map_call(client.install(&args, &wasm, &tx).await)
 }
 
 pub async fn bind_odra_install(
@@ -93,28 +106,54 @@ pub async fn mint(
     package_hash: Option<String>,
     to: String,
     token_id: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.mint(&to, &token_id, None, &deploy).await)
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.mint(&to, &token_id, None, &tx).await)
 }
 
 pub async fn burn(
     contract_hash: String,
     package_hash: Option<String>,
     token_id: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.burn(&token_id, &deploy).await)
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.burn(&token_id, &tx).await)
 }
 
 pub async fn transfer_from(
@@ -123,14 +162,27 @@ pub async fn transfer_from(
     from: String,
     to: String,
     token_id: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.transfer_from(&from, &to, &token_id, &deploy).await)
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.transfer_from(&from, &to, &token_id, &tx).await)
 }
 
 pub async fn safe_transfer_from(
@@ -139,16 +191,29 @@ pub async fn safe_transfer_from(
     from: String,
     to: String,
     token_id: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
     params::map_call(
         client
-            .safe_transfer_from(&from, &to, &token_id, None, &deploy)
+            .safe_transfer_from(&from, &to, &token_id, None, &tx)
             .await,
     )
 }
@@ -158,56 +223,108 @@ pub async fn approve(
     package_hash: Option<String>,
     spender: String,
     token_id: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.approve(&spender, &token_id, &deploy).await)
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.approve(&spender, &token_id, &tx).await)
 }
 
 pub async fn revoke_approval(
     contract_hash: String,
     package_hash: Option<String>,
     token_id: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.revoke_approval(&token_id, &deploy).await)
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.revoke_approval(&token_id, &tx).await)
 }
 
 pub async fn approve_for_all(
     contract_hash: String,
     package_hash: Option<String>,
     operator: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.approve_for_all(&operator, &deploy).await)
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.approve_for_all(&operator, &tx).await)
 }
 
 pub async fn revoke_approval_for_all(
     contract_hash: String,
     package_hash: Option<String>,
     operator: String,
-    secret_key_pem: String,
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
-    let deploy = params::deploy_params(secret_key_pem, payment_amount, wait, wait_timeout_ms, None);
-    params::map_call(client.revoke_approval_for_all(&operator, &deploy).await)
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.revoke_approval_for_all(&operator, &tx).await)
 }
 
 pub async fn name(contract_hash: String, package_hash: Option<String>) -> ToolOutput {

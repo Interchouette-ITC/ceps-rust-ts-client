@@ -52,4 +52,4 @@ Treat lint failures as blockers before push/PR.
 
 ## CI
 
-See [ci.md](ci.md). PR gate is `.github/workflows/ci-test.yml` (NCTL + tip WASMs). Overnight extras live in `nightly-test.yml`. Pages deploys from `pages.yml`. Hub/GHCR images and GitHub Release assets: `hub-images-*.yml` and `release-github-*.yml` (secrets checklist in ci.md).
+See [ci.md](ci.md). PR gate is `.github/workflows/ci-test.yml` (NCTL + tip WASMs). Overnight extras live in `nightly-test.yml`. Pages publishes from `pages.yml`. Hub/GHCR images and GitHub Release assets: `hub-images-*.yml` and `release-github-*.yml` (secrets checklist in ci.md).

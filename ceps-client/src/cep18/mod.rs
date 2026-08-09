@@ -11,7 +11,7 @@ pub use types::{ChangeSecurityArgs, InstallArgs, UpgradeArgs};
 use crate::core::CepCore;
 use crate::core::{json_args, key_arg, key_list_arg, string_arg, u256_arg, u8_arg, JsonArg};
 use crate::error::{CepError, CepKind, Result};
-use crate::types::{CallResult, DeployParams, EventsMode};
+use crate::types::{CallResult, EventsMode, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use entity::prefixed_key;
 use keys::{allowance_dictionary_key, balance_dictionary_key};
@@ -99,10 +99,10 @@ impl Cep18Client {
         &self,
         args: &InstallArgs,
         wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args_json = install_args_json(args)?;
-        self.core.install_wasm(wasm, deploy, &args_json).await
+        self.core.install_wasm(wasm, tx, &args_json).await
     }
 
     /// Upgrade an existing CEP-18 package.
@@ -110,14 +110,14 @@ impl Cep18Client {
         &self,
         args: &UpgradeArgs,
         wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut json_args_vec = vec![string_arg("name", &args.name)];
         if let Some(mode) = args.events_mode {
             json_args_vec.push(u8_arg("events_mode", mode.into()));
         }
         let args_json = json_args(&json_args_vec);
-        self.core.install_wasm(wasm, deploy, &args_json).await
+        self.core.install_wasm(wasm, tx, &args_json).await
     }
 
     /// Transfer tokens to `recipient`.
@@ -125,13 +125,13 @@ impl Cep18Client {
         &self,
         recipient: &str,
         amount: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
             key_arg("recipient", &prefixed_key(recipient)?),
             u256_arg("amount", amount),
         ]);
-        self.core.call_entrypoint("transfer", deploy, &args).await
+        self.core.call_entrypoint("transfer", tx, &args).await
     }
 
     /// Transfer tokens from `owner` to `recipient` using allowance.
@@ -140,16 +140,14 @@ impl Cep18Client {
         owner: &str,
         recipient: &str,
         amount: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
             key_arg("owner", &prefixed_key(owner)?),
             key_arg("recipient", &prefixed_key(recipient)?),
             u256_arg("amount", amount),
         ]);
-        self.core
-            .call_entrypoint("transfer_from", deploy, &args)
-            .await
+        self.core.call_entrypoint("transfer_from", tx, &args).await
     }
 
     /// Approve `spender` for `amount`.
@@ -157,13 +155,13 @@ impl Cep18Client {
         &self,
         spender: &str,
         amount: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
             key_arg("spender", &prefixed_key(spender)?),
             u256_arg("amount", amount),
         ]);
-        self.core.call_entrypoint("approve", deploy, &args).await
+        self.core.call_entrypoint("approve", tx, &args).await
     }
 
     /// Increase allowance for `spender`.
@@ -171,14 +169,14 @@ impl Cep18Client {
         &self,
         spender: &str,
         amount: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
             key_arg("spender", &prefixed_key(spender)?),
             u256_arg("amount", amount),
         ]);
         self.core
-            .call_entrypoint("increase_allowance", deploy, &args)
+            .call_entrypoint("increase_allowance", tx, &args)
             .await
     }
 
@@ -187,14 +185,14 @@ impl Cep18Client {
         &self,
         spender: &str,
         amount: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
             key_arg("spender", &prefixed_key(spender)?),
             u256_arg("amount", amount),
         ]);
         self.core
-            .call_entrypoint("decrease_allowance", deploy, &args)
+            .call_entrypoint("decrease_allowance", tx, &args)
             .await
     }
 
@@ -203,13 +201,13 @@ impl Cep18Client {
         &self,
         owner: &str,
         amount: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
             key_arg("owner", &prefixed_key(owner)?),
             u256_arg("amount", amount),
         ]);
-        self.core.call_entrypoint("mint", deploy, &args).await
+        self.core.call_entrypoint("mint", tx, &args).await
     }
 
     /// Burn tokens from `owner`.
@@ -217,20 +215,20 @@ impl Cep18Client {
         &self,
         owner: &str,
         amount: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
             key_arg("owner", &prefixed_key(owner)?),
             u256_arg("amount", amount),
         ]);
-        self.core.call_entrypoint("burn", deploy, &args).await
+        self.core.call_entrypoint("burn", tx, &args).await
     }
 
     /// Change security lists (at least one list required).
     pub async fn change_security(
         &self,
         args: &ChangeSecurityArgs,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut json_args_vec: Vec<JsonArg> = Vec::new();
         if let Some(list) = &args.admin_list {
@@ -252,7 +250,7 @@ impl Cep18Client {
         }
         let args_json = json_args(&json_args_vec);
         self.core
-            .call_entrypoint("change_security", deploy, &args_json)
+            .call_entrypoint("change_security", tx, &args_json)
             .await
     }
 
@@ -260,11 +258,11 @@ impl Cep18Client {
     pub async fn change_events_mode(
         &self,
         events_mode: EventsMode,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[u8_arg("events_mode", events_mode.into())]);
         self.core
-            .call_entrypoint("change_events_mode", deploy, &args)
+            .call_entrypoint("change_events_mode", tx, &args)
             .await
     }
 
@@ -431,5 +429,47 @@ mod tests {
     fn decode_u256_from_number() {
         let v = serde_json::json!({ "CLValue": { "parsed": 42 } });
         assert_eq!(decode_u256_cl(v).unwrap(), "42");
+    }
+
+    #[tokio::test]
+    async fn make_only_install_returns_transaction_json() {
+        let client = Cep18Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let tx = TransactionParams::for_make("1000000000").with_initiator_addr(
+            "010101010101010101010101010101010101010101010101010101010101010101",
+        );
+        let wasm = [0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00];
+        let args = InstallArgs::new("Tok", "TOK", 9, "1000");
+        let result = client
+            .install(&args, &wasm, &tx)
+            .await
+            .expect("make-only install");
+        assert!(result.put_result.is_null());
+        assert!(result.transaction.is_some());
+        assert!(!result.transaction_hash.is_empty());
+        assert!(result.execution_result.is_none());
+    }
+
+    #[tokio::test]
+    async fn make_only_transfer_returns_transaction_json() {
+        let mut client = Cep18Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        client
+            .set_contract_hash(
+                "cfa781f5eb69c3eee952c2944ce9670a049f88c5e46b83fb5881ebe13fb98e6d",
+                None::<&str>,
+            )
+            .unwrap();
+        let tx = TransactionParams::for_make("1000000000").with_initiator_addr(
+            "010101010101010101010101010101010101010101010101010101010101010101",
+        );
+        let result = client
+            .transfer(
+                "account-hash-b485c074cef7ccaccd0302949d2043ab7133abdb14cfa87e8392945c0bd80a5f",
+                "1",
+                &tx,
+            )
+            .await
+            .expect("make-only transfer");
+        assert!(result.put_result.is_null());
+        assert!(result.transaction.expect("json").is_object());
     }
 }

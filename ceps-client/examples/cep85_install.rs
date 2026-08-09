@@ -6,7 +6,7 @@
 //! ```
 
 use ceps_client::cep85::InstallArgs;
-use ceps_client::{Cep85Client, DeployParams, EventsMode, Verbosity};
+use ceps_client::{Cep85Client, EventsMode, TransactionParams, Verbosity};
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -35,8 +35,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = InstallArgs::new(&name, "https://example.com/metadata/{id}.json")
         .with_events_mode(EventsMode::Ces)
         .with_enable_burn(true);
-    let deploy = DeployParams::new(&secret, "550000000000");
-    let put = client.install(&args, &wasm, &deploy).await?;
+    let tx = TransactionParams::new(&secret, "550000000000");
+    let put = client.install(&args, &wasm, &tx).await?;
     println!("installed tx={}", put.transaction_hash);
 
     let pk = casper_rust_wasm_sdk::helpers::public_key_from_secret_key(&secret)?;
@@ -57,8 +57,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let public = casper_rust_wasm_sdk::types::public_key::PublicKey::new(&pk)?;
         public.to_account_hash().to_formatted_string()
     };
-    let mint_deploy = DeployParams::new(&secret, "5000000000");
-    client.mint(&owner, "1", "10", None, &mint_deploy).await?;
+    let mint_tx = TransactionParams::new(&secret, "5000000000");
+    client.mint(&owner, "1", "10", None, &mint_tx).await?;
     println!("balance={}", client.balance_of(&owner, "1").await?);
     Ok(())
 }
