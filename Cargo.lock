@@ -374,10 +374,8 @@ dependencies = [
  "chrono",
  "futures-util",
  "getrandom 0.3.4",
- "gloo-utils",
  "hex",
  "humantime",
- "js-sys",
  "num-traits",
  "once_cell",
  "rand 0.9.5",
@@ -386,8 +384,6 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.11",
  "tokio",
- "wasm-bindgen",
- "wasm-bindgen-futures",
 ]
 
 [[package]]
