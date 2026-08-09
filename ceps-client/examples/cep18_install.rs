@@ -6,7 +6,7 @@
 //! ```
 
 use ceps_client::cep18::InstallArgs;
-use ceps_client::{Cep18Client, DeployParams, EventsMode, Verbosity};
+use ceps_client::{Cep18Client, EventsMode, TransactionParams, Verbosity};
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -35,8 +35,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = InstallArgs::new(&name, "EX", 9, "1000")
         .with_events_mode(EventsMode::Ces)
         .with_mint_and_burn(true);
-    let deploy = DeployParams::new(&secret, "400000000000");
-    let put = client.install(&args, &wasm, &deploy).await?;
+    let tx = TransactionParams::new(&secret, "400000000000");
+    let put = client.install(&args, &wasm, &tx).await?;
     println!("installed tx={}", put.transaction_hash);
 
     let pk = casper_rust_wasm_sdk::helpers::public_key_from_secret_key(&secret)?;

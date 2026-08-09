@@ -6,7 +6,7 @@ mod tests {
         nctl_available, user1_account_hash, user1_public_key_hex, user1_secret_pem, CALL_PAYMENT,
     };
     use ceps_client::cep85::InstallArgs;
-    use ceps_client::{Cep85Client, DeployParams, EventsMode, Verbosity};
+    use ceps_client::{Cep85Client, EventsMode, TransactionParams, Verbosity};
     use std::env;
     use std::fs;
     use std::path::PathBuf;
@@ -56,11 +56,8 @@ mod tests {
         let args = InstallArgs::new(&name, "https://example.com/metadata/{id}.json")
             .with_events_mode(EventsMode::Ces)
             .with_enable_burn(true);
-        let deploy = DeployParams::new(&secret, INSTALL_PAYMENT);
-        let put = client
-            .install(&args, &wasm, &deploy)
-            .await
-            .expect("install");
+        let tx = TransactionParams::new(&secret, INSTALL_PAYMENT);
+        let put = client.install(&args, &wasm, &tx).await.expect("install");
         assert!(!put.transaction_hash.is_empty());
 
         let pk = user1_public_key_hex(&secret);
@@ -81,20 +78,17 @@ mod tests {
         assert_eq!(client.collection_name().await.expect("name"), name);
 
         let owner = user1_account_hash(&secret);
-        let mint_deploy = DeployParams::new(&secret, CALL_PAYMENT);
+        let mint_tx = TransactionParams::new(&secret, CALL_PAYMENT);
         client
-            .mint(&owner, "1", "10", None, &mint_deploy)
+            .mint(&owner, "1", "10", None, &mint_tx)
             .await
             .expect("mint");
 
         let bal = client.balance_of(&owner, "1").await.expect("balance");
         assert_eq!(bal, "10");
 
-        let burn_deploy = DeployParams::new(&secret, CALL_PAYMENT);
-        client
-            .burn(&owner, "1", "3", &burn_deploy)
-            .await
-            .expect("burn");
+        let burn_tx = TransactionParams::new(&secret, CALL_PAYMENT);
+        client.burn(&owner, "1", "3", &burn_tx).await.expect("burn");
         let bal_after = client
             .balance_of(&owner, "1")
             .await

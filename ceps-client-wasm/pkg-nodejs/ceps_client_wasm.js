@@ -49,23 +49,27 @@ class Cep18Client {
      * @param {string} total_supply
      * @param {number | null | undefined} events_mode
      * @param {Uint8Array} wasm
-     * @param {string} secret_key_pem
+     * @param {string | null | undefined} secret_key_pem
      * @param {string} payment_amount
      * @param {boolean | null} [wait]
+     * @param {boolean | null} [make_only]
+     * @param {string | null} [initiator_addr]
      * @returns {Promise<string>}
      */
-    install(name, symbol, decimals, total_supply, events_mode, wasm, secret_key_pem, payment_amount, wait) {
+    install(name, symbol, decimals, total_supply, events_mode, wasm, secret_key_pem, payment_amount, wait, make_only, initiator_addr) {
         const ptr0 = passStringToWasm0(name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
         const ptr1 = passStringToWasm0(symbol, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len1 = WASM_VECTOR_LEN;
         const ptr2 = passStringToWasm0(total_supply, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len2 = WASM_VECTOR_LEN;
-        const ptr3 = passStringToWasm0(secret_key_pem, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len3 = WASM_VECTOR_LEN;
+        var ptr3 = isLikeNone(secret_key_pem) ? 0 : passStringToWasm0(secret_key_pem, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len3 = WASM_VECTOR_LEN;
         const ptr4 = passStringToWasm0(payment_amount, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len4 = WASM_VECTOR_LEN;
-        const ret = wasm.cep18client_install(this.__wbg_ptr, ptr0, len0, ptr1, len1, decimals, ptr2, len2, isLikeNone(events_mode) ? 0xFFFFFF : events_mode, wasm, ptr3, len3, ptr4, len4, isLikeNone(wait) ? 0xFFFFFF : wait ? 1 : 0);
+        var ptr5 = isLikeNone(initiator_addr) ? 0 : passStringToWasm0(initiator_addr, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len5 = WASM_VECTOR_LEN;
+        const ret = wasm.cep18client_install(this.__wbg_ptr, ptr0, len0, ptr1, len1, decimals, ptr2, len2, isLikeNone(events_mode) ? 0xFFFFFF : events_mode, wasm, ptr3, len3, ptr4, len4, isLikeNone(wait) ? 0xFFFFFF : wait ? 1 : 0, isLikeNone(make_only) ? 0xFFFFFF : make_only ? 1 : 0, ptr5, len5);
         return ret;
     }
     /**
@@ -194,21 +198,25 @@ class Cep78Client {
      * @param {bigint} total_token_supply
      * @param {number | null | undefined} events_mode
      * @param {Uint8Array} wasm
-     * @param {string} secret_key_pem
+     * @param {string | null | undefined} secret_key_pem
      * @param {string} payment_amount
      * @param {boolean | null} [wait]
+     * @param {boolean | null} [make_only]
+     * @param {string | null} [initiator_addr]
      * @returns {Promise<string>}
      */
-    install(collection_name, collection_symbol, total_token_supply, events_mode, wasm, secret_key_pem, payment_amount, wait) {
+    install(collection_name, collection_symbol, total_token_supply, events_mode, wasm, secret_key_pem, payment_amount, wait, make_only, initiator_addr) {
         const ptr0 = passStringToWasm0(collection_name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
         const ptr1 = passStringToWasm0(collection_symbol, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len1 = WASM_VECTOR_LEN;
-        const ptr2 = passStringToWasm0(secret_key_pem, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len2 = WASM_VECTOR_LEN;
+        var ptr2 = isLikeNone(secret_key_pem) ? 0 : passStringToWasm0(secret_key_pem, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len2 = WASM_VECTOR_LEN;
         const ptr3 = passStringToWasm0(payment_amount, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len3 = WASM_VECTOR_LEN;
-        const ret = wasm.cep78client_install(this.__wbg_ptr, ptr0, len0, ptr1, len1, total_token_supply, isLikeNone(events_mode) ? 0xFFFFFF : events_mode, wasm, ptr2, len2, ptr3, len3, isLikeNone(wait) ? 0xFFFFFF : wait ? 1 : 0);
+        var ptr4 = isLikeNone(initiator_addr) ? 0 : passStringToWasm0(initiator_addr, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len4 = WASM_VECTOR_LEN;
+        const ret = wasm.cep78client_install(this.__wbg_ptr, ptr0, len0, ptr1, len1, total_token_supply, isLikeNone(events_mode) ? 0xFFFFFF : events_mode, wasm, ptr2, len2, ptr3, len3, isLikeNone(wait) ? 0xFFFFFF : wait ? 1 : 0, isLikeNone(make_only) ? 0xFFFFFF : make_only ? 1 : 0, ptr4, len4);
         return ret;
     }
     /**
@@ -343,21 +351,25 @@ class Cep85Client {
      * @param {number | null | undefined} events_mode
      * @param {boolean | null | undefined} enable_burn
      * @param {Uint8Array} wasm
-     * @param {string} secret_key_pem
+     * @param {string | null | undefined} secret_key_pem
      * @param {string} payment_amount
      * @param {boolean | null} [wait]
+     * @param {boolean | null} [make_only]
+     * @param {string | null} [initiator_addr]
      * @returns {Promise<string>}
      */
-    install(name, uri, events_mode, enable_burn, wasm, secret_key_pem, payment_amount, wait) {
+    install(name, uri, events_mode, enable_burn, wasm, secret_key_pem, payment_amount, wait, make_only, initiator_addr) {
         const ptr0 = passStringToWasm0(name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
         const ptr1 = passStringToWasm0(uri, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len1 = WASM_VECTOR_LEN;
-        const ptr2 = passStringToWasm0(secret_key_pem, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len2 = WASM_VECTOR_LEN;
+        var ptr2 = isLikeNone(secret_key_pem) ? 0 : passStringToWasm0(secret_key_pem, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len2 = WASM_VECTOR_LEN;
         const ptr3 = passStringToWasm0(payment_amount, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len3 = WASM_VECTOR_LEN;
-        const ret = wasm.cep85client_install(this.__wbg_ptr, ptr0, len0, ptr1, len1, isLikeNone(events_mode) ? 0xFFFFFF : events_mode, isLikeNone(enable_burn) ? 0xFFFFFF : enable_burn ? 1 : 0, wasm, ptr2, len2, ptr3, len3, isLikeNone(wait) ? 0xFFFFFF : wait ? 1 : 0);
+        var ptr4 = isLikeNone(initiator_addr) ? 0 : passStringToWasm0(initiator_addr, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len4 = WASM_VECTOR_LEN;
+        const ret = wasm.cep85client_install(this.__wbg_ptr, ptr0, len0, ptr1, len1, isLikeNone(events_mode) ? 0xFFFFFF : events_mode, isLikeNone(enable_burn) ? 0xFFFFFF : enable_burn ? 1 : 0, wasm, ptr2, len2, ptr3, len3, isLikeNone(wait) ? 0xFFFFFF : wait ? 1 : 0, isLikeNone(make_only) ? 0xFFFFFF : make_only ? 1 : 0, ptr4, len4);
         return ret;
     }
     /**
@@ -461,23 +473,27 @@ class Cep95Client {
      * @param {string} symbol
      * @param {string} package_hash_key_name
      * @param {Uint8Array} wasm
-     * @param {string} secret_key_pem
+     * @param {string | null | undefined} secret_key_pem
      * @param {string} payment_amount
      * @param {boolean | null} [wait]
+     * @param {boolean | null} [make_only]
+     * @param {string | null} [initiator_addr]
      * @returns {Promise<string>}
      */
-    install(name, symbol, package_hash_key_name, wasm, secret_key_pem, payment_amount, wait) {
+    install(name, symbol, package_hash_key_name, wasm, secret_key_pem, payment_amount, wait, make_only, initiator_addr) {
         const ptr0 = passStringToWasm0(name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
         const ptr1 = passStringToWasm0(symbol, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len1 = WASM_VECTOR_LEN;
         const ptr2 = passStringToWasm0(package_hash_key_name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len2 = WASM_VECTOR_LEN;
-        const ptr3 = passStringToWasm0(secret_key_pem, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len3 = WASM_VECTOR_LEN;
+        var ptr3 = isLikeNone(secret_key_pem) ? 0 : passStringToWasm0(secret_key_pem, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len3 = WASM_VECTOR_LEN;
         const ptr4 = passStringToWasm0(payment_amount, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len4 = WASM_VECTOR_LEN;
-        const ret = wasm.cep95client_install(this.__wbg_ptr, ptr0, len0, ptr1, len1, ptr2, len2, wasm, ptr3, len3, ptr4, len4, isLikeNone(wait) ? 0xFFFFFF : wait ? 1 : 0);
+        var ptr5 = isLikeNone(initiator_addr) ? 0 : passStringToWasm0(initiator_addr, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len5 = WASM_VECTOR_LEN;
+        const ret = wasm.cep95client_install(this.__wbg_ptr, ptr0, len0, ptr1, len1, ptr2, len2, wasm, ptr3, len3, ptr4, len4, isLikeNone(wait) ? 0xFFFFFF : wait ? 1 : 0, isLikeNone(make_only) ? 0xFFFFFF : make_only ? 1 : 0, ptr5, len5);
         return ret;
     }
     /**
@@ -1044,13 +1060,13 @@ function __wbg_get_imports() {
             return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
         },
         __wbindgen_cast_0000000000000001: function(arg0, arg1) {
-            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 481, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-            const ret = makeMutClosure(arg0, arg1, wasm_bindgen_fcdb2a1b1112ab01___convert__closures_____invoke___wasm_bindgen_fcdb2a1b1112ab01___JsValue______true_);
+            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 1034, ret: Result(Unit), inner_ret: Some(Result(Unit)) }, mutable: true }) -> Externref`.
+            const ret = makeMutClosure(arg0, arg1, wasm_bindgen_fcdb2a1b1112ab01___convert__closures_____invoke___wasm_bindgen_fcdb2a1b1112ab01___JsValue__core_7a2330d63e03cc2c___result__Result_____wasm_bindgen_fcdb2a1b1112ab01___JsError___true_);
             return ret;
         },
         __wbindgen_cast_0000000000000002: function(arg0, arg1) {
-            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 927, ret: Result(Unit), inner_ret: Some(Result(Unit)) }, mutable: true }) -> Externref`.
-            const ret = makeMutClosure(arg0, arg1, wasm_bindgen_fcdb2a1b1112ab01___convert__closures_____invoke___wasm_bindgen_fcdb2a1b1112ab01___JsValue__core_7a2330d63e03cc2c___result__Result_____wasm_bindgen_fcdb2a1b1112ab01___JsError___true_);
+            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 588, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+            const ret = makeMutClosure(arg0, arg1, wasm_bindgen_fcdb2a1b1112ab01___convert__closures_____invoke___wasm_bindgen_fcdb2a1b1112ab01___JsValue______true_);
             return ret;
         },
         __wbindgen_cast_0000000000000003: function(arg0) {

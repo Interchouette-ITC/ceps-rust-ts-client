@@ -5,8 +5,8 @@ use ceps_client::cep78::InstallArgs as Cep78InstallArgs;
 use ceps_client::cep85::InstallArgs as Cep85InstallArgs;
 use ceps_client::cep95::InstallArgs as Cep95InstallArgs;
 use ceps_client::{
-    CallResult, Cep18Client, Cep78Client, Cep85Client, Cep95Client, DeployParams, EventsMode,
-    EventsMode78, Verbosity,
+    CallResult, Cep18Client, Cep78Client, Cep85Client, Cep95Client, EventsMode, EventsMode78,
+    TransactionParams, Verbosity,
 };
 use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
@@ -24,12 +24,28 @@ fn verbosity_from_u8(v: Option<u8>) -> Option<Verbosity> {
     }
 }
 
-fn deploy_params(secret_key_pem: &str, payment_amount: &str, wait: bool) -> DeployParams {
-    let mut d = DeployParams::new(secret_key_pem, payment_amount);
-    if !wait {
-        d = d.without_wait();
+fn transaction_params(
+    secret_key_pem: Option<&str>,
+    payment_amount: &str,
+    wait: bool,
+    make_only: bool,
+    initiator_addr: Option<&str>,
+) -> Result<TransactionParams, JsValue> {
+    let mut tx = match secret_key_pem.filter(|s| !s.trim().is_empty()) {
+        Some(pem) => TransactionParams::new(pem, payment_amount),
+        None => TransactionParams::for_make(payment_amount),
+    };
+    if make_only {
+        tx = tx.make_only();
     }
-    d
+    if !wait {
+        tx = tx.without_wait();
+    }
+    if let Some(addr) = initiator_addr.filter(|s| !s.trim().is_empty()) {
+        tx = tx.with_initiator_addr(addr);
+    }
+    tx.validate().map_err(|e| JsValue::from_str(&e))?;
+    Ok(tx)
 }
 
 fn call_result_json(result: CallResult) -> Result<String, JsValue> {
@@ -37,6 +53,8 @@ fn call_result_json(result: CallResult) -> Result<String, JsValue> {
         "transactionHash": result.transaction_hash,
         "hasExecutionResult": result.execution_result.is_some(),
         "cesEvents": result.ces_events,
+        "putResult": result.put_result,
+        "transaction": result.transaction,
     }))
     .map_err(|e| JsValue::from_str(&e.to_string()))
 }
@@ -107,9 +125,11 @@ impl WasmCep18Client {
         total_supply: String,
         events_mode: Option<u8>,
         wasm: Uint8Array,
-        secret_key_pem: String,
+        secret_key_pem: Option<String>,
         payment_amount: String,
         wait: Option<bool>,
+        make_only: Option<bool>,
+        initiator_addr: Option<String>,
     ) -> Result<String, JsValue> {
         let mut args = Cep18InstallArgs::new(name, symbol, decimals, total_supply);
         if let Some(mode) = events_mode {
@@ -117,10 +137,16 @@ impl WasmCep18Client {
                 .ok_or_else(|| JsValue::from_str("invalid events_mode"))?;
             args = args.with_events_mode(mode);
         }
-        let deploy = deploy_params(&secret_key_pem, &payment_amount, wait.unwrap_or(true));
+        let tx = transaction_params(
+            secret_key_pem.as_deref(),
+            &payment_amount,
+            wait.unwrap_or(true),
+            make_only.unwrap_or(false),
+            initiator_addr.as_deref(),
+        )?;
         let put = self
             .inner
-            .install(&args, &bytes_from_js(&wasm), &deploy)
+            .install(&args, &bytes_from_js(&wasm), &tx)
             .await
             .map_err(map_err)?;
         call_result_json(put)
@@ -200,9 +226,11 @@ impl WasmCep78Client {
         total_token_supply: u64,
         events_mode: Option<u8>,
         wasm: Uint8Array,
-        secret_key_pem: String,
+        secret_key_pem: Option<String>,
         payment_amount: String,
         wait: Option<bool>,
+        make_only: Option<bool>,
+        initiator_addr: Option<String>,
     ) -> Result<String, JsValue> {
         let mut args =
             Cep78InstallArgs::new(collection_name, collection_symbol, total_token_supply);
@@ -211,10 +239,16 @@ impl WasmCep78Client {
                 .ok_or_else(|| JsValue::from_str("invalid events_mode"))?;
             args = args.with_events_mode(mode);
         }
-        let deploy = deploy_params(&secret_key_pem, &payment_amount, wait.unwrap_or(true));
+        let tx = transaction_params(
+            secret_key_pem.as_deref(),
+            &payment_amount,
+            wait.unwrap_or(true),
+            make_only.unwrap_or(false),
+            initiator_addr.as_deref(),
+        )?;
         let put = self
             .inner
-            .install(&args, &bytes_from_js(&wasm), &deploy)
+            .install(&args, &bytes_from_js(&wasm), &tx)
             .await
             .map_err(map_err)?;
         call_result_json(put)
@@ -318,9 +352,11 @@ impl WasmCep85Client {
         events_mode: Option<u8>,
         enable_burn: Option<bool>,
         wasm: Uint8Array,
-        secret_key_pem: String,
+        secret_key_pem: Option<String>,
         payment_amount: String,
         wait: Option<bool>,
+        make_only: Option<bool>,
+        initiator_addr: Option<String>,
     ) -> Result<String, JsValue> {
         let mut args = Cep85InstallArgs::new(name, uri);
         if let Some(mode) = events_mode {
@@ -331,10 +367,16 @@ impl WasmCep85Client {
         if let Some(b) = enable_burn {
             args = args.with_enable_burn(b);
         }
-        let deploy = deploy_params(&secret_key_pem, &payment_amount, wait.unwrap_or(true));
+        let tx = transaction_params(
+            secret_key_pem.as_deref(),
+            &payment_amount,
+            wait.unwrap_or(true),
+            make_only.unwrap_or(false),
+            initiator_addr.as_deref(),
+        )?;
         let put = self
             .inner
-            .install(&args, &bytes_from_js(&wasm), &deploy)
+            .install(&args, &bytes_from_js(&wasm), &tx)
             .await
             .map_err(map_err)?;
         call_result_json(put)
@@ -407,15 +449,23 @@ impl WasmCep95Client {
         symbol: String,
         package_hash_key_name: String,
         wasm: Uint8Array,
-        secret_key_pem: String,
+        secret_key_pem: Option<String>,
         payment_amount: String,
         wait: Option<bool>,
+        make_only: Option<bool>,
+        initiator_addr: Option<String>,
     ) -> Result<String, JsValue> {
         let args = Cep95InstallArgs::new(name, symbol, package_hash_key_name);
-        let deploy = deploy_params(&secret_key_pem, &payment_amount, wait.unwrap_or(true));
+        let tx = transaction_params(
+            secret_key_pem.as_deref(),
+            &payment_amount,
+            wait.unwrap_or(true),
+            make_only.unwrap_or(false),
+            initiator_addr.as_deref(),
+        )?;
         let put = self
             .inner
-            .install(&args, &bytes_from_js(&wasm), &deploy)
+            .install(&args, &bytes_from_js(&wasm), &tx)
             .await
             .map_err(map_err)?;
         call_result_json(put)

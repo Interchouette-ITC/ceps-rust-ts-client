@@ -25,7 +25,7 @@ export class Cep18Client {
     /**
      * Install with required fields (+ optional CES events when `events_mode` is set).
      */
-    install(name: string, symbol: string, decimals: number, total_supply: string, events_mode: number | null | undefined, wasm: Uint8Array, secret_key_pem: string, payment_amount: string, wait?: boolean | null): Promise<string>;
+    install(name: string, symbol: string, decimals: number, total_supply: string, events_mode: number | null | undefined, wasm: Uint8Array, secret_key_pem: string | null | undefined, payment_amount: string, wait?: boolean | null, make_only?: boolean | null, initiator_addr?: string | null): Promise<string>;
     /**
      * Token name.
      */
@@ -69,7 +69,7 @@ export class Cep78Client {
     /**
      * Install with defaults (Transferable / Raw / Ordinal) and optional events mode.
      */
-    install(collection_name: string, collection_symbol: string, total_token_supply: bigint, events_mode: number | null | undefined, wasm: Uint8Array, secret_key_pem: string, payment_amount: string, wait?: boolean | null): Promise<string>;
+    install(collection_name: string, collection_symbol: string, total_token_supply: bigint, events_mode: number | null | undefined, wasm: Uint8Array, secret_key_pem: string | null | undefined, payment_amount: string, wait?: boolean | null, make_only?: boolean | null, initiator_addr?: string | null): Promise<string>;
     /**
      * Create a CEP-78 client.
      */
@@ -113,7 +113,7 @@ export class Cep85Client {
     /**
      * Install with URI and optional CES events / burn flag.
      */
-    install(name: string, uri: string, events_mode: number | null | undefined, enable_burn: boolean | null | undefined, wasm: Uint8Array, secret_key_pem: string, payment_amount: string, wait?: boolean | null): Promise<string>;
+    install(name: string, uri: string, events_mode: number | null | undefined, enable_burn: boolean | null | undefined, wasm: Uint8Array, secret_key_pem: string | null | undefined, payment_amount: string, wait?: boolean | null, make_only?: boolean | null, initiator_addr?: string | null): Promise<string>;
     /**
      * Create a CEP-85 client.
      */
@@ -145,7 +145,7 @@ export class Cep95Client {
     /**
      * Install Odra OwnedCep95 (or compatible) with package named-key name.
      */
-    install(name: string, symbol: string, package_hash_key_name: string, wasm: Uint8Array, secret_key_pem: string, payment_amount: string, wait?: boolean | null): Promise<string>;
+    install(name: string, symbol: string, package_hash_key_name: string, wasm: Uint8Array, secret_key_pem: string | null | undefined, payment_amount: string, wait?: boolean | null, make_only?: boolean | null, initiator_addr?: string | null): Promise<string>;
     /**
      * Collection name.
      */

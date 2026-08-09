@@ -14,29 +14,41 @@ use ceps_client::cep85::{
     Cep85Client, InstallArgs as Cep85InstallArgs, UpgradeArgs as Cep85UpgradeArgs,
 };
 use ceps_client::cep95::{Cep95Client, InstallArgs as Cep95InstallArgs};
-use ceps_client::{DeployParams, EventsMode, EventsMode78, Result as CepResult};
+use ceps_client::{EventsMode, EventsMode78, Result as CepResult, TransactionParams};
 use mcpkit::prelude::ToolOutput;
 use std::path::{Component, Path, PathBuf};
 
-/// Build `DeployParams` from MCP args.
-pub fn deploy_params(
-    secret_key_pem: String,
+/// Build `TransactionParams` from MCP args.
+pub fn transaction_params(
+    secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
     chain_name: Option<String>,
-) -> DeployParams {
-    let mut d = DeployParams::new(secret_key_pem, payment_amount);
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
+) -> Result<TransactionParams, String> {
+    let mut tx = match secret_key_pem.filter(|s| !s.trim().is_empty()) {
+        Some(pem) => TransactionParams::new(pem, payment_amount),
+        None => TransactionParams::for_make(payment_amount),
+    };
+    if make_only == Some(true) {
+        tx = tx.make_only();
+    }
     if wait == Some(false) {
-        d = d.without_wait();
+        tx = tx.without_wait();
     }
     if let Some(ms) = wait_timeout_ms {
-        d = d.with_timeout_ms(ms);
+        tx = tx.with_timeout_ms(ms);
     }
     if let Some(chain) = chain_name {
-        d = d.with_chain_name(chain);
+        tx = tx.with_chain_name(chain);
     }
-    d
+    if let Some(addr) = initiator_addr.filter(|s| !s.trim().is_empty()) {
+        tx = tx.with_initiator_addr(addr);
+    }
+    tx.validate()?;
+    Ok(tx)
 }
 
 fn resolve_under_root(root: &Path, relative: &str) -> Result<PathBuf, String> {
@@ -120,6 +132,7 @@ pub fn call_result_json(r: &ceps_client::CallResult) -> serde_json::Value {
         "hasExecutionResult": r.execution_result.is_some(),
         "putResult": r.put_result,
         "executionResult": r.execution_result,
+        "transaction": r.transaction,
     })
 }
 
@@ -319,9 +332,40 @@ mod tests {
     use super::*;
 
     #[test]
-    fn deploy_params_wait_flag() {
-        let d = deploy_params("pem".into(), "1".into(), Some(false), None, None);
+    fn transaction_params_wait_flag() {
+        let d = transaction_params(
+            Some("pem".into()),
+            "1".into(),
+            Some(false),
+            None,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
         assert!(!d.wait);
+        assert!(d.put);
+    }
+
+    #[test]
+    fn transaction_params_make_only() {
+        let d = transaction_params(
+            None,
+            "1".into(),
+            None,
+            None,
+            None,
+            Some(true),
+            Some("01ab".into()),
+        )
+        .unwrap();
+        assert!(!d.put);
+        assert_eq!(d.initiator_addr.as_deref(), Some("01ab"));
+    }
+
+    #[test]
+    fn transaction_params_put_requires_secret() {
+        assert!(transaction_params(None, "1".into(), None, None, None, None, None).is_err());
     }
 
     #[test]

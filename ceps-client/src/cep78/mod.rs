@@ -18,7 +18,7 @@ use crate::core::{
     bool_arg, json_args, key_arg, key_list_arg, string_arg, u64_arg, u8_arg, JsonArg,
 };
 use crate::error::{CepError, CepKind, Result};
-use crate::types::{CallResult, DeployParams, EventsMode78};
+use crate::types::{CallResult, EventsMode78, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use serde_json::Value;
 
@@ -104,10 +104,10 @@ impl Cep78Client {
         &self,
         args: &InstallArgs,
         wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         self.core
-            .install_wasm(wasm, deploy, &install_args_json(args)?)
+            .install_wasm(wasm, tx, &install_args_json(args)?)
             .await
     }
 
@@ -116,7 +116,7 @@ impl Cep78Client {
         &self,
         args: &UpgradeArgs,
         wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![string_arg("collection_name", &args.collection_name)];
         if let Some(supply) = args.total_token_supply {
@@ -134,7 +134,7 @@ impl Cep78Client {
         if let Some(b) = args.operator_burn_mode {
             v.push(bool_arg("operator_burn_mode", b));
         }
-        self.core.install_wasm(wasm, deploy, &json_args(&v)).await
+        self.core.install_wasm(wasm, tx, &json_args(&v)).await
     }
 
     /// Mint via entrypoint.
@@ -143,7 +143,7 @@ impl Cep78Client {
         token_owner: &str,
         token_meta_data: &str,
         token_hash: Option<&str>,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![
             key_arg("token_owner", &prefixed_key(token_owner)?),
@@ -152,9 +152,7 @@ impl Cep78Client {
         if let Some(hash) = token_hash {
             v.push(string_arg("token_hash", hash));
         }
-        self.core
-            .call_entrypoint("mint", deploy, &json_args(&v))
-            .await
+        self.core.call_entrypoint("mint", tx, &json_args(&v)).await
     }
 
     /// Mint via `mint_session.wasm` (registers owner + writes receipts).
@@ -164,7 +162,7 @@ impl Cep78Client {
         token_meta_data: &str,
         token_hash: Option<&str>,
         session_wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![
             key_arg("token_owner", &prefixed_key(token_owner)?),
@@ -175,16 +173,18 @@ impl Cep78Client {
             v.push(string_arg("token_hash", hash));
         }
         self.core
-            .call_session(session_wasm, deploy, &json_args(&v))
+            .call_session(session_wasm, tx, &json_args(&v))
             .await
     }
 
     /// Burn a token.
-    pub async fn burn(&self, token: &TokenIdentifier, deploy: &DeployParams) -> Result<CallResult> {
+    pub async fn burn(
+        &self,
+        token: &TokenIdentifier,
+        tx: &TransactionParams,
+    ) -> Result<CallResult> {
         let v = token_args(token)?;
-        self.core
-            .call_entrypoint("burn", deploy, &json_args(&v))
-            .await
+        self.core.call_entrypoint("burn", tx, &json_args(&v)).await
     }
 
     /// Transfer a token.
@@ -193,7 +193,7 @@ impl Cep78Client {
         source: &str,
         target: &str,
         token: &TokenIdentifier,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![
             key_arg("source_key", &prefixed_key(source)?),
@@ -201,7 +201,7 @@ impl Cep78Client {
         ];
         v.extend(token_args(token)?);
         self.core
-            .call_entrypoint("transfer", deploy, &json_args(&v))
+            .call_entrypoint("transfer", tx, &json_args(&v))
             .await
     }
 
@@ -212,7 +212,7 @@ impl Cep78Client {
         target: &str,
         token: &TokenIdentifier,
         session_wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![
             key_arg("source_key", &prefixed_key(source)?),
@@ -221,7 +221,7 @@ impl Cep78Client {
         ];
         v.extend(token_args(token)?);
         self.core
-            .call_session(session_wasm, deploy, &json_args(&v))
+            .call_session(session_wasm, tx, &json_args(&v))
             .await
     }
 
@@ -229,11 +229,11 @@ impl Cep78Client {
     pub async fn register_owner(
         &self,
         token_owner: &str,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![key_arg("token_owner", &prefixed_key(token_owner)?)];
         self.core
-            .call_entrypoint("register_owner", deploy, &json_args(&v))
+            .call_entrypoint("register_owner", tx, &json_args(&v))
             .await
     }
 
@@ -242,12 +242,12 @@ impl Cep78Client {
         &self,
         operator: &str,
         token: &TokenIdentifier,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![key_arg("operator", &prefixed_key(operator)?)];
         v.extend(token_args(token)?);
         self.core
-            .call_entrypoint("approve", deploy, &json_args(&v))
+            .call_entrypoint("approve", tx, &json_args(&v))
             .await
     }
 
@@ -256,12 +256,12 @@ impl Cep78Client {
         &self,
         operator: &str,
         token: &TokenIdentifier,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![key_arg("operator", &prefixed_key(operator)?)];
         v.extend(token_args(token)?);
         self.core
-            .call_entrypoint("revoke", deploy, &json_args(&v))
+            .call_entrypoint("revoke", tx, &json_args(&v))
             .await
     }
 
@@ -270,14 +270,14 @@ impl Cep78Client {
         &self,
         operator: &str,
         approve_all: bool,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![
             key_arg("operator", &prefixed_key(operator)?),
             bool_arg("approve_all", approve_all),
         ];
         self.core
-            .call_entrypoint("set_approval_for_all", deploy, &json_args(&v))
+            .call_entrypoint("set_approval_for_all", tx, &json_args(&v))
             .await
     }
 
@@ -286,12 +286,12 @@ impl Cep78Client {
         &self,
         token_meta_data: &str,
         token: &TokenIdentifier,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![string_arg("token_meta_data", token_meta_data)];
         v.extend(token_args(token)?);
         self.core
-            .call_entrypoint("set_token_metadata", deploy, &json_args(&v))
+            .call_entrypoint("set_token_metadata", tx, &json_args(&v))
             .await
     }
 
@@ -299,7 +299,7 @@ impl Cep78Client {
     pub async fn set_variables(
         &self,
         args: &SetVariablesArgs,
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v: Vec<JsonArg> = Vec::new();
         if let Some(b) = args.allow_minting {
@@ -324,7 +324,7 @@ impl Cep78Client {
             ));
         }
         self.core
-            .call_entrypoint("set_variables", deploy, &json_args(&v))
+            .call_entrypoint("set_variables", tx, &json_args(&v))
             .await
     }
 
@@ -332,7 +332,7 @@ impl Cep78Client {
     pub async fn updated_receipts(
         &self,
         session_wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let package = self
             .core
@@ -342,7 +342,7 @@ impl Cep78Client {
             .ok_or_else(|| CepError::MissingArgument("package hash required".into()))?;
         let v = vec![key_arg("nft_contract_hash", &format!("hash-{package}"))];
         self.core
-            .call_session(session_wasm, deploy, &json_args(&v))
+            .call_session(session_wasm, tx, &json_args(&v))
             .await
     }
 
@@ -479,7 +479,7 @@ impl Cep78Client {
         token: &TokenIdentifier,
         key_name: &str,
         session_wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![
             key_arg("nft_contract_hash", &self.contract_hash_key()?),
@@ -487,7 +487,7 @@ impl Cep78Client {
         ];
         v.extend(token_args(token)?);
         self.core
-            .call_session(session_wasm, deploy, &json_args(&v))
+            .call_session(session_wasm, tx, &json_args(&v))
             .await
     }
 
@@ -497,7 +497,7 @@ impl Cep78Client {
         token_owner: &str,
         key_name: &str,
         session_wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![
             key_arg("nft_contract_hash", &self.contract_hash_key()?),
@@ -505,7 +505,7 @@ impl Cep78Client {
             string_arg("key_name", key_name),
         ];
         self.core
-            .call_session(session_wasm, deploy, &json_args(&v))
+            .call_session(session_wasm, tx, &json_args(&v))
             .await
     }
 
@@ -515,7 +515,7 @@ impl Cep78Client {
         token: &TokenIdentifier,
         key_name: &str,
         session_wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![
             key_arg("nft_contract_hash", &self.contract_hash_key()?),
@@ -523,7 +523,7 @@ impl Cep78Client {
         ];
         v.extend(token_args(token)?);
         self.core
-            .call_session(session_wasm, deploy, &json_args(&v))
+            .call_session(session_wasm, tx, &json_args(&v))
             .await
     }
 
@@ -534,7 +534,7 @@ impl Cep78Client {
         operator: &str,
         key_name: &str,
         session_wasm: &[u8],
-        deploy: &DeployParams,
+        tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![
             key_arg("nft_contract_hash", &self.contract_hash_key()?),
@@ -543,7 +543,7 @@ impl Cep78Client {
             string_arg("key_name", key_name),
         ];
         self.core
-            .call_session(session_wasm, deploy, &json_args(&v))
+            .call_session(session_wasm, tx, &json_args(&v))
             .await
     }
 
@@ -819,5 +819,47 @@ mod tests {
         let s = json_args(&v);
         assert!(s.contains("token_id"));
         assert!(s.contains('7'));
+    }
+
+    #[tokio::test]
+    async fn make_only_install_returns_transaction_json() {
+        let client = Cep78Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let tx = TransactionParams::for_make("1000000000").with_initiator_addr(
+            "010101010101010101010101010101010101010101010101010101010101010101",
+        );
+        let wasm = [0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00];
+        let args = InstallArgs::new("Col", "COL", 50);
+        let result = client
+            .install(&args, &wasm, &tx)
+            .await
+            .expect("make-only install");
+        assert!(result.put_result.is_null());
+        assert!(result.transaction.is_some());
+        assert!(!result.transaction_hash.is_empty());
+    }
+
+    #[tokio::test]
+    async fn make_only_mint_returns_transaction_json() {
+        let mut client = Cep78Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        client
+            .set_contract_hash(
+                "cfa781f5eb69c3eee952c2944ce9670a049f88c5e46b83fb5881ebe13fb98e6d",
+                None::<&str>,
+            )
+            .unwrap();
+        let tx = TransactionParams::for_make("1000000000").with_initiator_addr(
+            "010101010101010101010101010101010101010101010101010101010101010101",
+        );
+        let result = client
+            .mint(
+                "account-hash-b485c074cef7ccaccd0302949d2043ab7133abdb14cfa87e8392945c0bd80a5f",
+                "meta",
+                None,
+                &tx,
+            )
+            .await
+            .expect("make-only mint");
+        assert!(result.put_result.is_null());
+        assert!(result.transaction.expect("json").is_object());
     }
 }

@@ -105,7 +105,7 @@ async fn live_ceps18_install_query() {
         "M18".into(),
         9,
         "1000000000000".into(),
-        secret.clone(),
+        Some(secret.clone()),
         INSTALL_PAYMENT_18.into(),
         Some("cep18/cep18.wasm".into()),
         None,
@@ -114,6 +114,8 @@ async fn live_ceps18_install_query() {
         None,
         None,
         Some(true),
+        None,
+        None,
         None,
     )
     .await;
@@ -166,12 +168,14 @@ async fn live_ceps78_install_query() {
         name.clone(),
         "M78".into(),
         100,
-        secret.clone(),
+        Some(secret.clone()),
         INSTALL_PAYMENT_78.into(),
         Some("cep78/cep78.wasm".into()),
         None,
         Some(2),
         Some(true),
+        None,
+        None,
         None,
     )
     .await;
@@ -223,7 +227,7 @@ async fn live_ceps85_install_query() {
     let install = cep85::install(
         name.clone(),
         "https://example.com/metadata/{id}.json".into(),
-        secret.clone(),
+        Some(secret.clone()),
         INSTALL_PAYMENT_85.into(),
         Some("cep85/cep85.wasm".into()),
         None,
@@ -234,6 +238,8 @@ async fn live_ceps85_install_query() {
         None,
         None,
         Some(true),
+        None,
+        None,
         None,
     )
     .await;
@@ -287,7 +293,7 @@ async fn live_ceps95_install_query() {
         name.clone(),
         "M95".into(),
         package_key.clone(),
-        secret.clone(),
+        Some(secret.clone()),
         INSTALL_PAYMENT_95.into(),
         Some("cep95/cep95.wasm".into()),
         None,
@@ -295,6 +301,8 @@ async fn live_ceps95_install_query() {
         None,
         None,
         Some(true),
+        None,
+        None,
         None,
     )
     .await;

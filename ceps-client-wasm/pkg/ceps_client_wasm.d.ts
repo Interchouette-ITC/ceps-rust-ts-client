@@ -25,7 +25,7 @@ export class Cep18Client {
     /**
      * Install with required fields (+ optional CES events when `events_mode` is set).
      */
-    install(name: string, symbol: string, decimals: number, total_supply: string, events_mode: number | null | undefined, wasm: Uint8Array, secret_key_pem: string, payment_amount: string, wait?: boolean | null): Promise<string>;
+    install(name: string, symbol: string, decimals: number, total_supply: string, events_mode: number | null | undefined, wasm: Uint8Array, secret_key_pem: string | null | undefined, payment_amount: string, wait?: boolean | null, make_only?: boolean | null, initiator_addr?: string | null): Promise<string>;
     /**
      * Token name.
      */
@@ -69,7 +69,7 @@ export class Cep78Client {
     /**
      * Install with defaults (Transferable / Raw / Ordinal) and optional events mode.
      */
-    install(collection_name: string, collection_symbol: string, total_token_supply: bigint, events_mode: number | null | undefined, wasm: Uint8Array, secret_key_pem: string, payment_amount: string, wait?: boolean | null): Promise<string>;
+    install(collection_name: string, collection_symbol: string, total_token_supply: bigint, events_mode: number | null | undefined, wasm: Uint8Array, secret_key_pem: string | null | undefined, payment_amount: string, wait?: boolean | null, make_only?: boolean | null, initiator_addr?: string | null): Promise<string>;
     /**
      * Create a CEP-78 client.
      */
@@ -113,7 +113,7 @@ export class Cep85Client {
     /**
      * Install with URI and optional CES events / burn flag.
      */
-    install(name: string, uri: string, events_mode: number | null | undefined, enable_burn: boolean | null | undefined, wasm: Uint8Array, secret_key_pem: string, payment_amount: string, wait?: boolean | null): Promise<string>;
+    install(name: string, uri: string, events_mode: number | null | undefined, enable_burn: boolean | null | undefined, wasm: Uint8Array, secret_key_pem: string | null | undefined, payment_amount: string, wait?: boolean | null, make_only?: boolean | null, initiator_addr?: string | null): Promise<string>;
     /**
      * Create a CEP-85 client.
      */
@@ -145,7 +145,7 @@ export class Cep95Client {
     /**
      * Install Odra OwnedCep95 (or compatible) with package named-key name.
      */
-    install(name: string, symbol: string, package_hash_key_name: string, wasm: Uint8Array, secret_key_pem: string, payment_amount: string, wait?: boolean | null): Promise<string>;
+    install(name: string, symbol: string, package_hash_key_name: string, wasm: Uint8Array, secret_key_pem: string | null | undefined, payment_amount: string, wait?: boolean | null, make_only?: boolean | null, initiator_addr?: string | null): Promise<string>;
     /**
      * Collection name.
      */
@@ -211,7 +211,7 @@ export interface InitOutput {
     readonly __wbg_cep18client_free: (a: number, b: number) => void;
     readonly cep18client_balanceOf: (a: number, b: number, c: number) => any;
     readonly cep18client_chainName: (a: number) => [number, number];
-    readonly cep18client_install: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: any, k: number, l: number, m: number, n: number, o: number) => any;
+    readonly cep18client_install: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: any, k: number, l: number, m: number, n: number, o: number, p: number, q: number, r: number) => any;
     readonly cep18client_name: (a: number) => any;
     readonly cep18client_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
     readonly cep18client_rpcUrl: (a: number) => [number, number];
@@ -220,16 +220,16 @@ export interface InitOutput {
     readonly cep18client_symbol: (a: number) => any;
     readonly cep78client_balanceOf: (a: number, b: number, c: number) => any;
     readonly cep78client_collectionName: (a: number) => any;
-    readonly cep78client_install: (a: number, b: number, c: number, d: number, e: number, f: bigint, g: number, h: any, i: number, j: number, k: number, l: number, m: number) => any;
+    readonly cep78client_install: (a: number, b: number, c: number, d: number, e: number, f: bigint, g: number, h: any, i: number, j: number, k: number, l: number, m: number, n: number, o: number, p: number) => any;
     readonly cep78client_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
     readonly cep78client_ownershipMode: (a: number) => any;
     readonly cep78client_parseCes: (a: number, b: number, c: number) => any;
     readonly cep85client_balanceOf: (a: number, b: number, c: number, d: number, e: number) => any;
     readonly cep85client_collectionName: (a: number) => any;
-    readonly cep85client_install: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: any, i: number, j: number, k: number, l: number, m: number) => any;
+    readonly cep85client_install: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: any, i: number, j: number, k: number, l: number, m: number, n: number, o: number, p: number) => any;
     readonly cep85client_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
     readonly cep95client_balanceOf: (a: number, b: number, c: number) => any;
-    readonly cep95client_install: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: any, i: number, j: number, k: number, l: number, m: number) => any;
+    readonly cep95client_install: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: any, i: number, j: number, k: number, l: number, m: number, n: number, o: number, p: number) => any;
     readonly cep95client_name: (a: number) => any;
     readonly cep95client_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
     readonly cep95client_ownerOf: (a: number, b: number, c: number) => any;

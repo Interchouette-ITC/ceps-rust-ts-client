@@ -4,18 +4,21 @@ use casper_rust_wasm_sdk::SSE::CESParseResult;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-/// Outcome of putting (and optionally waiting for) a transaction.
+/// Outcome of putting (and optionally waiting for) a transaction, or make-only JSON.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CallResult {
     /// Transaction hash as hex.
     pub transaction_hash: String,
-    /// Raw put-transaction API response (JSON).
+    /// Raw put-transaction API response (JSON). Null on make-only.
     pub put_result: Value,
     /// Execution result JSON when wait succeeded and a result was available.
     pub execution_result: Option<Value>,
     /// Soft-fail CES decode rows when wait attached execution and a contract hash was bound.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ces_events: Option<Vec<CESParseResult>>,
+    /// Made Transaction JSON (puttable later). Present on make-only; omitted on put path.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transaction: Option<Value>,
 }
 
 impl CallResult {
@@ -26,6 +29,18 @@ impl CallResult {
             put_result,
             execution_result: None,
             ces_events: None,
+            transaction: None,
+        }
+    }
+
+    /// Construct from a made Transaction (no put).
+    pub fn from_make(transaction_hash: impl Into<String>, transaction: Value) -> Self {
+        Self {
+            transaction_hash: transaction_hash.into(),
+            put_result: Value::Null,
+            execution_result: None,
+            ces_events: None,
+            transaction: Some(transaction),
         }
     }
 

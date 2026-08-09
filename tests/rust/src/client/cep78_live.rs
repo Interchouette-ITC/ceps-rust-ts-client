@@ -6,7 +6,7 @@ mod tests {
         nctl_available, user1_account_hash, user1_public_key_hex, user1_secret_pem, CALL_PAYMENT,
     };
     use ceps_client::cep78::{InstallArgs, TokenIdentifier};
-    use ceps_client::{Cep78Client, DeployParams, EventsMode78, Verbosity};
+    use ceps_client::{Cep78Client, EventsMode78, TransactionParams, Verbosity};
     use std::env;
     use std::fs;
     use std::path::PathBuf;
@@ -54,11 +54,8 @@ mod tests {
             .as_secs();
         let name = format!("Ceps78{nonce}");
         let args = InstallArgs::new(&name, "C78", 100).with_events_mode(EventsMode78::Ces);
-        let deploy = DeployParams::new(&secret, INSTALL_PAYMENT);
-        let put = client
-            .install(&args, &wasm, &deploy)
-            .await
-            .expect("install");
+        let tx = TransactionParams::new(&secret, INSTALL_PAYMENT);
+        let put = client.install(&args, &wasm, &tx).await.expect("install");
         assert!(!put.transaction_hash.is_empty());
 
         let pk = user1_public_key_hex(&secret);
@@ -88,9 +85,9 @@ mod tests {
         );
 
         let owner = user1_account_hash(&secret);
-        let mint_deploy = DeployParams::new(&secret, CALL_PAYMENT);
+        let mint_tx = TransactionParams::new(&secret, CALL_PAYMENT);
         let mint = client
-            .mint(&owner, "meta-0", None, &mint_deploy)
+            .mint(&owner, "meta-0", None, &mint_tx)
             .await
             .expect("mint");
         let hash_key = format!(
@@ -147,7 +144,7 @@ mod tests {
             let session_bytes = fs::read(&session_wasm).expect("balance session wasm");
             let key_name = format!("ceps78_bal_{nonce}");
             let session = client
-                .balance_of_session(&owner, &key_name, &session_bytes, &mint_deploy)
+                .balance_of_session(&owner, &key_name, &session_bytes, &mint_tx)
                 .await
                 .expect("balance_of_session");
             assert!(!session.transaction_hash.is_empty());
