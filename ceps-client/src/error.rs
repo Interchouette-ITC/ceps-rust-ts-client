@@ -4,12 +4,12 @@ use casper_rust_wasm_sdk::types::sdk_error::SdkError;
 use std::fmt;
 use thiserror::Error;
 
-/// Alias for `Result<T, CepError>`.
-pub type Result<T> = std::result::Result<T, CepError>;
+/// Alias for `Result<T, CEPError>`.
+pub type Result<T> = std::result::Result<T, CEPError>;
 
 /// Errors produced by `ceps-client`.
 #[derive(Debug, Error)]
-pub enum CepError {
+pub enum CEPError {
     /// Invalid or empty endpoint URL.
     #[error("invalid URL: {0}")]
     InvalidUrl(String),
@@ -46,7 +46,7 @@ pub enum CepError {
         /// Parsed `User error: N` code when present.
         user_error: Option<u16>,
         /// CEP family that owns the user-error map, when known.
-        cep: Option<CepKind>,
+        cep: Option<CEPKind>,
     },
 
     /// Query returned no stored value.
@@ -68,43 +68,43 @@ pub enum CepError {
 
 /// Which CEP owns a user-error code space.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CepKind {
+pub enum CEPKind {
     /// CEP-18 fungible token (user errors `60000+`).
-    Cep18,
+    CEP18,
     /// CEP-78 enhanced NFT (user errors `1..=180`).
-    Cep78,
+    CEP78,
     /// CEP-85 multi-token (user errors `1..=91`).
-    Cep85,
+    CEP85,
     /// CEP-95 NFT (Odra tip errors `20000+` / `40000+`).
-    Cep95,
+    CEP95,
 }
 
-impl fmt::Display for CepKind {
+impl fmt::Display for CEPKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Cep18 => write!(f, "CEP-18"),
-            Self::Cep78 => write!(f, "CEP-78"),
-            Self::Cep85 => write!(f, "CEP-85"),
-            Self::Cep95 => write!(f, "CEP-95"),
+            Self::CEP18 => write!(f, "CEP-18"),
+            Self::CEP78 => write!(f, "CEP-78"),
+            Self::CEP85 => write!(f, "CEP-85"),
+            Self::CEP95 => write!(f, "CEP-95"),
         }
     }
 }
 
-impl From<SdkError> for CepError {
+impl From<SdkError> for CEPError {
     fn from(value: SdkError) -> Self {
-        CepError::Sdk(Box::new(value))
+        CEPError::Sdk(Box::new(value))
     }
 }
 
-impl From<Box<SdkError>> for CepError {
+impl From<Box<SdkError>> for CEPError {
     fn from(value: Box<SdkError>) -> Self {
-        CepError::Sdk(value)
+        CEPError::Sdk(value)
     }
 }
 
-impl CepError {
-    /// Build an [`CepError::Execution`] from a node error string.
-    pub fn from_execution_message(message: impl Into<String>, cep: Option<CepKind>) -> Self {
+impl CEPError {
+    /// Build a [`CEPError::Execution`] from a node error string.
+    pub fn from_execution_message(message: impl Into<String>, cep: Option<CEPKind>) -> Self {
         let message = message.into();
         let user_error = parse_user_error(&message);
         Self::Execution {

@@ -1,6 +1,6 @@
 //! CEP-85 entity key prefixes (`entity-account-` / `entity-contract-`).
 
-use crate::error::{CepError, Result};
+use crate::error::{CEPError, Result};
 use crate::types::strip_hash_prefix;
 
 /// Normalize an identity into CEP-85 entity-prefixed form.
@@ -11,7 +11,7 @@ use crate::types::strip_hash_prefix;
 pub fn prefixed_key(input: &str) -> Result<String> {
     let trimmed = input.trim();
     if trimmed.is_empty() {
-        return Err(CepError::InvalidHash("empty key".into()));
+        return Err(CEPError::InvalidHash("empty key".into()));
     }
     if trimmed.starts_with("entity-") {
         return Ok(trimmed.to_string());
@@ -29,7 +29,7 @@ pub fn prefixed_key(input: &str) -> Result<String> {
     if hex.len() == 64 && hex.chars().all(|c| c.is_ascii_hexdigit()) {
         return Ok(format!("entity-contract-{hex}"));
     }
-    Err(CepError::InvalidHash(format!(
+    Err(CEPError::InvalidHash(format!(
         "unsupported CEP-85 key form: {input}"
     )))
 }

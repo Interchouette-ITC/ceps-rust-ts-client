@@ -3,7 +3,7 @@
 /// On-chain CEP-78 user error discriminants.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u16)]
-pub enum Cep78Error {
+pub enum CEP78Error {
     /// `InvalidAccount` (user error 1).
     InvalidAccount = 1,
     /// `MissingInstaller` (user error 2).
@@ -270,10 +270,10 @@ pub enum Cep78Error {
     UnregisteredOwnerFromMigration = 132,
     /// `ExceededMaxTotalSupply` (user error 133).
     ExceededMaxTotalSupply = 133,
-    /// `MissingCep78PackageHash` (user error 134).
-    MissingCep78PackageHash = 134,
-    /// `InvalidCep78InvalidHash` (user error 135).
-    InvalidCep78InvalidHash = 135,
+    /// `MissingCEP78PackageHash` (user error 134).
+    MissingCEP78PackageHash = 134,
+    /// `InvalidCEP78InvalidHash` (user error 135).
+    InvalidCEP78InvalidHash = 135,
     /// `InvalidPackageHashName` (user error 136).
     InvalidPackageHashName = 136,
     /// `InvalidAccessKeyName` (user error 137).
@@ -366,7 +366,7 @@ pub enum Cep78Error {
     InvalidVersionContractKey = 180,
 }
 
-impl Cep78Error {
+impl CEP78Error {
     /// Map from on-chain user error code when known.
     pub fn from_user_code(code: u16) -> Option<Self> {
         match code {
@@ -503,8 +503,8 @@ impl Cep78Error {
             131 => Some(Self::MissingPage),
             132 => Some(Self::UnregisteredOwnerFromMigration),
             133 => Some(Self::ExceededMaxTotalSupply),
-            134 => Some(Self::MissingCep78PackageHash),
-            135 => Some(Self::InvalidCep78InvalidHash),
+            134 => Some(Self::MissingCEP78PackageHash),
+            135 => Some(Self::InvalidCEP78InvalidHash),
             136 => Some(Self::InvalidPackageHashName),
             137 => Some(Self::InvalidAccessKeyName),
             138 => Some(Self::InvalidCheckForUpgrade),
@@ -690,8 +690,8 @@ impl Cep78Error {
             Self::MissingPage => "MissingPage",
             Self::UnregisteredOwnerFromMigration => "UnregisteredOwnerFromMigration",
             Self::ExceededMaxTotalSupply => "ExceededMaxTotalSupply",
-            Self::MissingCep78PackageHash => "MissingCep78PackageHash",
-            Self::InvalidCep78InvalidHash => "InvalidCep78InvalidHash",
+            Self::MissingCEP78PackageHash => "MissingCEP78PackageHash",
+            Self::InvalidCEP78InvalidHash => "InvalidCEP78InvalidHash",
             Self::InvalidPackageHashName => "InvalidPackageHashName",
             Self::InvalidAccessKeyName => "InvalidAccessKeyName",
             Self::InvalidCheckForUpgrade => "InvalidCheckForUpgrade",
@@ -750,11 +750,11 @@ mod tests {
     #[test]
     fn maps_invalid_token_identifier() {
         assert_eq!(
-            Cep78Error::from_user_code(28),
-            Some(Cep78Error::InvalidTokenIdentifier)
+            CEP78Error::from_user_code(28),
+            Some(CEP78Error::InvalidTokenIdentifier)
         );
         assert_eq!(
-            Cep78Error::InvalidTokenIdentifier.as_str(),
+            CEP78Error::InvalidTokenIdentifier.as_str(),
             "InvalidTokenIdentifier"
         );
     }
@@ -762,14 +762,14 @@ mod tests {
     #[test]
     fn maps_full_range_ends() {
         assert_eq!(
-            Cep78Error::from_user_code(1),
-            Some(Cep78Error::InvalidAccount)
+            CEP78Error::from_user_code(1),
+            Some(CEP78Error::InvalidAccount)
         );
         assert_eq!(
-            Cep78Error::from_user_code(180),
-            Some(Cep78Error::InvalidVersionContractKey)
+            CEP78Error::from_user_code(180),
+            Some(CEP78Error::InvalidVersionContractKey)
         );
-        assert!(Cep78Error::from_user_code(0).is_none());
-        assert!(Cep78Error::from_user_code(181).is_none());
+        assert!(CEP78Error::from_user_code(0).is_none());
+        assert!(CEP78Error::from_user_code(181).is_none());
     }
 }

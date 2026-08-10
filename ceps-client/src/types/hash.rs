@@ -1,6 +1,6 @@
 //! Contract hash / package hash targeting helpers.
 
-use crate::error::{CepError, Result};
+use crate::error::{CEPError, Result};
 
 /// Bound contract identity used for entrypoint calls and state queries.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -19,7 +19,7 @@ impl ContractTarget {
     ) -> Result<Self> {
         let contract_hash = strip_hash_prefix(contract_hash.as_ref());
         if contract_hash.is_empty() || !is_hex64(&contract_hash) {
-            return Err(CepError::InvalidHash(
+            return Err(CEPError::InvalidHash(
                 "contract hash must be 64 hex chars (optional prefix allowed)".into(),
             ));
         }
@@ -29,7 +29,7 @@ impl ContractTarget {
                 if hex.is_empty() {
                     None
                 } else if !is_hex64(&hex) {
-                    return Err(CepError::InvalidHash(
+                    return Err(CEPError::InvalidHash(
                         "package hash must be 64 hex chars (optional prefix allowed)".into(),
                     ));
                 } else {

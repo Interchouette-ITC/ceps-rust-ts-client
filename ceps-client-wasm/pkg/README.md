@@ -2,7 +2,7 @@
 
 One **Rust** client for Casper **CEP-18**, **CEP-78**, **CEP-85**, and **CEP-95**, with a **`ceps-client-cli`**, **`ceps-rust-ts-client-mcp`**, and **WASM packs** so the same client can run from shell, agents, Node, or the browser.
 
-It replaces the separate TypeScript **`client-js`** packages that lived next to each CEP contract. Instead of per-CEP JS clients, you use one library: `Cep18Client` / `Cep78Client` / `Cep85Client` / `Cep95Client`, on top of [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
+It replaces the separate TypeScript **`client-js`** packages that lived next to each CEP contract. Instead of per-CEP JS clients, you use one library: `CEP18Client` / `CEP78Client` / `CEP85Client` / `CEP95Client`, on top of [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk).
 
 ```text
 CEP-18 client-js  ─┐
@@ -84,9 +84,9 @@ install → named keys cep18_contract_hash_* / package_*
 
 ```rust
 use ceps_client::cep18::InstallArgs;
-use ceps_client::{Cep18Client, TransactionParams, EventsMode, Verbosity};
+use ceps_client::{CEP18Client, TransactionParams, EventsMode, Verbosity};
 
-let mut client = Cep18Client::new(
+let mut client = CEP18Client::new(
     "http://127.0.0.1:11101",
     Some("http://127.0.0.1:18101/events".into()),
     Some("casper-net-1".into()),
@@ -96,7 +96,7 @@ let mut client = Cep18Client::new(
 let put = client
     .install(
         &InstallArgs::new("MyToken", "MTK", 9, "1000000000")
-            .with_events_mode(EventsMode::Ces)
+            .with_events_mode(EventsMode::CES)
             .with_mint_and_burn(true),
         &contract_wasm_bytes,
         &TransactionParams::new(&secret_pem, "400000000000"),
@@ -118,12 +118,12 @@ install → named keys cep78_contract_hash_* / package_*
 
 ```rust
 use ceps_client::cep78::InstallArgs;
-use ceps_client::{Cep78Client, TransactionParams, EventsMode78, Verbosity};
+use ceps_client::{CEP78Client, TransactionParams, EventsMode78, Verbosity};
 
-let mut client = Cep78Client::new(/* rpc, sse, chain, verbosity */)?;
+let mut client = CEP78Client::new(/* rpc, sse, chain, verbosity */)?;
 client
     .install(
-        &InstallArgs::new("MyNft", "NFT", 100).with_events_mode(EventsMode78::Ces),
+        &InstallArgs::new("MyNft", "NFT", 100).with_events_mode(EventsMode78::CES),
         &contract_wasm_bytes,
         &TransactionParams::new(&secret_pem, "600000000000"),
     )
@@ -152,13 +152,13 @@ install → named keys cep85_contract_hash_* / package_*
 
 ```rust
 use ceps_client::cep85::InstallArgs;
-use ceps_client::{Cep85Client, TransactionParams, EventsMode, Verbosity};
+use ceps_client::{CEP85Client, TransactionParams, EventsMode, Verbosity};
 
-let mut client = Cep85Client::new(/* rpc, sse, chain, verbosity */)?;
+let mut client = CEP85Client::new(/* rpc, sse, chain, verbosity */)?;
 client
     .install(
         &InstallArgs::new("MyMulti", "https://example.com/{id}.json")
-            .with_events_mode(EventsMode::Ces)
+            .with_events_mode(EventsMode::CES)
             .with_enable_burn(true),
         &contract_wasm_bytes,
         &TransactionParams::new(&secret_pem, "550000000000"),
@@ -181,9 +181,9 @@ install (odra_cfg_package_hash_key_name) → bind_odra_install
 
 ```rust
 use ceps_client::cep95::InstallArgs;
-use ceps_client::{Cep95Client, TransactionParams, Verbosity};
+use ceps_client::{CEP95Client, TransactionParams, Verbosity};
 
-let mut client = Cep95Client::new(/* rpc, sse, chain, verbosity */)?;
+let mut client = CEP95Client::new(/* rpc, sse, chain, verbosity */)?;
 client
     .install(
         &InstallArgs::new("MyNft", "MNFT", "cep95_pkg_demo"),
@@ -223,7 +223,7 @@ More setup: [docs/getting-started.md](docs/getting-started.md).
 
 ## Client JS packs (`ceps-client-wasm`)
 
-`ceps-client-wasm` is the **Rust CEP client compiled for JavaScript** (the replacement for per-CEP `client-js`). Use it from Node or the browser for the same `Cep18Client` / `Cep78Client` / `Cep85Client` surface.
+`ceps-client-wasm` is the **Rust CEP client compiled for JavaScript** (the replacement for per-CEP `client-js`). Use it from Node or the browser for the same `CEP18Client` / `CEP78Client` / `CEP85Client` surface.
 
 It is **not** on-chain contract bytecode (that is `tests/wasm/` / `ceps-contracts-*.tgz`).
 
@@ -246,9 +246,9 @@ mkdir -p ceps-client-wasm && tar -xzf ceps-client-wasm-nodejs.tgz -C ceps-client
 ```
 
 ```js
-import { Cep18Client } from "ceps-client-wasm"; // file:./ceps-client-wasm/pkg-nodejs after unpack
+import { CEP18Client } from "ceps-client-wasm"; // file:./ceps-client-wasm/pkg-nodejs after unpack
 
-const client = new Cep18Client(
+const client = new CEP18Client(
   "http://127.0.0.1:11101",
   "http://127.0.0.1:18101/events",
   "casper-net-1",

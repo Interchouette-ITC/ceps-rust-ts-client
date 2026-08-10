@@ -6,7 +6,7 @@ mod tests {
         nctl_available, user1_account_hash, user1_public_key_hex, user1_secret_pem, CALL_PAYMENT,
     };
     use ceps_client::cep78::{InstallArgs, TokenIdentifier};
-    use ceps_client::{Cep78Client, EventsMode78, TransactionParams, Verbosity};
+    use ceps_client::{CEP78Client, EventsMode78, TransactionParams, Verbosity};
     use std::env;
     use std::fs;
     use std::path::PathBuf;
@@ -14,11 +14,11 @@ mod tests {
 
     const INSTALL_PAYMENT: &str = "600000000000";
 
-    fn cep78_client() -> Cep78Client {
+    fn cep78_client() -> CEP78Client {
         let rpc = env::var("CEPS_RPC_URL").unwrap_or_else(|_| "http://127.0.0.1:11101".into());
         let sse =
             env::var("CEPS_SSE_URL").unwrap_or_else(|_| "http://127.0.0.1:18101/events".into());
-        Cep78Client::new(
+        CEP78Client::new(
             rpc,
             Some(sse),
             Some("casper-net-1".into()),
@@ -53,19 +53,17 @@ mod tests {
             .unwrap()
             .as_secs();
         let name = format!("Ceps78{nonce}");
-        let args = InstallArgs::new(&name, "C78", 100).with_events_mode(EventsMode78::Ces);
+        let args = InstallArgs::new(&name, "C78", 100).with_events_mode(EventsMode78::CES);
         let tx = TransactionParams::new(&secret, INSTALL_PAYMENT);
         let put = client.install(&args, &wasm, &tx).await.expect("install");
         assert!(!put.transaction_hash.is_empty());
 
         let pk = user1_public_key_hex(&secret);
         let contract = client
-            .core()
             .get_account_named_key(&pk, &format!("cep78_contract_hash_{name}"))
             .await
             .expect("contract hash");
         let package = client
-            .core()
             .get_account_named_key(&pk, &format!("cep78_contract_package_{name}"))
             .await
             .expect("package hash");
@@ -81,7 +79,7 @@ mod tests {
         );
         assert_eq!(
             client.events_mode().await.expect("events_mode"),
-            EventsMode78::Ces
+            EventsMode78::CES
         );
 
         let owner = user1_account_hash(&secret);
@@ -92,35 +90,22 @@ mod tests {
             .expect("mint");
         let hash_key = format!(
             "hash-{}",
-            client
-                .core()
-                .require_target()
-                .expect("target")
-                .contract_hash
+            client.core().target().expect("target").contract_hash
         );
         let ces = if let Some(rows) = mint.ces_events.clone() {
             rows
         } else if let Some(exec) = mint.execution_result.as_ref() {
-            let parser = client
+            client
                 .core()
-                .ces_parser_create(&[hash_key.clone()], None)
+                .parse_ces_execution(&[hash_key], exec)
                 .await
-                .expect("ces_parser_create");
-            let exec_str = exec.to_string();
-            parser
-                .parse_transaction_processed_json(&exec_str)
-                .or_else(|_| {
-                    parser.parse_execution_result(&{
-                        // Prefer nested execution_result bodies when present.
-                        exec.pointer("/execution_info/execution_result")
-                            .or_else(|| exec.get("execution_result"))
-                            .cloned()
-                            .unwrap_or_else(|| exec.clone())
-                    })
-                })
                 .unwrap_or_default()
         } else {
-            Vec::new()
+            client
+                .core()
+                .parse_ces_transaction(&[hash_key], &mint.transaction_hash)
+                .await
+                .unwrap_or_default()
         };
         if ces.is_empty() {
             eprintln!(
@@ -149,7 +134,6 @@ mod tests {
                 .expect("balance_of_session");
             assert!(!session.transaction_hash.is_empty());
             let stored = client
-                .core()
                 .get_account_named_key(&pk, &key_name)
                 .await
                 .expect("session named key");

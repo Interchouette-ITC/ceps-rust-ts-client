@@ -1,4 +1,4 @@
-//! Install an Odra OwnedCep95 on NCTL, mint one token, print owner.
+//! Install an Odra OwnedCEP95 on NCTL, mint one token, print owner.
 //!
 //! ```bash
 //! SECRET_KEY_USER_1="$(cat ../casper-nctl-2-docker/assets/users/user-1/secret_key.pem)" \
@@ -6,7 +6,7 @@
 //! ```
 
 use ceps_client::cep95::InstallArgs;
-use ceps_client::{Cep95Client, TransactionParams, Verbosity};
+use ceps_client::{CEP95Client, TransactionParams, Verbosity};
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../tests/wasm/cep95/cep95.wasm");
     let wasm = fs::read(&wasm_path)?;
 
-    let mut client = Cep95Client::new(
+    let mut client = CEP95Client::new(
         "http://127.0.0.1:11101",
         Some("http://127.0.0.1:18101/events".into()),
         Some("casper-net-1".into()),

@@ -211,6 +211,13 @@ e2e-test:
 	$(CARGO) run -p $(CLI_CRATE) -- cep78 info
 	$(CARGO) run -p $(CLI_CRATE) -- cep85 info
 	$(CARGO) run -p $(CLI_CRATE) -- cep95 info
+	@echo "e2e-test: put-transaction rejects invalid JSON"
+	@tmp=$$(mktemp); \
+	  printf '%s\n' '{"not":"a_transaction"}' > "$$tmp"; \
+	  if $(CARGO) run -p $(CLI_CRATE) -- put-transaction --transaction-file "$$tmp" --no-wait; then \
+	    rm -f "$$tmp"; echo "expected put-transaction to fail"; exit 1; \
+	  fi; \
+	  rm -f "$$tmp"
 
 examples:
 	$(CARGO) run -p $(COMMON_CRATE) --example cep18_install

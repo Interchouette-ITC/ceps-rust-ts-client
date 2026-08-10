@@ -35,7 +35,7 @@ mod tests {
             .as_secs();
         let name = format!("CepsRust{nonce}");
         let args = InstallArgs::new(&name, "CRT", 9, "1000000000000")
-            .with_events_mode(EventsMode::Ces)
+            .with_events_mode(EventsMode::CES)
             .with_mint_and_burn(true);
 
         let tx = TransactionParams::new(&secret, INSTALL_PAYMENT);
@@ -44,12 +44,10 @@ mod tests {
 
         let pk = user1_public_key_hex(&secret);
         let contract_hash = client
-            .core()
             .get_account_named_key(&pk, &format!("cep18_contract_hash_{name}"))
             .await
             .expect("contract hash named key");
         let package_hash = client
-            .core()
             .get_account_named_key(&pk, &format!("cep18_contract_package_{name}"))
             .await
             .expect("package hash named key");
@@ -73,6 +71,83 @@ mod tests {
         assert!(!burned.transaction_hash.is_empty());
         assert_eq!(
             client.balance_of(&owner).await.expect("balance after"),
+            "999999999999"
+        );
+    }
+
+    #[tokio::test]
+    async fn cep18_make_only_then_put_and_wait() {
+        if !nctl_available() {
+            eprintln!("skip: NCTL RPC not reachable on 127.0.0.1:11101");
+            return;
+        }
+        let Some(secret) = user1_secret_pem() else {
+            eprintln!("skip: user-1 secret key not found");
+            return;
+        };
+        let wasm_file = wasm_path("cep18.wasm");
+        if !wasm_file.is_file() {
+            eprintln!("skip: missing {}", wasm_file.display());
+            return;
+        }
+        let wasm = fs::read(&wasm_file).expect("read wasm");
+
+        let mut client = cep18_client();
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+        let name = format!("CepsPut{nonce}");
+        let args = InstallArgs::new(&name, "PUT", 9, "1000000000000")
+            .with_events_mode(EventsMode::CES)
+            .with_mint_and_burn(true);
+
+        let install_tx = TransactionParams::new(&secret, INSTALL_PAYMENT);
+        client
+            .install(&args, &wasm, &install_tx)
+            .await
+            .expect("install");
+
+        let pk = user1_public_key_hex(&secret);
+        let contract_hash = client
+            .get_account_named_key(&pk, &format!("cep18_contract_hash_{name}"))
+            .await
+            .expect("contract hash named key");
+        let package_hash = client
+            .get_account_named_key(&pk, &format!("cep18_contract_package_{name}"))
+            .await
+            .expect("package hash named key");
+        client
+            .set_contract_hash(&contract_hash, Some(&package_hash))
+            .expect("set hashes");
+
+        let owner = user1_account_hash(&secret);
+        let make_tx = TransactionParams::new(&secret, CALL_PAYMENT).make_only();
+        let made = client
+            .burn(&owner, "1", &make_tx)
+            .await
+            .expect("make-only burn");
+        let body = made
+            .transaction
+            .expect("make-only must return transaction JSON");
+
+        let put = client
+            .core()
+            .put_transaction(&body, false, None)
+            .await
+            .expect("put_transaction");
+        assert!(!put.transaction_hash.is_empty());
+        assert!(put.execution_result.is_none());
+
+        let waited = client
+            .core()
+            .wait_transaction(&put.transaction_hash, None)
+            .await
+            .expect("wait_transaction");
+        assert!(waited.is_object(), "wait result must be JSON object");
+
+        assert_eq!(
+            client.balance_of(&owner).await.expect("balance after put"),
             "999999999999"
         );
     }

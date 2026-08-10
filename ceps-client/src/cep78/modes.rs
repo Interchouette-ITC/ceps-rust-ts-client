@@ -41,7 +41,7 @@ pub enum HolderMode {
 #[repr(u8)]
 pub enum NftMetadataKind {
     /// CEP-78 JSON schema.
-    Cep78 = 0,
+    CEP78 = 0,
     /// NFT-721 style schema.
     Nft721 = 1,
     /// Opaque string payload.
@@ -149,7 +149,7 @@ macro_rules! impl_mode_u8 {
 impl_mode_u8!(OwnershipMode; Minter = 0, Assigned = 1, Transferable = 2);
 impl_mode_u8!(NftKind; Physical = 0, Digital = 1, Virtual = 2);
 impl_mode_u8!(HolderMode; Accounts = 0, Contracts = 1, Mixed = 2);
-impl_mode_u8!(NftMetadataKind; Cep78 = 0, Nft721 = 1, Raw = 2, CustomValidated = 3);
+impl_mode_u8!(NftMetadataKind; CEP78 = 0, Nft721 = 1, Raw = 2, CustomValidated = 3);
 impl_mode_u8!(IdentifierMode; Ordinal = 0, Hash = 1);
 impl_mode_u8!(MetadataMutability; Immutable = 0, Mutable = 1);
 impl_mode_u8!(MintingMode; Installer = 0, Public = 1, Acl = 2);

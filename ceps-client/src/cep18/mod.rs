@@ -5,12 +5,12 @@ mod error;
 mod keys;
 mod types;
 
-pub use error::Cep18Error;
+pub use error::CEP18Error;
 pub use types::{ChangeSecurityArgs, InstallArgs, UpgradeArgs};
 
-use crate::core::CepCore;
+use crate::core::CEPClient;
 use crate::core::{json_args, key_arg, key_list_arg, string_arg, u256_arg, u8_arg, JsonArg};
-use crate::error::{CepError, CepKind, Result};
+use crate::error::{CEPError, CEPKind, Result};
 use crate::types::{CallResult, EventsMode, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use entity::prefixed_key;
@@ -18,11 +18,11 @@ use keys::{allowance_dictionary_key, balance_dictionary_key};
 use serde_json::Value;
 
 /// Client for CEP-18 fungible token contracts.
-pub struct Cep18Client {
-    core: CepCore,
+pub struct CEP18Client {
+    core: CEPClient,
 }
 
-impl Cep18Client {
+impl CEP18Client {
     /// Create a CEP-18 client.
     pub fn new(
         rpc_url: impl Into<String>,
@@ -31,17 +31,17 @@ impl Cep18Client {
         verbosity: Option<Verbosity>,
     ) -> Result<Self> {
         let core =
-            CepCore::new(rpc_url, sse_url, chain_name, verbosity)?.with_cep_kind(CepKind::Cep18);
+            CEPClient::new(rpc_url, sse_url, chain_name, verbosity)?.with_cep_kind(CEPKind::CEP18);
         Ok(Self { core })
     }
 
     /// Borrow the shared core.
-    pub fn core(&self) -> &CepCore {
+    pub fn core(&self) -> &CEPClient {
         &self.core
     }
 
     /// Mutable core access.
-    pub fn core_mut(&mut self) -> &mut CepCore {
+    pub fn core_mut(&mut self) -> &mut CEPClient {
         &mut self.core
     }
 
@@ -92,6 +92,19 @@ impl Cep18Client {
         package_hash: Option<impl AsRef<str>>,
     ) -> Result<()> {
         self.core.set_contract_hash(contract_hash, package_hash)
+    }
+
+    /// Read a named key from an account (public key hex or `account-hash-…`).
+    ///
+    /// Typical post-install: `cep18_contract_hash_{name}` / `cep18_contract_package_{name}`.
+    pub async fn get_account_named_key(
+        &self,
+        account_identifier: &str,
+        named_key: &str,
+    ) -> Result<String> {
+        self.core
+            .get_account_named_key(account_identifier, named_key)
+            .await
     }
 
     /// Install a CEP-18 contract from WASM bytes.
@@ -244,7 +257,7 @@ impl Cep18Client {
             json_args_vec.push(key_list_arg("none_list", &keys));
         }
         if json_args_vec.is_empty() {
-            return Err(CepError::MissingArgument(
+            return Err(CEPError::MissingArgument(
                 "change_security requires at least one list".into(),
             ));
         }
@@ -289,7 +302,7 @@ impl Cep18Client {
     /// Events mode (named key).
     pub async fn events_mode(&self) -> Result<EventsMode> {
         let v = decode_u8_cl(self.core.query_contract_key(&["events_mode"]).await?)?;
-        EventsMode::from_u8(v).ok_or_else(|| CepError::Decode(format!("unknown events_mode {v}")))
+        EventsMode::from_u8(v).ok_or_else(|| CEPError::Decode(format!("unknown events_mode {v}")))
     }
 
     /// Whether mint/burn is enabled.
@@ -353,7 +366,7 @@ fn decode_string_cl(value: Value) -> Result<String> {
     if let Some(s) = value.as_str() {
         return Ok(s.to_string());
     }
-    Err(CepError::Decode(format!(
+    Err(CEPError::Decode(format!(
         "expected string CLValue, got {value}"
     )))
 }
@@ -368,11 +381,11 @@ fn decode_u8_cl(value: Value) -> Result<u8> {
         Value::Number(n) => n
             .as_u64()
             .and_then(|v| u8::try_from(v).ok())
-            .ok_or_else(|| CepError::Decode(format!("invalid u8: {n}"))),
+            .ok_or_else(|| CEPError::Decode(format!("invalid u8: {n}"))),
         Value::String(s) => s
             .parse()
-            .map_err(|e| CepError::Decode(format!("invalid u8 string: {e}"))),
-        other => Err(CepError::Decode(format!("expected u8, got {other}"))),
+            .map_err(|e| CEPError::Decode(format!("invalid u8 string: {e}"))),
+        other => Err(CEPError::Decode(format!("expected u8, got {other}"))),
     }
 }
 
@@ -385,7 +398,7 @@ fn decode_u256_cl(value: Value) -> Result<String> {
     match parsed {
         Value::String(s) => Ok(s),
         Value::Number(n) => Ok(n.to_string()),
-        other => Err(CepError::Decode(format!("expected U256, got {other}"))),
+        other => Err(CEPError::Decode(format!("expected U256, got {other}"))),
     }
 }
 
@@ -395,7 +408,7 @@ mod tests {
 
     #[test]
     fn constructs_client() {
-        let client = Cep18Client::new(
+        let client = CEP18Client::new(
             "http://127.0.0.1:11101",
             Some("http://127.0.0.1:18101".into()),
             None,
@@ -409,7 +422,7 @@ mod tests {
     #[test]
     fn install_json_includes_required_and_flags() {
         let args = InstallArgs::new("Tok", "TOK", 9, "1000")
-            .with_events_mode(EventsMode::Ces)
+            .with_events_mode(EventsMode::CES)
             .with_mint_and_burn(true);
         let s = install_args_json(&args).unwrap();
         assert!(s.contains("Tok"));
@@ -433,7 +446,7 @@ mod tests {
 
     #[tokio::test]
     async fn make_only_install_returns_transaction_json() {
-        let client = Cep18Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let client = CEP18Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
         let tx = TransactionParams::for_make("1000000000").with_initiator_addr(
             "010101010101010101010101010101010101010101010101010101010101010101",
         );
@@ -451,7 +464,7 @@ mod tests {
 
     #[tokio::test]
     async fn make_only_transfer_returns_transaction_json() {
-        let mut client = Cep18Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let mut client = CEP18Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
         client
             .set_contract_hash(
                 "cfa781f5eb69c3eee952c2944ce9670a049f88c5e46b83fb5881ebe13fb98e6d",

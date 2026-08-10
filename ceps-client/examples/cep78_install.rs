@@ -6,7 +6,7 @@
 //! ```
 
 use ceps_client::cep78::{InstallArgs, TokenIdentifier};
-use ceps_client::{Cep78Client, EventsMode78, TransactionParams, Verbosity};
+use ceps_client::{CEP78Client, EventsMode78, TransactionParams, Verbosity};
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../tests/wasm/cep78/cep78.wasm");
     let wasm = fs::read(&wasm_path)?;
 
-    let mut client = Cep78Client::new(
+    let mut client = CEP78Client::new(
         "http://127.0.0.1:11101",
         Some("http://127.0.0.1:18101/events".into()),
         Some("casper-net-1".into()),
@@ -32,18 +32,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let nonce = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
     let name = format!("Example78{nonce}");
-    let args = InstallArgs::new(&name, "EX78", 50).with_events_mode(EventsMode78::Ces);
+    let args = InstallArgs::new(&name, "EX78", 50).with_events_mode(EventsMode78::CES);
     let tx = TransactionParams::new(&secret, "600000000000");
     let put = client.install(&args, &wasm, &tx).await?;
     println!("installed tx={}", put.transaction_hash);
 
     let pk = casper_rust_wasm_sdk::helpers::public_key_from_secret_key(&secret)?;
     let contract = client
-        .core()
         .get_account_named_key(&pk, &format!("cep78_contract_hash_{name}"))
         .await?;
     let package = client
-        .core()
         .get_account_named_key(&pk, &format!("cep78_contract_package_{name}"))
         .await?;
     client.set_contract_hash(&contract, Some(&package))?;

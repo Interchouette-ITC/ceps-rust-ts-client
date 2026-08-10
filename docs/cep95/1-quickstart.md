@@ -2,9 +2,9 @@
 
 ```rust
 use ceps_client::cep95::InstallArgs;
-use ceps_client::{Cep95Client, TransactionParams, Verbosity};
+use ceps_client::{CEP95Client, TransactionParams, Verbosity};
 
-let mut client = Cep95Client::new(
+let mut client = CEP95Client::new(
     "http://127.0.0.1:11101",
     Some("http://127.0.0.1:18101/events".into()),
     Some("casper-net-1".into()),

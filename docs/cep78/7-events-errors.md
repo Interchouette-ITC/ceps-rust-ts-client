@@ -2,11 +2,11 @@
 
 ## Events mode
 
-`EventsMode78::{NoEvents, Cep47, Ces, Native, NativeBytes}`. Install / upgrade / `events_mode` query.
+`EventsMode78::{NoEvents, CEP47, CES, Native, NativeBytes}`. Install / upgrade / `events_mode` query.
 
 ## CES
 
-With `EventsMode78::Ces`, mutates that wait attach soft-fail rows on `CallResult.ces_events` when a contract hash is bound (via rustSDK `CESParser`).
+With `EventsMode78::CES`, mutates that wait attach soft-fail rows on `CallResult.ces_events` when a contract hash is bound (via rustSDK `CESParser`).
 
 Parse explicitly:
 
@@ -25,4 +25,4 @@ Typical CES names for CEP-78: `Mint`, `Burn`, `Approval`, `ApprovalForAll`, `App
 
 ## User errors
 
-On-chain `NFTCoreError` codes `1..=180`. `Cep78Error` maps the full set (`InvalidAccount` … `InvalidVersionContractKey`). Execution failures surface as `CepError::Execution` with optional `user_error` code.
+On-chain `NFTCoreError` codes `1..=180`. `CEP78Error` maps the full set (`InvalidAccount` … `InvalidVersionContractKey`). Execution failures surface as `CEPError::Execution` with optional `user_error` code.

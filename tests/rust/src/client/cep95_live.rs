@@ -7,7 +7,7 @@ mod tests {
         user1_secret_pem, user_secret_pem, CALL_PAYMENT,
     };
     use ceps_client::cep95::InstallArgs;
-    use ceps_client::{Cep95Client, TransactionParams, Verbosity};
+    use ceps_client::{CEP95Client, TransactionParams, Verbosity};
     use std::env;
     use std::fs;
     use std::path::PathBuf;
@@ -15,11 +15,11 @@ mod tests {
 
     const INSTALL_PAYMENT: &str = "600000000000";
 
-    fn cep95_client() -> Cep95Client {
+    fn cep95_client() -> CEP95Client {
         let rpc = env::var("CEPS_RPC_URL").unwrap_or_else(|_| "http://127.0.0.1:11101".into());
         let sse =
             env::var("CEPS_SSE_URL").unwrap_or_else(|_| "http://127.0.0.1:18101/events".into());
-        Cep95Client::new(
+        CEP95Client::new(
             rpc,
             Some(sse),
             Some("casper-net-1".into()),

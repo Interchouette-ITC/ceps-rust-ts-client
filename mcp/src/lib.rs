@@ -27,4 +27,21 @@ mod tests {
         assert!(!VERSION.is_empty());
         assert!(VERSION.contains('.'));
     }
+
+    #[test]
+    fn registers_shared_client_and_ces_tools() {
+        let names = tools::registered_tool_names();
+        for required in [
+            "ceps_put_transaction",
+            "ceps_wait_transaction",
+            "ceps_ces_parse_execution",
+            "ceps_ces_parse_transaction",
+            "ceps_ces_collect",
+        ] {
+            assert!(
+                names.contains(&required),
+                "missing MCP tool {required} in {names:?}"
+            );
+        }
+    }
 }

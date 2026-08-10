@@ -6,7 +6,7 @@
 //! ```
 
 use ceps_client::cep18::InstallArgs;
-use ceps_client::{Cep18Client, EventsMode, TransactionParams, Verbosity};
+use ceps_client::{CEP18Client, EventsMode, TransactionParams, Verbosity};
 use std::env;
 use std::fs;
 use std::path::PathBuf;
@@ -23,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../tests/wasm/cep18/cep18.wasm");
     let wasm = fs::read(&wasm_path)?;
 
-    let mut client = Cep18Client::new(
+    let mut client = CEP18Client::new(
         "http://127.0.0.1:11101",
         Some("http://127.0.0.1:18101/events".into()),
         Some("casper-net-1".into()),
@@ -33,7 +33,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let nonce = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
     let name = format!("Example{nonce}");
     let args = InstallArgs::new(&name, "EX", 9, "1000")
-        .with_events_mode(EventsMode::Ces)
+        .with_events_mode(EventsMode::CES)
         .with_mint_and_burn(true);
     let tx = TransactionParams::new(&secret, "400000000000");
     let put = client.install(&args, &wasm, &tx).await?;
@@ -41,11 +41,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let pk = casper_rust_wasm_sdk::helpers::public_key_from_secret_key(&secret)?;
     let contract = client
-        .core()
         .get_account_named_key(&pk, &format!("cep18_contract_hash_{name}"))
         .await?;
     let package = client
-        .core()
         .get_account_named_key(&pk, &format!("cep18_contract_package_{name}"))
         .await?;
     client.set_contract_hash(&contract, Some(&package))?;

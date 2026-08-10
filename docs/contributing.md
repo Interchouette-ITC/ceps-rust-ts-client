@@ -40,7 +40,7 @@ Path dependency on [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/
 
 CI checks out `casper-ecosystem/casper-rust-wasm-sdk` at branch **`dev`** and mirrors `[patch.crates-io]` from this workspace.
 
-The SDK TUI remains SDK-owned. Wire CEP installs by calling `ceps-client` from a TUI action or companion binary in that tree; this repo exposes the library surface (`Cep18Client` / `Cep78Client` / `Cep85Client`) for that integration.
+The SDK TUI remains SDK-owned. Wire CEP installs by calling `ceps-client` from a TUI action or companion binary in that tree; this repo exposes the library surface (`CEP18Client` / `CEP78Client` / `CEP85Client`) for that integration.
 
 ## Lint gate
 

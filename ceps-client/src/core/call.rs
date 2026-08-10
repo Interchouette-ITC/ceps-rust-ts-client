@@ -1,12 +1,12 @@
 //! Contract entrypoint calls.
 
-use super::CepCore;
-use crate::error::{CepError, Result};
+use super::CEPClient;
+use crate::error::{CEPError, Result};
 use crate::types::{CallResult, TransactionParams};
 use casper_rust_wasm_sdk::types::hash::transaction_hash::TransactionHash;
 
 pub(super) async fn call_entrypoint(
-    core: &CepCore,
+    core: &CEPClient,
     entry_point: &str,
     tx: &TransactionParams,
     args_json: &str,
@@ -27,7 +27,7 @@ pub(super) async fn call_entrypoint(
         .await?;
     let tx_hash = TransactionHash::from(put.result.transaction_hash).to_string();
     let put_json = serde_json::to_value(&put.result)
-        .map_err(|e| CepError::Other(format!("serialize put result: {e}")))?;
+        .map_err(|e| CEPError::Other(format!("serialize put result: {e}")))?;
     let result = CallResult::new(tx_hash, put_json);
     core.maybe_wait(tx, result).await
 }

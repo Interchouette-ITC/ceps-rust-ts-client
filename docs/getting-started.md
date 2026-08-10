@@ -47,9 +47,9 @@ Override with `--rpc-url` / `CEPS_RPC_URL` (and SSE / chain counterparts). Full 
 ## First Rust snippet
 
 ```rust
-use ceps_client::{Cep18Client, Verbosity};
+use ceps_client::{CEP18Client, Verbosity};
 
-let client = Cep18Client::new(
+let client = CEP18Client::new(
     "http://127.0.0.1:11101",
     Some("http://127.0.0.1:18101/events".into()),
     Some("casper-net-1".into()),

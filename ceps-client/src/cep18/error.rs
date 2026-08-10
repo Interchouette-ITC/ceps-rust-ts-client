@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 /// On-chain CEP-18 `ApiError` user codes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(u16)]
-pub enum Cep18Error {
+pub enum CEP18Error {
     /// Invalid calling context.
     InvalidContext = 60000,
     /// Insufficient token balance.
@@ -86,7 +86,7 @@ pub enum Cep18Error {
     InvalidVersionContractKey = 60038,
 }
 
-impl Cep18Error {
+impl CEP18Error {
     /// Map a user-error code to a typed variant.
     pub fn from_code(code: u16) -> Option<Self> {
         Some(match code {
@@ -186,9 +186,9 @@ mod tests {
     #[test]
     fn maps_known_codes() {
         assert_eq!(
-            Cep18Error::from_code(60001),
-            Some(Cep18Error::InsufficientBalance)
+            CEP18Error::from_code(60001),
+            Some(CEP18Error::InsufficientBalance)
         );
-        assert_eq!(Cep18Error::from_code(1), None);
+        assert_eq!(CEP18Error::from_code(1), None);
     }
 }
