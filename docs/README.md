@@ -12,7 +12,7 @@ Unified **Rust** CEP client for Casper (**CEP-18**, **CEP-78**, **CEP-85**, with
 | [Architecture](architecture.md)       | lib ↔ CLI ↔ WASM ↔ SDK                     |
 | [SDK dependency](sdk.md)              | Features, local path, CI pin, upgrades     |
 | [CLI](cli.md)                         | Global flags and subcommands               |
-| [MCP](mcp.md)                         | `ceps-client-mcp` agent tools              |
+| [MCP](mcp.md)                         | `ceps-rust-ts-client-mcp` agent tools              |
 | [WASM / TS](wasm-ts.md)               | `ceps-client-wasm` pack and Vitest         |
 | [Testing](testing.md)                 | Unit / integration / CLI smoke / examples  |
 | [CI / CD](ci.md)                      | Gates, Hub/GHCR images, GitHub Releases    |

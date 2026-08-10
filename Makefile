@@ -20,7 +20,7 @@ CASPER_SDK_MCP_IMAGE ?= interchouette/casper-rust-wasm-sdk-mcp:dev
 
 WASM_CRATE := ceps-client-wasm
 CLI_CRATE := ceps-client-cli
-MCP_CRATE := ceps-client-mcp
+MCP_CRATE := ceps-rust-ts-client-mcp
 COMMON_CRATE := ceps-client
 
 WEB_OUT_DIR := pkg
@@ -248,8 +248,8 @@ release-cli-bin:
 
 release-mcp-bin:
 	$(CARGO) build -p $(MCP_CRATE) --release
-	@strip -s "$(ROOT)/target/release/ceps-client-mcp" 2>/dev/null || strip "$(ROOT)/target/release/ceps-client-mcp"
-	@echo "release-mcp-bin: $(ROOT)/target/release/ceps-client-mcp"
+	@strip -s "$(ROOT)/target/release/ceps-rust-ts-client-mcp" 2>/dev/null || strip "$(ROOT)/target/release/ceps-rust-ts-client-mcp"
+	@echo "release-mcp-bin: $(ROOT)/target/release/ceps-rust-ts-client-mcp"
 
 mcp-build:
 	$(CARGO) build -p $(MCP_CRATE) --release
@@ -274,13 +274,13 @@ mcp-http-stop:
 
 docker-build-mcp: release-mcp-bin
 	@test -d "$(WASM_DIR)/cep18" || { echo "docker-build-mcp: missing $(WASM_DIR); run make wasm-from-ceps"; exit 1; }
-	cp -f "$(ROOT)/target/release/ceps-client-mcp" "$(ROOT)/mcp/ceps-client-mcp"
+	cp -f "$(ROOT)/target/release/ceps-rust-ts-client-mcp" "$(ROOT)/mcp/ceps-rust-ts-client-mcp"
 	rm -rf "$(ROOT)/mcp/wasm"
 	cp -a "$(WASM_DIR)" "$(ROOT)/mcp/wasm"
 	docker build -f "$(MCP_DOCKERFILE)" \
 		-t "$(MCP_IMAGE_NAME):$(IMAGE_TAG)" \
 		"$(ROOT)/mcp"
-	rm -f "$(ROOT)/mcp/ceps-client-mcp"
+	rm -f "$(ROOT)/mcp/ceps-rust-ts-client-mcp"
 	rm -rf "$(ROOT)/mcp/wasm"
 	@echo "docker-build-mcp: $(MCP_IMAGE_NAME):$(IMAGE_TAG)"
 

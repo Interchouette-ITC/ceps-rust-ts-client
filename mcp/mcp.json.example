@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "ceps-client-mcp": {
+    "ceps-rust-ts-client-mcp": {
       "command": "docker",
       "args": [
         "run", "--rm", "-i",
@@ -9,11 +9,11 @@
         "-e", "CEPS_SSE_URL=http://host.docker.internal:18101/events",
         "-e", "CEPS_MCP_HTTP=false",
         "-e", "RUST_LOG=warn",
-        "--entrypoint", "ceps-client-mcp",
+        "--entrypoint", "ceps-rust-ts-client-mcp",
         "interchouette/ceps-rust-ts-client-mcp:dev"
       ]
     },
-    "ceps-client-mcp-http": {
+    "ceps-rust-ts-client-mcp-http": {
       "url": "http://127.0.0.1:6790/mcp"
     }
   }

@@ -21,7 +21,7 @@ pub fn help_text() -> String {
     let names = tools::registered_tool_names().join(", ");
     let snap = handle::snapshot();
     format!(
-        r#"ceps-client-mcp {version}
+        r#"ceps-rust-ts-client-mcp {version}
 
 CEP domain MCP for ceps-rust-ts-client. Use sdk_* (casper-rust-wasm-sdk-mcp) for raw RPC
 and nctl_* for local testnet lifecycle. This server exposes ceps_* only.

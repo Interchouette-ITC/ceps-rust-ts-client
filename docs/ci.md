@@ -66,7 +66,7 @@ Attached to each GitHub Release (stable or `dev-preview`). Full fetch guide: [re
 | Asset                                  | Contents                                              |
 | -------------------------------------- | ----------------------------------------------------- |
 | `ceps-client-cli-{label}-linux-x86_64` | Stripped CLI                                          |
-| `ceps-client-mcp-{label}-linux-x86_64` | Stripped MCP server (stdio / HTTP)                    |
+| `ceps-rust-ts-client-mcp-{label}-linux-x86_64` | Stripped MCP server (stdio / HTTP)                    |
 | `ceps-client-wasm-nodejs-{label}.tgz`  | Client pack for Node (`pkg-nodejs`)                   |
 | `ceps-client-wasm-web-{label}.tgz`     | Client pack for browsers (`pkg`)                      |
 | `ceps-contracts-{label}.tgz`           | Demo tip on-chain WASMs (`cep18` / `cep78` / `cep85`) |

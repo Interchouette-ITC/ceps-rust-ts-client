@@ -1,7 +1,6 @@
 # Runtime image for ceps-rust-ts-client-mcp (stdio default, HTTP :6790).
 # Build binary on the host / CI first, then:
 #   make docker-build-mcp IMAGE_TAG=local
-# Packs the stripped `ceps-client-mcp` binary (crate shortcut name).
 ARG RUNTIME_IMAGE=debian:bookworm-slim
 
 FROM ${RUNTIME_IMAGE}
@@ -10,8 +9,8 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends ca-certificates \
   && rm -rf /var/lib/apt/lists/*
 
-COPY ceps-client-mcp /usr/local/bin/ceps-client-mcp
-RUN chmod +x /usr/local/bin/ceps-client-mcp
+COPY ceps-rust-ts-client-mcp /usr/local/bin/ceps-rust-ts-client-mcp
+RUN chmod +x /usr/local/bin/ceps-rust-ts-client-mcp
 
 COPY wasm /opt/ceps/tests/wasm
 
@@ -25,4 +24,4 @@ ENV CEPS_MCP_ADDR=0.0.0.0:6790 \
 
 EXPOSE 6790
 
-ENTRYPOINT ["ceps-client-mcp"]
+ENTRYPOINT ["ceps-rust-ts-client-mcp"]

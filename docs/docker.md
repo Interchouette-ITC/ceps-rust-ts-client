@@ -18,7 +18,7 @@ docker run --rm ceps-rust-ts-client:local --help
 
 ## MCP image (`ceps-rust-ts-client-mcp`)
 
-Runtime image: Debian slim + stripped `ceps-client-mcp` binary + bundled `tests/wasm` (`CEPS_WASM_ROOT=/opt/ceps/tests/wasm`). Default entrypoint is stdio; pass `--http` for `:6790`.
+Runtime image: Debian slim + stripped `ceps-rust-ts-client-mcp` binary + bundled `tests/wasm` (`CEPS_WASM_ROOT=/opt/ceps/tests/wasm`). Default entrypoint is stdio; pass `--http` for `:6790`.
 
 ```bash
 make docker-build-mcp IMAGE_TAG=local

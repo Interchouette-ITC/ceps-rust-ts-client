@@ -1,10 +1,10 @@
-# MCP (`ceps-client-mcp`)
+# MCP (`ceps-rust-ts-client-mcp`)
 
 Agent surface for this product: CEP-18 / 78 / 85 install, query, and mutate via MCP tools (`ceps_*`), plus demo contract WASM helpers.
 
 | Item           | Value                                               |
 | -------------- | --------------------------------------------------- |
-| Crate / binary | `ceps-client-mcp`                                   |
+| Crate / binary | `ceps-rust-ts-client-mcp`                                   |
 | Path           | [`mcp/`](../mcp/)                                   |
 | HTTP           | `http://127.0.0.1:6790/mcp` (`CEPS_MCP_ADDR`)       |
 | Hub            | `interchouette/ceps-rust-ts-client-mcp:{dev,latest,semver}` |

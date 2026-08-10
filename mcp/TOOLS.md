@@ -1,4 +1,4 @@
-# ceps-client-mcp tools
+# ceps-rust-ts-client-mcp tools
 
 Total: **112** tools (`ceps_*`). Write tools take `secret_key_pem` + `payment_amount`.
 
