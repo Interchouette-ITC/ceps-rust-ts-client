@@ -7,7 +7,7 @@ debug/
 node_modules/
 tests/ts/node_modules/
 
-# Local tools (Binaryen pin)
+# Local leftovers (none expected)
 .tools/
 
 # Keys / env

@@ -5,7 +5,7 @@
 - Rust stable (edition 2021)
 - [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) as the workspace Cargo dependency (path locally; see [sdk.md](sdk.md))
 - Optional: local Casper NCTL `dev` for live install/query
-- Optional: `wasm-pack` + Binaryen for `make pack` (Makefile pins Binaryen via `ensure-binaryen`)
+- Optional: `wasm-pack` + `wasm-opt` (Binaryen) on `PATH` for `make pack`
 
 ## Build and verify
 
