@@ -41,18 +41,12 @@ MCP_DOCKERFILE := $(ROOT)/mcp/Dockerfile
 COMPOSE_MCP := $(ROOT)/docker/docker-compose.mcp.yml
 CEPS_MCP_IMAGE ?= interchouette/ceps-rust-ts-client-mcp:dev
 
-# Pin Binaryen so wasm-pack does not fall back to vendored 117.
-BINARYEN_VERSION := 131
-BINARYEN_DIR := $(ROOT)/.tools/binaryen-version_$(BINARYEN_VERSION)
-BINARYEN_BIN := $(BINARYEN_DIR)/bin
-BINARYEN_PATH_FILE := $(ROOT)/.tools/wasm-opt-bin
-
 # Clear Cursor sandbox cargo/playwright redirects for every recipe.
 CARGO := env -u CARGO_TARGET_DIR -u PLAYWRIGHT_BROWSERS_PATH cargo
 
 .DEFAULT_GOAL := help
 
-.PHONY: help prepare ensure-binaryen \
+.PHONY: help prepare \
 	build check doc doc-check clean \
 	format lint clippy check-lint \
 	test unit-test integration-test e2e-test examples ts-test wasm-bindgen-test \
@@ -76,7 +70,7 @@ help:
 	@echo "  check              cargo check --workspace"
 	@echo "  doc / doc-check    rustdoc + closet file presence"
 	@echo "  format / lint / clippy / check-lint"
-	@echo "  clean              cargo clean + packed wasm dirs + .tools pin file"
+	@echo "  clean              cargo clean"
 	@echo ""
 	@echo "Test"
 	@echo "  test               unit + integration"
@@ -87,7 +81,7 @@ help:
 	@echo "  ts-test            Vitest against pkg-nodejs"
 	@echo ""
 	@echo "WASM pack"
-	@echo "  pack / web / nodejs   wasm-pack release (needs ensure-binaryen)"
+	@echo "  pack / web / nodejs   wasm-pack release (needs wasm-opt on PATH)"
 	@echo ""
 	@echo "CLI / MCP"
 	@echo "  run-cli            cargo run -p $(CLI_CRATE) -- \$$(CLI_ARGS)"
@@ -109,39 +103,6 @@ help:
 
 prepare:
 	rustup target add wasm32-unknown-unknown
-
-ensure-binaryen:
-	@set -euo pipefail; \
-	mkdir -p "$(ROOT)/.tools"; \
-	is_pin() { "$$1" --version 2>/dev/null | grep -qE 'version[_ ]$(BINARYEN_VERSION)([^0-9]|$$)'; }; \
-	if command -v wasm-opt >/dev/null 2>&1 && is_pin wasm-opt; then \
-		dirname "$$(command -v wasm-opt)" > "$(BINARYEN_PATH_FILE)"; \
-		echo "ensure-binaryen: $$(wasm-opt --version) (PATH)"; \
-		exit 0; \
-	fi; \
-	if [ -x "$(BINARYEN_BIN)/wasm-opt" ] && is_pin "$(BINARYEN_BIN)/wasm-opt"; then \
-		echo "$(BINARYEN_BIN)" > "$(BINARYEN_PATH_FILE)"; \
-		echo "ensure-binaryen: $$($(BINARYEN_BIN)/wasm-opt --version) ($(BINARYEN_BIN))"; \
-		exit 0; \
-	fi; \
-	case "$$(uname -m)" in \
-		x86_64|amd64) arch=x86_64 ;; \
-		aarch64|arm64) arch=aarch64 ;; \
-		*) echo "ensure-binaryen: unsupported arch $$(uname -m)" >&2; exit 1 ;; \
-	esac; \
-	case "$$(uname -s)" in \
-		Linux) plat=linux ;; \
-		Darwin) plat=macos ;; \
-		*) echo "ensure-binaryen: unsupported OS $$(uname -s)" >&2; exit 1 ;; \
-	esac; \
-	url="https://github.com/WebAssembly/binaryen/releases/download/version_$(BINARYEN_VERSION)/binaryen-version_$(BINARYEN_VERSION)-$${arch}-$${plat}.tar.gz"; \
-	echo "ensure-binaryen: downloading $$url"; \
-	rm -rf "$(BINARYEN_DIR)"; \
-	curl -fsSL "$$url" | tar -xz -C "$(ROOT)/.tools"; \
-	test -x "$(BINARYEN_BIN)/wasm-opt"; \
-	is_pin "$(BINARYEN_BIN)/wasm-opt" || { echo "ensure-binaryen: expected version $(BINARYEN_VERSION)" >&2; exit 1; }; \
-	echo "$(BINARYEN_BIN)" > "$(BINARYEN_PATH_FILE)"; \
-	echo "ensure-binaryen: $$($(BINARYEN_BIN)/wasm-opt --version)"
 
 build:
 	$(CARGO) build --workspace
@@ -180,7 +141,6 @@ doc-check:
 	exit $$missing
 
 clean:
-	rm -f "$(BINARYEN_PATH_FILE)"
 	$(CARGO) clean
 	@echo "clean: left $(WASM_CRATE)/$(WEB_OUT_DIR) and $(NODEJS_OUT_DIR) in place (committed packs); rebuild with make pack"
 format:
@@ -236,14 +196,12 @@ test: unit-test integration-test
 
 pack: web nodejs
 
-web: ensure-binaryen prepare
-	PATH="$$(cat "$(BINARYEN_PATH_FILE)"):$$PATH" \
-		cd $(WASM_CRATE) && wasm-pack build --target web --release --out-dir $(WEB_OUT_DIR) $(CURRENT_DIR)
+web: prepare
+	cd $(WASM_CRATE) && wasm-pack build --target web --release --out-dir $(WEB_OUT_DIR) $(CURRENT_DIR)
 	@cp -f "$(ROOT)/README.md" "$(WASM_CRATE)/$(WEB_OUT_DIR)/README.md"
 
-nodejs: ensure-binaryen prepare
-	PATH="$$(cat "$(BINARYEN_PATH_FILE)"):$$PATH" \
-		cd $(WASM_CRATE) && wasm-pack build --target nodejs --release --out-dir $(NODEJS_OUT_DIR) $(CURRENT_DIR)
+nodejs: prepare
+	cd $(WASM_CRATE) && wasm-pack build --target nodejs --release --out-dir $(NODEJS_OUT_DIR) $(CURRENT_DIR)
 	@cp -f "$(ROOT)/README.md" "$(WASM_CRATE)/$(NODEJS_OUT_DIR)/README.md"
 
 run-cli:
