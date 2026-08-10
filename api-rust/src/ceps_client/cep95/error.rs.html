@@ -5,7 +5,7 @@
 <a href=#5 id=5 data-nosnippet>5</a><span class="doccomment">/// On-chain CEP-95 / Ownable error discriminants from Odra modules.
 <a href=#6 id=6 data-nosnippet>6</a></span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 <a href=#7 id=7 data-nosnippet>7</a>#[repr(u16)]
-<a href=#8 id=8 data-nosnippet>8</a></span><span class="kw">pub enum </span>Cep95Error {
+<a href=#8 id=8 data-nosnippet>8</a></span><span class="kw">pub enum </span>CEP95Error {
 <a href=#9 id=9 data-nosnippet>9</a>    <span class="doccomment">/// Ownable: owner not set.
 <a href=#10 id=10 data-nosnippet>10</a>    </span>OwnerNotSet = <span class="number">20000</span>,
 <a href=#11 id=11 data-nosnippet>11</a>    <span class="doccomment">/// Ownable: caller is not the owner.
@@ -32,7 +32,7 @@
 <a href=#32 id=32 data-nosnippet>32</a>    </span>TokenAlreadyExists = <span class="number">40006</span>,
 <a href=#33 id=33 data-nosnippet>33</a>}
 <a href=#34 id=34 data-nosnippet>34</a>
-<a href=#35 id=35 data-nosnippet>35</a><span class="kw">impl </span>Cep95Error {
+<a href=#35 id=35 data-nosnippet>35</a><span class="kw">impl </span>CEP95Error {
 <a href=#36 id=36 data-nosnippet>36</a>    <span class="doccomment">/// Map a user-error code to a typed variant.
 <a href=#37 id=37 data-nosnippet>37</a>    </span><span class="kw">pub fn </span>from_code(code: u16) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
 <a href=#38 id=38 data-nosnippet>38</a>        <span class="prelude-val">Some</span>(<span class="kw">match </span>code {
@@ -78,10 +78,10 @@
 <a href=#78 id=78 data-nosnippet>78</a>    <span class="attr">#[test]
 <a href=#79 id=79 data-nosnippet>79</a>    </span><span class="kw">fn </span>maps_known_codes() {
 <a href=#80 id=80 data-nosnippet>80</a>        <span class="macro">assert_eq!</span>(
-<a href=#81 id=81 data-nosnippet>81</a>            Cep95Error::from_code(<span class="number">40006</span>),
-<a href=#82 id=82 data-nosnippet>82</a>            <span class="prelude-val">Some</span>(Cep95Error::TokenAlreadyExists)
+<a href=#81 id=81 data-nosnippet>81</a>            CEP95Error::from_code(<span class="number">40006</span>),
+<a href=#82 id=82 data-nosnippet>82</a>            <span class="prelude-val">Some</span>(CEP95Error::TokenAlreadyExists)
 <a href=#83 id=83 data-nosnippet>83</a>        );
-<a href=#84 id=84 data-nosnippet>84</a>        <span class="macro">assert_eq!</span>(Cep95Error::from_code(<span class="number">1</span>), <span class="prelude-val">None</span>);
+<a href=#84 id=84 data-nosnippet>84</a>        <span class="macro">assert_eq!</span>(CEP95Error::from_code(<span class="number">1</span>), <span class="prelude-val">None</span>);
 <a href=#85 id=85 data-nosnippet>85</a>    }
 <a href=#86 id=86 data-nosnippet>86</a>}
 </code></pre></div></section></main></body></html>

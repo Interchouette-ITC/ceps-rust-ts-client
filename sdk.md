@@ -36,4 +36,4 @@ Release artefacts (CLI binary, `ceps-client-wasm` packs) build against that pin.
 
 ## `ceps-client-wasm`
 
-JS packs for the CEP **client** (not contracts). Committed under `ceps-client-wasm/pkg` and `pkg-nodejs`; rebuild with `make nodejs` / `make web`. With SDK `js` omitted, the generated `.d.ts` exports CEP clients only (`Cep18Client` / `Cep78Client` / `Cep85Client` / `Cep95Client` and related helpers). For raw RPC / transfers from JS, depend on the SDK packs (`casper-rust-wasm-sdk`) separately.
+JS packs for the CEP **client** (not contracts). Committed under `ceps-client-wasm/pkg` and `pkg-nodejs`; rebuild with `make nodejs` / `make web`. With SDK `js` omitted, the generated `.d.ts` exports CEP clients only (`CEP18Client` / `CEP78Client` / `CEP85Client` / `CEP95Client` and related helpers). For raw RPC / transfers from JS, depend on the SDK packs (`casper-rust-wasm-sdk`) separately.

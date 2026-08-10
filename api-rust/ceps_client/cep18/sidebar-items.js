@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Cep18Error"],"struct":["Cep18Client","ChangeSecurityArgs","InstallArgs","UpgradeArgs"]};
+window.SIDEBAR_ITEMS = {"enum":["CEP18Error"],"struct":["CEP18Client","ChangeSecurityArgs","InstallArgs","UpgradeArgs"]};

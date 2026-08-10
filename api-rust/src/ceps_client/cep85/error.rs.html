@@ -2,10 +2,10 @@
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span>serde::{Deserialize, Serialize};
 <a href=#4 id=4 data-nosnippet>4</a>
-<a href=#5 id=5 data-nosnippet>5</a><span class="doccomment">/// On-chain CEP-85 `Cep85Error` user codes (subset of common ones; full range 1..=91).
+<a href=#5 id=5 data-nosnippet>5</a><span class="doccomment">/// On-chain CEP-85 `CEP85Error` user codes (subset of common ones; full range 1..=91).
 <a href=#6 id=6 data-nosnippet>6</a></span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 <a href=#7 id=7 data-nosnippet>7</a>#[repr(u16)]
-<a href=#8 id=8 data-nosnippet>8</a></span><span class="kw">pub enum </span>Cep85Error {
+<a href=#8 id=8 data-nosnippet>8</a></span><span class="kw">pub enum </span>CEP85Error {
 <a href=#9 id=9 data-nosnippet>9</a>    <span class="doccomment">/// Burn disabled.
 <a href=#10 id=10 data-nosnippet>10</a>    </span>BurnDisabled = <span class="number">1</span>,
 <a href=#11 id=11 data-nosnippet>11</a>    <span class="doccomment">/// Insufficient balance.
@@ -22,7 +22,7 @@
 <a href=#22 id=22 data-nosnippet>22</a>    </span>SelfOperatorApproval = <span class="number">7</span>,
 <a href=#23 id=23 data-nosnippet>23</a>}
 <a href=#24 id=24 data-nosnippet>24</a>
-<a href=#25 id=25 data-nosnippet>25</a><span class="kw">impl </span>Cep85Error {
+<a href=#25 id=25 data-nosnippet>25</a><span class="kw">impl </span>CEP85Error {
 <a href=#26 id=26 data-nosnippet>26</a>    <span class="doccomment">/// Map a known code when it matches a listed variant.
 <a href=#27 id=27 data-nosnippet>27</a>    </span><span class="kw">pub fn </span>from_code(code: u16) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
 <a href=#28 id=28 data-nosnippet>28</a>        <span class="prelude-val">Some</span>(<span class="kw">match </span>code {

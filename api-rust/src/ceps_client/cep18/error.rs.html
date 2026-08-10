@@ -5,7 +5,7 @@
 <a href=#5 id=5 data-nosnippet>5</a><span class="doccomment">/// On-chain CEP-18 `ApiError` user codes.
 <a href=#6 id=6 data-nosnippet>6</a></span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 <a href=#7 id=7 data-nosnippet>7</a>#[repr(u16)]
-<a href=#8 id=8 data-nosnippet>8</a></span><span class="kw">pub enum </span>Cep18Error {
+<a href=#8 id=8 data-nosnippet>8</a></span><span class="kw">pub enum </span>CEP18Error {
 <a href=#9 id=9 data-nosnippet>9</a>    <span class="doccomment">/// Invalid calling context.
 <a href=#10 id=10 data-nosnippet>10</a>    </span>InvalidContext = <span class="number">60000</span>,
 <a href=#11 id=11 data-nosnippet>11</a>    <span class="doccomment">/// Insufficient token balance.
@@ -86,7 +86,7 @@
 <a href=#86 id=86 data-nosnippet>86</a>    </span>InvalidVersionContractKey = <span class="number">60038</span>,
 <a href=#87 id=87 data-nosnippet>87</a>}
 <a href=#88 id=88 data-nosnippet>88</a>
-<a href=#89 id=89 data-nosnippet>89</a><span class="kw">impl </span>Cep18Error {
+<a href=#89 id=89 data-nosnippet>89</a><span class="kw">impl </span>CEP18Error {
 <a href=#90 id=90 data-nosnippet>90</a>    <span class="doccomment">/// Map a user-error code to a typed variant.
 <a href=#91 id=91 data-nosnippet>91</a>    </span><span class="kw">pub fn </span>from_code(code: u16) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>&gt; {
 <a href=#92 id=92 data-nosnippet>92</a>        <span class="prelude-val">Some</span>(<span class="kw">match </span>code {
@@ -186,10 +186,10 @@
 <a href=#186 id=186 data-nosnippet>186</a>    <span class="attr">#[test]
 <a href=#187 id=187 data-nosnippet>187</a>    </span><span class="kw">fn </span>maps_known_codes() {
 <a href=#188 id=188 data-nosnippet>188</a>        <span class="macro">assert_eq!</span>(
-<a href=#189 id=189 data-nosnippet>189</a>            Cep18Error::from_code(<span class="number">60001</span>),
-<a href=#190 id=190 data-nosnippet>190</a>            <span class="prelude-val">Some</span>(Cep18Error::InsufficientBalance)
+<a href=#189 id=189 data-nosnippet>189</a>            CEP18Error::from_code(<span class="number">60001</span>),
+<a href=#190 id=190 data-nosnippet>190</a>            <span class="prelude-val">Some</span>(CEP18Error::InsufficientBalance)
 <a href=#191 id=191 data-nosnippet>191</a>        );
-<a href=#192 id=192 data-nosnippet>192</a>        <span class="macro">assert_eq!</span>(Cep18Error::from_code(<span class="number">1</span>), <span class="prelude-val">None</span>);
+<a href=#192 id=192 data-nosnippet>192</a>        <span class="macro">assert_eq!</span>(CEP18Error::from_code(<span class="number">1</span>), <span class="prelude-val">None</span>);
 <a href=#193 id=193 data-nosnippet>193</a>    }
 <a href=#194 id=194 data-nosnippet>194</a>}
 </code></pre></div></section></main></body></html>

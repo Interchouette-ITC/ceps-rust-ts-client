@@ -1,6 +1,6 @@
 # WASM / TypeScript
 
-`ceps-client-wasm` is the CEP **client library** compiled for JavaScript (`wasm-bindgen`). Same idea as Rust `ceps-client`: `Cep18Client` / `Cep78Client` / `Cep85Client` for Node or the browser. It replaces the old per-CEP `client-js` packages.
+`ceps-client-wasm` is the CEP **client library** compiled for JavaScript (`wasm-bindgen`). Same idea as Rust `ceps-client`: `CEP18Client` / `CEP78Client` / `CEP85Client` for Node or the browser. It replaces the old per-CEP `client-js` packages.
 
 Do not confuse it with **contract** `.wasm` under `tests/wasm/` (on-chain install bytes).
 
@@ -20,19 +20,19 @@ Or download `ceps-client-wasm-nodejs-*.tgz` / `ceps-client-wasm-web-*.tgz` from 
 
 | Client | Methods                                                                                      |
 | ------ | -------------------------------------------------------------------------------------------- |
-| CEP-18 | `rpcUrl`, `sseUrl`, `chainName`, `setContractHash`, `install`, `name`, `symbol`, `balanceOf` |
-| CEP-78 | `rpcUrl`, `sseUrl`, `setContractHash`, `install`, `collectionName`, `balanceOf`              |
-| CEP-85 | `rpcUrl`, `sseUrl`, `setContractHash`, `install`, `collectionName`, `balanceOf`              |
-| CEP-95 | `rpcUrl`, `sseUrl`, `setContractHash`, `install`, `name`, `symbol`, `balanceOf`, `ownerOf`   |
+| CEP-18 | `rpcUrl`, `SSEUrl`, `chainName`, `setContractHash`, `install`, `name`, `symbol`, `balanceOf` |
+| CEP-78 | `rpcUrl`, `SSEUrl`, `setContractHash`, `install`, `collectionName`, `balanceOf`              |
+| CEP-85 | `rpcUrl`, `SSEUrl`, `setContractHash`, `install`, `collectionName`, `balanceOf`              |
+| CEP-95 | `rpcUrl`, `SSEUrl`, `setContractHash`, `install`, `name`, `symbol`, `balanceOf`, `ownerOf`   |
 
 Full mutate/query parity lives in Rust `ceps-client`. The pack `.d.ts` exports CEP clients only (SDK feature `js` is not enabled on the path dependency).
 
 ## Node example
 
 ```js
-import { Cep18Client } from "ceps-client-wasm";
+import { CEP18Client } from "ceps-client-wasm";
 
-const client = new Cep18Client(
+const client = new CEP18Client(
   "http://127.0.0.1:11101",
   "http://127.0.0.1:18101/events",
   "casper-net-1",

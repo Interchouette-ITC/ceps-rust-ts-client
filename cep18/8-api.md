@@ -1,6 +1,6 @@
 # CEP-18 API
 
-Primary type: `ceps_client::Cep18Client`.
+Primary type: `ceps_client::CEP18Client`.
 
 | Method | Kind |
 | --- | --- |

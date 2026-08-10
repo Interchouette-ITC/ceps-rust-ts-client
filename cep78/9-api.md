@@ -1,6 +1,6 @@
 # CEP-78 API
 
-`ceps_client::Cep78Client` - see rustdoc (`cargo doc -p ceps-client`).
+`ceps_client::CEP78Client` - see rustdoc (`cargo doc -p ceps-client`).
 
 Install: `install`, `upgrade`.
 
@@ -10,4 +10,4 @@ Query: `collection_name`, `collection_symbol`, `total_token_supply`, `number_of_
 
 Query sessions: `owner_of_session`, `balance_of_session`, `get_approved_session`, `is_approved_for_all_session`.
 
-Modes live under `ceps_client::cep78::{OwnershipMode, IdentifierMode, …}`. CES: `CepCore` parse helpers / `CallResult.ces_events`.
+Modes live under `ceps_client::cep78::{OwnershipMode, IdentifierMode, …}`. CES: `CEPClient::parse_ces_*` / `collect_ces_events` / `CallResult.ces_events`.

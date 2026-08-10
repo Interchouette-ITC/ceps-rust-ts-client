@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Cep95Error"],"struct":["Cep95Client","InstallArgs"]};
+window.SIDEBAR_ITEMS = {"enum":["CEP95Error"],"struct":["CEP95Client","InstallArgs"]};

@@ -41,7 +41,7 @@
 <a href=#41 id=41 data-nosnippet>41</a>#[repr(u8)]
 <a href=#42 id=42 data-nosnippet>42</a></span><span class="kw">pub enum </span>NftMetadataKind {
 <a href=#43 id=43 data-nosnippet>43</a>    <span class="doccomment">/// CEP-78 JSON schema.
-<a href=#44 id=44 data-nosnippet>44</a>    </span>Cep78 = <span class="number">0</span>,
+<a href=#44 id=44 data-nosnippet>44</a>    </span>CEP78 = <span class="number">0</span>,
 <a href=#45 id=45 data-nosnippet>45</a>    <span class="doccomment">/// NFT-721 style schema.
 <a href=#46 id=46 data-nosnippet>46</a>    </span>Nft721 = <span class="number">1</span>,
 <a href=#47 id=47 data-nosnippet>47</a>    <span class="doccomment">/// Opaque string payload.
@@ -149,7 +149,7 @@
 <a href=#149 id=149 data-nosnippet>149</a><span class="macro">impl_mode_u8!</span>(OwnershipMode; Minter = <span class="number">0</span>, Assigned = <span class="number">1</span>, Transferable = <span class="number">2</span>);
 <a href=#150 id=150 data-nosnippet>150</a><span class="macro">impl_mode_u8!</span>(NftKind; Physical = <span class="number">0</span>, Digital = <span class="number">1</span>, Virtual = <span class="number">2</span>);
 <a href=#151 id=151 data-nosnippet>151</a><span class="macro">impl_mode_u8!</span>(HolderMode; Accounts = <span class="number">0</span>, Contracts = <span class="number">1</span>, Mixed = <span class="number">2</span>);
-<a href=#152 id=152 data-nosnippet>152</a><span class="macro">impl_mode_u8!</span>(NftMetadataKind; Cep78 = <span class="number">0</span>, Nft721 = <span class="number">1</span>, Raw = <span class="number">2</span>, CustomValidated = <span class="number">3</span>);
+<a href=#152 id=152 data-nosnippet>152</a><span class="macro">impl_mode_u8!</span>(NftMetadataKind; CEP78 = <span class="number">0</span>, Nft721 = <span class="number">1</span>, Raw = <span class="number">2</span>, CustomValidated = <span class="number">3</span>);
 <a href=#153 id=153 data-nosnippet>153</a><span class="macro">impl_mode_u8!</span>(IdentifierMode; Ordinal = <span class="number">0</span>, Hash = <span class="number">1</span>);
 <a href=#154 id=154 data-nosnippet>154</a><span class="macro">impl_mode_u8!</span>(MetadataMutability; Immutable = <span class="number">0</span>, Mutable = <span class="number">1</span>);
 <a href=#155 id=155 data-nosnippet>155</a><span class="macro">impl_mode_u8!</span>(MintingMode; Installer = <span class="number">0</span>, Public = <span class="number">1</span>, Acl = <span class="number">2</span>);

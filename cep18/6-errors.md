@@ -25,4 +25,4 @@ CEP-18 user errors start at **60000**. Parsed from execution messages containing
 | 60018 | InvalidBurnTarget |
 | 60019–60038 | Upgrade / storage / uref failures |
 
-Typed map: `ceps_client::cep18::Cep18Error::from_code(u16)`.
+Typed map: `ceps_client::cep18::CEP18Error::from_code(u16)`.

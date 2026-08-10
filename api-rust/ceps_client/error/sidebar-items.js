@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["CepError","CepKind"],"fn":["parse_user_error"],"type":["Result"]};
+window.SIDEBAR_ITEMS = {"enum":["CEPError","CEPKind"],"fn":["parse_user_error"],"type":["Result"]};
