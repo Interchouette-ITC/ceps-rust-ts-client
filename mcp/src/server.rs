@@ -1,4 +1,4 @@
-//! MCP server (`mcpkit`) for `ceps-client-mcp` (stdio or Streamable HTTP).
+//! MCP server (`mcpkit`) for `ceps-rust-ts-client-mcp` (stdio or Streamable HTTP).
 
 #![allow(clippy::unused_async)]
 
@@ -14,7 +14,7 @@ pub struct CepsClientMcp;
 /// Default HTTP bind address for Streamable MCP.
 pub const DEFAULT_HTTP_LISTEN: &str = "0.0.0.0:6790";
 
-#[mcp_server(name = "ceps-client-mcp", version = "1.0.0")]
+#[mcp_server(name = "ceps-rust-ts-client-mcp", version = "1.0.0")]
 impl CepsClientMcp {
     #[tool(description = "Help: groups, env, endpoints, and available ceps_* tools")]
     async fn ceps_help(&self) -> ToolOutput {

@@ -31,7 +31,7 @@ mcp/
 
 ## Shipping
 
-- Binary: `make release-mcp-bin` → `target/release/ceps-client-mcp`
-- Image: `make docker-build-mcp` (copies binary + `tests/wasm` into `mcp/` build context)
+- Binary: `make release-mcp-bin` → `target/release/ceps-rust-ts-client-mcp`
+- Image: `make docker-build-mcp` → `ceps-rust-ts-client-mcp` (copies binary + `tests/wasm` into `mcp/` build context)
 - Compose: `docker/docker-compose.mcp.yml`
-- Release asset: `ceps-client-mcp-{label}-linux-x86_64`
+- Release asset: `ceps-rust-ts-client-mcp-{label}-linux-x86_64`

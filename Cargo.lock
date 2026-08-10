@@ -470,7 +470,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "ceps-client-mcp"
+name = "ceps-client-wasm"
+version = "1.0.0"
+dependencies = [
+ "ceps-client",
+ "gloo-utils",
+ "js-sys",
+ "serde",
+ "serde_json",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wasm-bindgen-test",
+]
+
+[[package]]
+name = "ceps-rust-ts-client-mcp"
 version = "1.0.0"
 dependencies = [
  "anyhow",
@@ -486,20 +500,6 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "ceps-client-wasm"
-version = "1.0.0"
-dependencies = [
- "ceps-client",
- "gloo-utils",
- "js-sys",
- "serde",
- "serde_json",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "wasm-bindgen-test",
 ]
 
 [[package]]

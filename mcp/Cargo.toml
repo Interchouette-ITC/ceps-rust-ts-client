@@ -1,8 +1,8 @@
 [package]
-name = "ceps-client-mcp"
+name = "ceps-rust-ts-client-mcp"
 version.workspace = true
 edition.workspace = true
-description = "MCP server for ceps-client (stdio + Streamable HTTP): CEP-18/78/85/95 + contract WASM helpers"
+description = "MCP server for ceps-rust-ts-client (stdio + Streamable HTTP): CEP-18/78/85/95 + contract WASM helpers"
 readme = "README.md"
 homepage.workspace = true
 repository.workspace = true
@@ -10,11 +10,11 @@ authors.workspace = true
 license-file.workspace = true
 
 [[bin]]
-name = "ceps-client-mcp"
+name = "ceps-rust-ts-client-mcp"
 path = "src/main.rs"
 
 [lib]
-name = "ceps_client_mcp"
+name = "ceps_rust_ts_client_mcp"
 path = "src/lib.rs"
 
 [dependencies]

@@ -53,7 +53,7 @@ jobs:
 
           ## Assets
           - \`ceps-client-cli-dev-preview-linux-x86_64\`
-          - \`ceps-client-mcp-dev-preview-linux-x86_64\`
+          - \`ceps-rust-ts-client-mcp-dev-preview-linux-x86_64\`
           - \`ceps-client-wasm-nodejs-dev-preview.tgz\` / \`ceps-client-wasm-web-dev-preview.tgz\`
           - \`ceps-contracts-dev-preview.tgz\` (demo tip on-chain WASMs)
           - \`SHA256SUMS\`

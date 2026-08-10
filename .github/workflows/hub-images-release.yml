@@ -115,7 +115,7 @@ jobs:
             make docker-tag IMAGE_TAG="$tag"
             make docker-push-hub IMAGE_TAG="$tag"
 
-            docker tag "ceps-client-mcp:$APP_VERSION" "ceps-client-mcp:$tag"
+            docker tag "ceps-rust-ts-client-mcp:$APP_VERSION" "ceps-rust-ts-client-mcp:$tag"
             make docker-tag-mcp IMAGE_TAG="$tag"
             make docker-push-mcp-hub IMAGE_TAG="$tag"
           done

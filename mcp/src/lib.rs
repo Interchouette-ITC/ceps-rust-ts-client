@@ -1,4 +1,4 @@
-//! MCP sidecar library for `ceps-client`.
+//! MCP sidecar library for `ceps-rust-ts-client`.
 
 #![allow(clippy::too_many_arguments)]
 

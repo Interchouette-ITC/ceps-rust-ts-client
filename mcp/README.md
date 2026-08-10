@@ -1,6 +1,6 @@
-# ceps-client-mcp
+# ceps-rust-ts-client-mcp
 
-MCP server for **`ceps-client`**: CEP-18 / CEP-78 / CEP-85 / CEP-95 install, query, and mutate, plus demo contract WASM helpers.
+MCP server for **`ceps-rust-ts-client`**: CEP-18 / CEP-78 / CEP-85 / CEP-95 install, query, and mutate, plus demo contract WASM helpers.
 
 Transports: **stdio** (default) or **Streamable HTTP** on `:6790`.
 
@@ -10,10 +10,10 @@ Raw node RPC stays on [`casper-rust-wasm-sdk-mcp`](https://github.com/casper-eco
 
 ```bash
 # stdio (Cursor / agents)
-cargo run -p ceps-client-mcp --release
+cargo run -p ceps-rust-ts-client-mcp --release
 
 # HTTP
-cargo run -p ceps-client-mcp --release -- --http --listen 0.0.0.0:6790
+cargo run -p ceps-rust-ts-client-mcp --release -- --http --listen 0.0.0.0:6790
 # → http://127.0.0.1:6790/mcp
 ```
 
@@ -31,8 +31,8 @@ make mcp-test-live     # ignored; needs NCTL
 
 | Registry   | Image                                                                           |
 | ---------- | ------------------------------------------------------------------------------- |
-| Docker Hub | `interchouette/ceps-client-mcp`                                                 |
-| GHCR       | `ghcr.io/interchouette-itc/ceps-client-mcp` (optional personal: `ghcr.io/groussac/…`) |
+| Docker Hub | `interchouette/ceps-rust-ts-client-mcp`                                                 |
+| GHCR       | `ghcr.io/interchouette-itc/ceps-rust-ts-client-mcp` (optional personal: `ghcr.io/groussac/…`) |
 
 Tags: `:dev`, `:latest`, `:X.Y.Z`.
 

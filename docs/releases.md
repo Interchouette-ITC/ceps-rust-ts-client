@@ -15,7 +15,7 @@ Examples: `v1.0.0`, `dev-preview`.
 | File                                   | Contents                                                   |
 | -------------------------------------- | ---------------------------------------------------------- |
 | `ceps-client-cli-{label}-linux-x86_64` | Stripped CLI binary                                        |
-| `ceps-client-mcp-{label}-linux-x86_64` | Stripped MCP server binary                                 |
+| `ceps-rust-ts-client-mcp-{label}-linux-x86_64` | Stripped MCP server binary                                 |
 | `ceps-client-wasm-nodejs-{label}.tgz`  | Client pack for **Node** (`pkg-nodejs/`)                   |
 | `ceps-client-wasm-web-{label}.tgz`     | Client pack for **browsers** (`pkg/`)                      |
 | `ceps-contracts-{label}.tgz`           | Demo tip **on-chain** WASMs (`cep18/`, `cep78/`, `cep85/`) |
