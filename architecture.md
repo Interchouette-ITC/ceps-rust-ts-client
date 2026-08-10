@@ -5,7 +5,7 @@ casper-rust-wasm-sdk          (RPC, tx, install, query, wait, CES)
         ^
    ceps-client                (CepCore + Cep18/78/85/95 facades, CEP enums, error maps, CES helpers)
       ^        ^        ^
-   ceps-client-cli  ceps-client-wasm  ceps-client-mcp
+   ceps-client-cli  ceps-client-wasm  ceps-rust-ts-client-mcp
       (clap)         (wasm-bindgen)    (mcpkit stdio/HTTP)
 ```
 
@@ -17,7 +17,7 @@ casper-rust-wasm-sdk          (RPC, tx, install, query, wait, CES)
 | CEP enums, dictionary keys, user-error maps | `ceps-client`                                                     |
 | Shell UX                                    | `ceps-client-cli`                                                 |
 | Browser / Node CEP API                      | `ceps-client-wasm`                                                |
-| Agent MCP (`ceps_*`)                        | `ceps-client-mcp`                                                 |
+| Agent MCP (`ceps_*`)                        | `ceps-rust-ts-client-mcp`                                                 |
 | Contract WASM bytes                         | Committed under `tests/wasm/`; refresh with `make wasm-from-ceps` |
 | Local chain                                 | External NCTL; this repo only connects to it                      |
 
