@@ -108,7 +108,6 @@ jobs:
       - name: Tag and push CLI + MCP to Docker Hub (semver + latest + dev)
         env:
           APP_VERSION: ${{ steps.ver.outputs.version }}
-          HUB_USER: ${{ secrets.DOCKER_USERNAME_ITC }}
         run: |
           set -euo pipefail
           for tag in "$APP_VERSION" latest dev; do
