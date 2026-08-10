@@ -27,6 +27,10 @@ export class CEP18Client {
      */
     chainName(): string;
     /**
+     * Collect SSE processed frames and decode CES for the bound contract.
+     */
+    collectCESEvents(event_names: string[], max_transactions?: number | null, timeout_ms?: bigint | null): Promise<string>;
+    /**
      * Install with required fields (+ optional CES events when `events_mode` is set).
      */
     install(name: string, symbol: string, decimals: number, total_supply: string, events_mode: number | null | undefined, wasm: Uint8Array, secret_key_pem: string | null | undefined, payment_amount: string, wait?: boolean | null, make_only?: boolean | null, initiator_addr?: string | null): Promise<string>;
@@ -39,6 +43,14 @@ export class CEP18Client {
      */
     constructor(rpc_url: string, sse_url?: string | null, chain_name?: string | null, verbosity?: number | null);
     /**
+     * Parse CES events for a transaction against the bound contract.
+     */
+    parseCES(transaction_hash: string): Promise<string>;
+    /**
+     * Put signed Transaction JSON (`CEPClient::put_transaction`).
+     */
+    putTransaction(transaction_json: string, wait?: boolean | null, wait_timeout_ms?: bigint | null): Promise<string>;
+    /**
      * RPC URL.
      */
     rpcUrl(): string;
@@ -50,6 +62,10 @@ export class CEP18Client {
      * Token symbol.
      */
     symbol(): Promise<string>;
+    /**
+     * Wait for a transaction hash on SSE.
+     */
+    waitTransaction(transaction_hash: string, timeout_ms?: bigint | null): Promise<string>;
 }
 
 /**
@@ -66,6 +82,10 @@ export class CEP78Client {
      * Balance of owner.
      */
     balanceOf(owner: string): Promise<string>;
+    /**
+     * Collect SSE processed frames and decode CES for the bound contract.
+     */
+    collectCESEvents(event_names: string[], max_transactions?: number | null, timeout_ms?: bigint | null): Promise<string>;
     /**
      * Collection name.
      */
@@ -87,6 +107,10 @@ export class CEP78Client {
      */
     parseCES(transaction_hash: string): Promise<string>;
     /**
+     * Put signed Transaction JSON (`CEPClient::put_transaction`).
+     */
+    putTransaction(transaction_json: string, wait?: boolean | null, wait_timeout_ms?: bigint | null): Promise<string>;
+    /**
      * RPC URL.
      */
     rpcUrl(): string;
@@ -94,6 +118,10 @@ export class CEP78Client {
      * Bind contract hashes.
      */
     setContractHash(contract_hash: string, package_hash?: string | null): void;
+    /**
+     * Wait for a transaction hash on SSE.
+     */
+    waitTransaction(transaction_hash: string, timeout_ms?: bigint | null): Promise<string>;
 }
 
 /**
@@ -111,6 +139,10 @@ export class CEP85Client {
      */
     balanceOf(account: string, id: string): Promise<string>;
     /**
+     * Collect SSE processed frames and decode CES for the bound contract.
+     */
+    collectCESEvents(event_names: string[], max_transactions?: number | null, timeout_ms?: bigint | null): Promise<string>;
+    /**
      * Collection name.
      */
     collectionName(): Promise<string>;
@@ -123,6 +155,14 @@ export class CEP85Client {
      */
     constructor(rpc_url: string, sse_url?: string | null, chain_name?: string | null, verbosity?: number | null);
     /**
+     * Parse CES events for a transaction against the bound contract.
+     */
+    parseCES(transaction_hash: string): Promise<string>;
+    /**
+     * Put signed Transaction JSON (`CEPClient::put_transaction`).
+     */
+    putTransaction(transaction_json: string, wait?: boolean | null, wait_timeout_ms?: bigint | null): Promise<string>;
+    /**
      * RPC URL.
      */
     rpcUrl(): string;
@@ -130,6 +170,10 @@ export class CEP85Client {
      * Bind contract hashes.
      */
     setContractHash(contract_hash: string, package_hash?: string | null): void;
+    /**
+     * Wait for a transaction hash on SSE.
+     */
+    waitTransaction(transaction_hash: string, timeout_ms?: bigint | null): Promise<string>;
 }
 
 /**
@@ -147,6 +191,10 @@ export class CEP95Client {
      */
     balanceOf(owner: string): Promise<string>;
     /**
+     * Collect SSE processed frames and decode CES for the bound contract.
+     */
+    collectCESEvents(event_names: string[], max_transactions?: number | null, timeout_ms?: bigint | null): Promise<string>;
+    /**
      * Install Odra OwnedCEP95 (or compatible) with package named-key name.
      */
     install(name: string, symbol: string, package_hash_key_name: string, wasm: Uint8Array, secret_key_pem: string | null | undefined, payment_amount: string, wait?: boolean | null, make_only?: boolean | null, initiator_addr?: string | null): Promise<string>;
@@ -163,6 +211,14 @@ export class CEP95Client {
      */
     ownerOf(token_id: string): Promise<string>;
     /**
+     * Parse CES events for a transaction against the bound contract.
+     */
+    parseCES(transaction_hash: string): Promise<string>;
+    /**
+     * Put signed Transaction JSON (`CEPClient::put_transaction`).
+     */
+    putTransaction(transaction_json: string, wait?: boolean | null, wait_timeout_ms?: bigint | null): Promise<string>;
+    /**
      * RPC URL.
      */
     rpcUrl(): string;
@@ -174,6 +230,10 @@ export class CEP95Client {
      * Collection symbol.
      */
     symbol(): Promise<string>;
+    /**
+     * Wait for a transaction hash on SSE.
+     */
+    waitTransaction(transaction_hash: string, timeout_ms?: bigint | null): Promise<string>;
 }
 
 export class IntoUnderlyingByteSource {
@@ -212,28 +272,43 @@ export interface InitOutput {
     readonly cep18client_SSEUrl: (a: number) => [number, number];
     readonly cep18client_balanceOf: (a: number, b: number, c: number) => any;
     readonly cep18client_chainName: (a: number) => [number, number];
+    readonly cep18client_collectCESEvents: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
     readonly cep18client_install: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: any, k: number, l: number, m: number, n: number, o: number, p: number, q: number, r: number) => any;
     readonly cep18client_name: (a: number) => any;
     readonly cep18client_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
+    readonly cep18client_parseCES: (a: number, b: number, c: number) => any;
+    readonly cep18client_putTransaction: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
     readonly cep18client_rpcUrl: (a: number) => [number, number];
     readonly cep18client_setContractHash: (a: number, b: number, c: number, d: number, e: number) => [number, number];
     readonly cep18client_symbol: (a: number) => any;
+    readonly cep18client_waitTransaction: (a: number, b: number, c: number, d: number, e: bigint) => any;
     readonly cep78client_balanceOf: (a: number, b: number, c: number) => any;
+    readonly cep78client_collectCESEvents: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
     readonly cep78client_collectionName: (a: number) => any;
     readonly cep78client_install: (a: number, b: number, c: number, d: number, e: number, f: bigint, g: number, h: any, i: number, j: number, k: number, l: number, m: number, n: number, o: number, p: number) => any;
     readonly cep78client_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
     readonly cep78client_ownershipMode: (a: number) => any;
     readonly cep78client_parseCES: (a: number, b: number, c: number) => any;
+    readonly cep78client_putTransaction: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
+    readonly cep78client_waitTransaction: (a: number, b: number, c: number, d: number, e: bigint) => any;
     readonly cep85client_balanceOf: (a: number, b: number, c: number, d: number, e: number) => any;
+    readonly cep85client_collectCESEvents: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
     readonly cep85client_collectionName: (a: number) => any;
     readonly cep85client_install: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: any, i: number, j: number, k: number, l: number, m: number, n: number, o: number, p: number) => any;
     readonly cep85client_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
+    readonly cep85client_parseCES: (a: number, b: number, c: number) => any;
+    readonly cep85client_putTransaction: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
+    readonly cep85client_waitTransaction: (a: number, b: number, c: number, d: number, e: bigint) => any;
     readonly cep95client_balanceOf: (a: number, b: number, c: number) => any;
+    readonly cep95client_collectCESEvents: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
     readonly cep95client_install: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: any, i: number, j: number, k: number, l: number, m: number, n: number, o: number, p: number) => any;
     readonly cep95client_name: (a: number) => any;
     readonly cep95client_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
     readonly cep95client_ownerOf: (a: number, b: number, c: number) => any;
+    readonly cep95client_parseCES: (a: number, b: number, c: number) => any;
+    readonly cep95client_putTransaction: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
     readonly cep95client_symbol: (a: number) => any;
+    readonly cep95client_waitTransaction: (a: number, b: number, c: number, d: number, e: bigint) => any;
     readonly cep78client_SSEUrl: (a: number) => [number, number];
     readonly cep85client_SSEUrl: (a: number) => [number, number];
     readonly cep95client_SSEUrl: (a: number) => [number, number];

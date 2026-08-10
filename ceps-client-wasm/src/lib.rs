@@ -169,6 +169,56 @@ impl WasmCEP18Client {
     pub async fn balance_of(&self, account: String) -> Result<String, JsValue> {
         self.inner.balance_of(&account).await.map_err(map_err)
     }
+
+    /// Put signed Transaction JSON (`CEPClient::put_transaction`).
+    #[wasm_bindgen(js_name = putTransaction)]
+    pub async fn put_transaction(
+        &self,
+        transaction_json: String,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> Result<String, JsValue> {
+        core_put_transaction(
+            self.inner.core(),
+            &transaction_json,
+            wait.unwrap_or(true),
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    /// Wait for a transaction hash on SSE.
+    #[wasm_bindgen(js_name = waitTransaction)]
+    pub async fn wait_transaction(
+        &self,
+        transaction_hash: String,
+        timeout_ms: Option<u64>,
+    ) -> Result<String, JsValue> {
+        core_wait_transaction(self.inner.core(), &transaction_hash, timeout_ms).await
+    }
+
+    /// Parse CES events for a transaction against the bound contract.
+    #[wasm_bindgen(js_name = parseCES)]
+    pub async fn parse_ces(&self, transaction_hash: String) -> Result<String, JsValue> {
+        core_parse_ces(self.inner.core(), &transaction_hash).await
+    }
+
+    /// Collect SSE processed frames and decode CES for the bound contract.
+    #[wasm_bindgen(js_name = collectCESEvents)]
+    pub async fn collect_ces_events(
+        &self,
+        event_names: Vec<String>,
+        max_transactions: Option<u32>,
+        timeout_ms: Option<u64>,
+    ) -> Result<String, JsValue> {
+        core_collect_ces(
+            self.inner.core(),
+            &event_names,
+            max_transactions.unwrap_or(8) as usize,
+            timeout_ms.unwrap_or(120_000),
+        )
+        .await
+    }
 }
 
 /// WASM wrapper for [`CEP78Client`].
@@ -279,21 +329,51 @@ impl WasmCEP78Client {
     /// Parse CES events for a transaction against the bound contract.
     #[wasm_bindgen(js_name = parseCES)]
     pub async fn parse_ces(&self, transaction_hash: String) -> Result<String, JsValue> {
-        let hash = self
-            .inner
-            .core()
-            .target()
-            .ok_or_else(|| JsValue::from_str("contract hash is not set"))?
-            .contract_hash
-            .clone();
-        let key = format!("hash-{hash}");
-        let rows = self
-            .inner
-            .core()
-            .parse_ces_transaction(&[key], &transaction_hash)
-            .await
-            .map_err(map_err)?;
-        serde_json::to_string(&rows).map_err(|e| JsValue::from_str(&e.to_string()))
+        core_parse_ces(self.inner.core(), &transaction_hash).await
+    }
+
+    /// Put signed Transaction JSON (`CEPClient::put_transaction`).
+    #[wasm_bindgen(js_name = putTransaction)]
+    pub async fn put_transaction(
+        &self,
+        transaction_json: String,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> Result<String, JsValue> {
+        core_put_transaction(
+            self.inner.core(),
+            &transaction_json,
+            wait.unwrap_or(true),
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    /// Wait for a transaction hash on SSE.
+    #[wasm_bindgen(js_name = waitTransaction)]
+    pub async fn wait_transaction(
+        &self,
+        transaction_hash: String,
+        timeout_ms: Option<u64>,
+    ) -> Result<String, JsValue> {
+        core_wait_transaction(self.inner.core(), &transaction_hash, timeout_ms).await
+    }
+
+    /// Collect SSE processed frames and decode CES for the bound contract.
+    #[wasm_bindgen(js_name = collectCESEvents)]
+    pub async fn collect_ces_events(
+        &self,
+        event_names: Vec<String>,
+        max_transactions: Option<u32>,
+        timeout_ms: Option<u64>,
+    ) -> Result<String, JsValue> {
+        core_collect_ces(
+            self.inner.core(),
+            &event_names,
+            max_transactions.unwrap_or(8) as usize,
+            timeout_ms.unwrap_or(120_000),
+        )
+        .await
     }
 }
 
@@ -392,6 +472,56 @@ impl WasmCEP85Client {
     #[wasm_bindgen(js_name = balanceOf)]
     pub async fn balance_of(&self, account: String, id: String) -> Result<String, JsValue> {
         self.inner.balance_of(&account, &id).await.map_err(map_err)
+    }
+
+    /// Put signed Transaction JSON (`CEPClient::put_transaction`).
+    #[wasm_bindgen(js_name = putTransaction)]
+    pub async fn put_transaction(
+        &self,
+        transaction_json: String,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> Result<String, JsValue> {
+        core_put_transaction(
+            self.inner.core(),
+            &transaction_json,
+            wait.unwrap_or(true),
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    /// Wait for a transaction hash on SSE.
+    #[wasm_bindgen(js_name = waitTransaction)]
+    pub async fn wait_transaction(
+        &self,
+        transaction_hash: String,
+        timeout_ms: Option<u64>,
+    ) -> Result<String, JsValue> {
+        core_wait_transaction(self.inner.core(), &transaction_hash, timeout_ms).await
+    }
+
+    /// Parse CES events for a transaction against the bound contract.
+    #[wasm_bindgen(js_name = parseCES)]
+    pub async fn parse_ces(&self, transaction_hash: String) -> Result<String, JsValue> {
+        core_parse_ces(self.inner.core(), &transaction_hash).await
+    }
+
+    /// Collect SSE processed frames and decode CES for the bound contract.
+    #[wasm_bindgen(js_name = collectCESEvents)]
+    pub async fn collect_ces_events(
+        &self,
+        event_names: Vec<String>,
+        max_transactions: Option<u32>,
+        timeout_ms: Option<u64>,
+    ) -> Result<String, JsValue> {
+        core_collect_ces(
+            self.inner.core(),
+            &event_names,
+            max_transactions.unwrap_or(8) as usize,
+            timeout_ms.unwrap_or(120_000),
+        )
+        .await
     }
 }
 
@@ -494,4 +624,112 @@ impl WasmCEP95Client {
     pub async fn owner_of(&self, token_id: String) -> Result<String, JsValue> {
         self.inner.owner_of(&token_id).await.map_err(map_err)
     }
+
+    /// Put signed Transaction JSON (`CEPClient::put_transaction`).
+    #[wasm_bindgen(js_name = putTransaction)]
+    pub async fn put_transaction(
+        &self,
+        transaction_json: String,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+    ) -> Result<String, JsValue> {
+        core_put_transaction(
+            self.inner.core(),
+            &transaction_json,
+            wait.unwrap_or(true),
+            wait_timeout_ms,
+        )
+        .await
+    }
+
+    /// Wait for a transaction hash on SSE.
+    #[wasm_bindgen(js_name = waitTransaction)]
+    pub async fn wait_transaction(
+        &self,
+        transaction_hash: String,
+        timeout_ms: Option<u64>,
+    ) -> Result<String, JsValue> {
+        core_wait_transaction(self.inner.core(), &transaction_hash, timeout_ms).await
+    }
+
+    /// Parse CES events for a transaction against the bound contract.
+    #[wasm_bindgen(js_name = parseCES)]
+    pub async fn parse_ces(&self, transaction_hash: String) -> Result<String, JsValue> {
+        core_parse_ces(self.inner.core(), &transaction_hash).await
+    }
+
+    /// Collect SSE processed frames and decode CES for the bound contract.
+    #[wasm_bindgen(js_name = collectCESEvents)]
+    pub async fn collect_ces_events(
+        &self,
+        event_names: Vec<String>,
+        max_transactions: Option<u32>,
+        timeout_ms: Option<u64>,
+    ) -> Result<String, JsValue> {
+        core_collect_ces(
+            self.inner.core(),
+            &event_names,
+            max_transactions.unwrap_or(8) as usize,
+            timeout_ms.unwrap_or(120_000),
+        )
+        .await
+    }
+}
+
+async fn core_put_transaction(
+    core: &ceps_client::CEPClient,
+    transaction_json: &str,
+    wait: bool,
+    wait_timeout_ms: Option<u64>,
+) -> Result<String, JsValue> {
+    let tx: serde_json::Value =
+        serde_json::from_str(transaction_json).map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let put = core
+        .put_transaction(&tx, wait, wait_timeout_ms)
+        .await
+        .map_err(map_err)?;
+    call_result_json(put)
+}
+
+async fn core_wait_transaction(
+    core: &ceps_client::CEPClient,
+    transaction_hash: &str,
+    timeout_ms: Option<u64>,
+) -> Result<String, JsValue> {
+    let event = core
+        .wait_transaction(transaction_hash, timeout_ms)
+        .await
+        .map_err(map_err)?;
+    serde_json::to_string(&event).map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+async fn core_parse_ces(
+    core: &ceps_client::CEPClient,
+    transaction_hash: &str,
+) -> Result<String, JsValue> {
+    let hash = core
+        .target()
+        .ok_or_else(|| JsValue::from_str("contract hash is not set"))?
+        .contract_hash
+        .clone();
+    let key = format!("hash-{hash}");
+    let rows = core
+        .parse_ces_transaction(&[key], transaction_hash)
+        .await
+        .map_err(map_err)?;
+    serde_json::to_string(&rows).map_err(|e| JsValue::from_str(&e.to_string()))
+}
+
+async fn core_collect_ces(
+    core: &ceps_client::CEPClient,
+    event_names: &[String],
+    max_transactions: usize,
+    timeout_ms: u64,
+) -> Result<String, JsValue> {
+    let names: Vec<&str> = event_names.iter().map(String::as_str).collect();
+    let rows = core
+        .collect_ces_events(&names, max_transactions, timeout_ms)
+        .await
+        .map_err(map_err)?;
+    serde_json::to_string(&rows).map_err(|e| JsValue::from_str(&e.to_string()))
 }

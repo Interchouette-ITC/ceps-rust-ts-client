@@ -7,11 +7,14 @@ use ceps_client::cep78::{InstallArgs as CEP78InstallArgs, TokenIdentifier};
 use ceps_client::cep85::InstallArgs as CEP85InstallArgs;
 use ceps_client::cep95::InstallArgs as CEP95InstallArgs;
 use ceps_client::{
-    CEP18Client, CEP78Client, CEP85Client, CEP95Client, EventsMode, EventsMode78, TransactionParams,
+    CEP18Client, CEP78Client, CEP85Client, CEP95Client, CEPClient, EventsMode, EventsMode78,
+    TransactionParams,
 };
 use clap::{Parser, Subcommand, ValueEnum};
+use serde_json::Value;
 use std::fs;
-use std::path::PathBuf;
+use std::io::Read;
+use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 #[derive(Debug, Parser)]
@@ -70,6 +73,31 @@ impl From<VerbosityArg> for Verbosity {
 enum Commands {
     /// Show configured network endpoints.
     Status,
+    /// Put a signed Transaction JSON (`CEPClient::put_transaction`).
+    #[command(name = "put-transaction")]
+    PutTransaction {
+        /// Path to Transaction JSON (`-` = stdin). Typically `CallResult.transaction` after make-only + external sign.
+        #[arg(long)]
+        transaction_file: PathBuf,
+        /// Skip SSE wait after put (default is wait).
+        #[arg(long, default_value_t = false)]
+        no_wait: bool,
+        #[arg(long)]
+        wait_timeout_ms: Option<u64>,
+        /// Optional bind for CES soft-attach when waiting.
+        #[arg(long)]
+        contract_hash: Option<String>,
+        #[arg(long)]
+        package_hash: Option<String>,
+    },
+    /// Wait for a transaction hash on SSE (`CEPClient::wait_transaction`).
+    #[command(name = "wait-transaction")]
+    WaitTransaction {
+        #[arg(long)]
+        transaction_hash: String,
+        #[arg(long)]
+        wait_timeout_ms: Option<u64>,
+    },
     /// CEP-18 fungible token commands.
     #[command(name = "cep18")]
     CEP18 {
@@ -94,7 +122,7 @@ enum Commands {
         #[command(subcommand)]
         command: CEP95Commands,
     },
-    /// CES parse helpers (SDK CESParser).
+    /// CES helpers (`parse_ces_*` / `collect_ces_events`).
     #[command(name = "ces")]
     #[allow(clippy::upper_case_acronyms)]
     CES {
@@ -391,6 +419,28 @@ enum CESCommands {
         contract_hash: String,
         #[arg(long)]
         transaction_hash: String,
+    },
+    /// Parse CES events from execution-result JSON (`--execution-file`, `-` = stdin).
+    #[command(name = "parse-execution")]
+    ParseExecution {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        execution_file: PathBuf,
+    },
+    /// Collect SSE `TransactionProcessed` frames and decode CES for a bound contract.
+    Collect {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        /// CES event names to keep (repeatable). Empty = keep all decoded events.
+        #[arg(long = "event-name")]
+        event_names: Vec<String>,
+        #[arg(long, default_value_t = 8)]
+        max_transactions: usize,
+        #[arg(long, default_value_t = 120_000)]
+        timeout_ms: u64,
     },
 }
 
@@ -735,6 +785,37 @@ fn read_secret(path: &PathBuf) -> Result<String> {
     fs::read_to_string(path).with_context(|| format!("read secret key {}", path.display()))
 }
 
+fn shared_client(
+    rpc_url: &str,
+    sse: Option<String>,
+    chain: Option<String>,
+    verbosity: Option<Verbosity>,
+) -> Result<CEPClient> {
+    CEPClient::new(rpc_url, sse, chain, verbosity).context("create CEPClient")
+}
+
+fn normalize_contract_hash_key(contract_hash: &str) -> String {
+    let t = contract_hash.trim();
+    if t.starts_with("hash-") || t.starts_with("entity-") {
+        t.to_string()
+    } else {
+        format!("hash-{t}")
+    }
+}
+
+fn read_json_value(path: &Path) -> Result<Value> {
+    let raw = if path.as_os_str() == "-" {
+        let mut buf = String::new();
+        std::io::stdin()
+            .read_to_string(&mut buf)
+            .context("read stdin JSON")?;
+        buf
+    } else {
+        fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?
+    };
+    serde_json::from_str(&raw).context("parse JSON")
+}
+
 fn build_tx_params(
     secret_key: &Option<PathBuf>,
     payment: &str,
@@ -859,6 +940,37 @@ async fn run() -> Result<()> {
                 println!("verbosity   {:?}", Verbosity::from(cli.verbosity));
             }
         }
+        Commands::PutTransaction {
+            transaction_file,
+            no_wait,
+            wait_timeout_ms,
+            contract_hash,
+            package_hash,
+        } => {
+            let mut client = shared_client(&cli.rpc_url, sse, chain, verbosity)?;
+            if let Some(h) = contract_hash.as_ref().filter(|s| !s.trim().is_empty()) {
+                client
+                    .set_contract_hash(h, package_hash.as_deref())
+                    .context("set_contract_hash")?;
+            }
+            let tx_json = read_json_value(&transaction_file).context("read transaction JSON")?;
+            let result = client
+                .put_transaction(&tx_json, !no_wait, wait_timeout_ms)
+                .await
+                .context("put_transaction")?;
+            print_call_result(&result, cli.json)?;
+        }
+        Commands::WaitTransaction {
+            transaction_hash,
+            wait_timeout_ms,
+        } => {
+            let client = shared_client(&cli.rpc_url, sse, chain, verbosity)?;
+            let event = client
+                .wait_transaction(&transaction_hash, wait_timeout_ms)
+                .await
+                .context("wait_transaction")?;
+            println!("{}", serde_json::to_string_pretty(&event)?);
+        }
         Commands::CEP18 { command } => {
             run_cep18(&cli.rpc_url, sse, chain, verbosity, cli.json, command).await?
         }
@@ -870,19 +982,43 @@ async fn run() -> Result<()> {
                 contract_hash,
                 transaction_hash,
             } => {
-                let client = CEP18Client::new(&cli.rpc_url, sse, chain, verbosity)
-                    .context("create client for CES")?;
-                let hash =
-                    if contract_hash.starts_with("hash-") || contract_hash.starts_with("entity-") {
-                        contract_hash.clone()
-                    } else {
-                        format!("hash-{contract_hash}")
-                    };
+                let client = shared_client(&cli.rpc_url, sse, chain, verbosity)?;
+                let hash = normalize_contract_hash_key(&contract_hash);
                 let rows = client
-                    .core()
                     .parse_ces_transaction(&[hash], &transaction_hash)
                     .await
                     .context("parse CES")?;
+                println!("{}", serde_json::to_string_pretty(&rows)?);
+            }
+            CESCommands::ParseExecution {
+                contract_hash,
+                execution_file,
+            } => {
+                let client = shared_client(&cli.rpc_url, sse, chain, verbosity)?;
+                let hash = normalize_contract_hash_key(&contract_hash);
+                let exec = read_json_value(&execution_file).context("read execution JSON")?;
+                let rows = client
+                    .parse_ces_execution(&[hash], &exec)
+                    .await
+                    .context("parse CES execution")?;
+                println!("{}", serde_json::to_string_pretty(&rows)?);
+            }
+            CESCommands::Collect {
+                contract_hash,
+                package_hash,
+                event_names,
+                max_transactions,
+                timeout_ms,
+            } => {
+                let mut client = shared_client(&cli.rpc_url, sse, chain, verbosity)?;
+                client
+                    .set_contract_hash(&contract_hash, package_hash.as_deref())
+                    .context("set_contract_hash")?;
+                let names: Vec<&str> = event_names.iter().map(String::as_str).collect();
+                let rows = client
+                    .collect_ces_events(&names, max_transactions, timeout_ms)
+                    .await
+                    .context("collect CES")?;
                 println!("{}", serde_json::to_string_pretty(&rows)?);
             }
         },
@@ -1880,6 +2016,102 @@ mod tests {
     fn parses_status() {
         let cli = Cli::try_parse_from(["ceps-client-cli", "status"]).expect("parse");
         assert!(matches!(cli.command, Commands::Status));
+    }
+
+    #[test]
+    fn parses_put_and_wait_transaction() {
+        let cli = Cli::try_parse_from([
+            "ceps",
+            "put-transaction",
+            "--transaction-file",
+            "tx.json",
+            "--no-wait",
+            "--contract-hash",
+            "aabb",
+        ])
+        .expect("parse put");
+        match cli.command {
+            Commands::PutTransaction {
+                transaction_file,
+                no_wait,
+                contract_hash,
+                ..
+            } => {
+                assert_eq!(transaction_file, PathBuf::from("tx.json"));
+                assert!(no_wait);
+                assert_eq!(contract_hash.as_deref(), Some("aabb"));
+            }
+            other => panic!("unexpected {other:?}"),
+        }
+
+        let cli = Cli::try_parse_from([
+            "ceps",
+            "wait-transaction",
+            "--transaction-hash",
+            "transaction-deadbeef",
+            "--wait-timeout-ms",
+            "5000",
+        ])
+        .expect("parse wait");
+        match cli.command {
+            Commands::WaitTransaction {
+                transaction_hash,
+                wait_timeout_ms,
+            } => {
+                assert_eq!(transaction_hash, "transaction-deadbeef");
+                assert_eq!(wait_timeout_ms, Some(5000));
+            }
+            other => panic!("unexpected {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parses_ces_parse_execution_and_collect() {
+        let cli = Cli::try_parse_from([
+            "ceps",
+            "ces",
+            "parse-execution",
+            "--contract-hash",
+            "hash-aa",
+            "--execution-file",
+            "-",
+        ])
+        .expect("parse-execution");
+        assert!(matches!(
+            cli.command,
+            Commands::CES {
+                command: CESCommands::ParseExecution { .. }
+            }
+        ));
+
+        let cli = Cli::try_parse_from([
+            "ceps",
+            "ces",
+            "collect",
+            "--contract-hash",
+            "hash-aa",
+            "--event-name",
+            "Mint",
+            "--event-name",
+            "Burn",
+            "--max-transactions",
+            "3",
+        ])
+        .expect("collect");
+        match cli.command {
+            Commands::CES {
+                command:
+                    CESCommands::Collect {
+                        event_names,
+                        max_transactions,
+                        ..
+                    },
+            } => {
+                assert_eq!(event_names, vec!["Mint".to_string(), "Burn".to_string()]);
+                assert_eq!(max_transactions, 3);
+            }
+            other => panic!("unexpected {other:?}"),
+        }
     }
 
     #[test]

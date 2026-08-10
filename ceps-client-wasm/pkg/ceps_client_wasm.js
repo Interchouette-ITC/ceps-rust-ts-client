@@ -55,6 +55,19 @@ export class CEP18Client {
         }
     }
     /**
+     * Collect SSE processed frames and decode CES for the bound contract.
+     * @param {string[]} event_names
+     * @param {number | null} [max_transactions]
+     * @param {bigint | null} [timeout_ms]
+     * @returns {Promise<string>}
+     */
+    collectCESEvents(event_names, max_transactions, timeout_ms) {
+        const ptr0 = passArrayJsValueToWasm0(event_names, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep18client_collectCESEvents(this.__wbg_ptr, ptr0, len0, isLikeNone(max_transactions) ? Number.MAX_SAFE_INTEGER : (max_transactions) >>> 0, !isLikeNone(timeout_ms), isLikeNone(timeout_ms) ? BigInt(0) : timeout_ms);
+        return ret;
+    }
+    /**
      * Install with required fields (+ optional CES events when `events_mode` is set).
      * @param {string} name
      * @param {string} symbol
@@ -116,6 +129,30 @@ export class CEP18Client {
         return this;
     }
     /**
+     * Parse CES events for a transaction against the bound contract.
+     * @param {string} transaction_hash
+     * @returns {Promise<string>}
+     */
+    parseCES(transaction_hash) {
+        const ptr0 = passStringToWasm0(transaction_hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep18client_parseCES(this.__wbg_ptr, ptr0, len0);
+        return ret;
+    }
+    /**
+     * Put signed Transaction JSON (`CEPClient::put_transaction`).
+     * @param {string} transaction_json
+     * @param {boolean | null} [wait]
+     * @param {bigint | null} [wait_timeout_ms]
+     * @returns {Promise<string>}
+     */
+    putTransaction(transaction_json, wait, wait_timeout_ms) {
+        const ptr0 = passStringToWasm0(transaction_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep18client_putTransaction(this.__wbg_ptr, ptr0, len0, isLikeNone(wait) ? 0xFFFFFF : wait ? 1 : 0, !isLikeNone(wait_timeout_ms), isLikeNone(wait_timeout_ms) ? BigInt(0) : wait_timeout_ms);
+        return ret;
+    }
+    /**
      * RPC URL.
      * @returns {string}
      */
@@ -152,6 +189,18 @@ export class CEP18Client {
      */
     symbol() {
         const ret = wasm.cep18client_symbol(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * Wait for a transaction hash on SSE.
+     * @param {string} transaction_hash
+     * @param {bigint | null} [timeout_ms]
+     * @returns {Promise<string>}
+     */
+    waitTransaction(transaction_hash, timeout_ms) {
+        const ptr0 = passStringToWasm0(transaction_hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep18client_waitTransaction(this.__wbg_ptr, ptr0, len0, !isLikeNone(timeout_ms), isLikeNone(timeout_ms) ? BigInt(0) : timeout_ms);
         return ret;
     }
 }
@@ -193,6 +242,19 @@ export class CEP78Client {
         const ptr0 = passStringToWasm0(owner, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.cep78client_balanceOf(this.__wbg_ptr, ptr0, len0);
+        return ret;
+    }
+    /**
+     * Collect SSE processed frames and decode CES for the bound contract.
+     * @param {string[]} event_names
+     * @param {number | null} [max_transactions]
+     * @param {bigint | null} [timeout_ms]
+     * @returns {Promise<string>}
+     */
+    collectCESEvents(event_names, max_transactions, timeout_ms) {
+        const ptr0 = passArrayJsValueToWasm0(event_names, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep78client_collectCESEvents(this.__wbg_ptr, ptr0, len0, isLikeNone(max_transactions) ? Number.MAX_SAFE_INTEGER : (max_transactions) >>> 0, !isLikeNone(timeout_ms), isLikeNone(timeout_ms) ? BigInt(0) : timeout_ms);
         return ret;
     }
     /**
@@ -273,6 +335,19 @@ export class CEP78Client {
         return ret;
     }
     /**
+     * Put signed Transaction JSON (`CEPClient::put_transaction`).
+     * @param {string} transaction_json
+     * @param {boolean | null} [wait]
+     * @param {bigint | null} [wait_timeout_ms]
+     * @returns {Promise<string>}
+     */
+    putTransaction(transaction_json, wait, wait_timeout_ms) {
+        const ptr0 = passStringToWasm0(transaction_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep78client_putTransaction(this.__wbg_ptr, ptr0, len0, isLikeNone(wait) ? 0xFFFFFF : wait ? 1 : 0, !isLikeNone(wait_timeout_ms), isLikeNone(wait_timeout_ms) ? BigInt(0) : wait_timeout_ms);
+        return ret;
+    }
+    /**
      * RPC URL.
      * @returns {string}
      */
@@ -302,6 +377,18 @@ export class CEP78Client {
         if (ret[1]) {
             throw takeFromExternrefTable0(ret[0]);
         }
+    }
+    /**
+     * Wait for a transaction hash on SSE.
+     * @param {string} transaction_hash
+     * @param {bigint | null} [timeout_ms]
+     * @returns {Promise<string>}
+     */
+    waitTransaction(transaction_hash, timeout_ms) {
+        const ptr0 = passStringToWasm0(transaction_hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep78client_waitTransaction(this.__wbg_ptr, ptr0, len0, !isLikeNone(timeout_ms), isLikeNone(timeout_ms) ? BigInt(0) : timeout_ms);
+        return ret;
     }
 }
 if (Symbol.dispose) CEP78Client.prototype[Symbol.dispose] = CEP78Client.prototype.free;
@@ -345,6 +432,19 @@ export class CEP85Client {
         const ptr1 = passStringToWasm0(id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len1 = WASM_VECTOR_LEN;
         const ret = wasm.cep85client_balanceOf(this.__wbg_ptr, ptr0, len0, ptr1, len1);
+        return ret;
+    }
+    /**
+     * Collect SSE processed frames and decode CES for the bound contract.
+     * @param {string[]} event_names
+     * @param {number | null} [max_transactions]
+     * @param {bigint | null} [timeout_ms]
+     * @returns {Promise<string>}
+     */
+    collectCESEvents(event_names, max_transactions, timeout_ms) {
+        const ptr0 = passArrayJsValueToWasm0(event_names, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep85client_collectCESEvents(this.__wbg_ptr, ptr0, len0, isLikeNone(max_transactions) ? Number.MAX_SAFE_INTEGER : (max_transactions) >>> 0, !isLikeNone(timeout_ms), isLikeNone(timeout_ms) ? BigInt(0) : timeout_ms);
         return ret;
     }
     /**
@@ -406,6 +506,30 @@ export class CEP85Client {
         return this;
     }
     /**
+     * Parse CES events for a transaction against the bound contract.
+     * @param {string} transaction_hash
+     * @returns {Promise<string>}
+     */
+    parseCES(transaction_hash) {
+        const ptr0 = passStringToWasm0(transaction_hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep85client_parseCES(this.__wbg_ptr, ptr0, len0);
+        return ret;
+    }
+    /**
+     * Put signed Transaction JSON (`CEPClient::put_transaction`).
+     * @param {string} transaction_json
+     * @param {boolean | null} [wait]
+     * @param {bigint | null} [wait_timeout_ms]
+     * @returns {Promise<string>}
+     */
+    putTransaction(transaction_json, wait, wait_timeout_ms) {
+        const ptr0 = passStringToWasm0(transaction_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep85client_putTransaction(this.__wbg_ptr, ptr0, len0, isLikeNone(wait) ? 0xFFFFFF : wait ? 1 : 0, !isLikeNone(wait_timeout_ms), isLikeNone(wait_timeout_ms) ? BigInt(0) : wait_timeout_ms);
+        return ret;
+    }
+    /**
      * RPC URL.
      * @returns {string}
      */
@@ -435,6 +559,18 @@ export class CEP85Client {
         if (ret[1]) {
             throw takeFromExternrefTable0(ret[0]);
         }
+    }
+    /**
+     * Wait for a transaction hash on SSE.
+     * @param {string} transaction_hash
+     * @param {bigint | null} [timeout_ms]
+     * @returns {Promise<string>}
+     */
+    waitTransaction(transaction_hash, timeout_ms) {
+        const ptr0 = passStringToWasm0(transaction_hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep85client_waitTransaction(this.__wbg_ptr, ptr0, len0, !isLikeNone(timeout_ms), isLikeNone(timeout_ms) ? BigInt(0) : timeout_ms);
+        return ret;
     }
 }
 if (Symbol.dispose) CEP85Client.prototype[Symbol.dispose] = CEP85Client.prototype.free;
@@ -475,6 +611,19 @@ export class CEP95Client {
         const ptr0 = passStringToWasm0(owner, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.cep95client_balanceOf(this.__wbg_ptr, ptr0, len0);
+        return ret;
+    }
+    /**
+     * Collect SSE processed frames and decode CES for the bound contract.
+     * @param {string[]} event_names
+     * @param {number | null} [max_transactions]
+     * @param {bigint | null} [timeout_ms]
+     * @returns {Promise<string>}
+     */
+    collectCESEvents(event_names, max_transactions, timeout_ms) {
+        const ptr0 = passArrayJsValueToWasm0(event_names, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep95client_collectCESEvents(this.__wbg_ptr, ptr0, len0, isLikeNone(max_transactions) ? Number.MAX_SAFE_INTEGER : (max_transactions) >>> 0, !isLikeNone(timeout_ms), isLikeNone(timeout_ms) ? BigInt(0) : timeout_ms);
         return ret;
     }
     /**
@@ -548,6 +697,30 @@ export class CEP95Client {
         return ret;
     }
     /**
+     * Parse CES events for a transaction against the bound contract.
+     * @param {string} transaction_hash
+     * @returns {Promise<string>}
+     */
+    parseCES(transaction_hash) {
+        const ptr0 = passStringToWasm0(transaction_hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep95client_parseCES(this.__wbg_ptr, ptr0, len0);
+        return ret;
+    }
+    /**
+     * Put signed Transaction JSON (`CEPClient::put_transaction`).
+     * @param {string} transaction_json
+     * @param {boolean | null} [wait]
+     * @param {bigint | null} [wait_timeout_ms]
+     * @returns {Promise<string>}
+     */
+    putTransaction(transaction_json, wait, wait_timeout_ms) {
+        const ptr0 = passStringToWasm0(transaction_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep95client_putTransaction(this.__wbg_ptr, ptr0, len0, isLikeNone(wait) ? 0xFFFFFF : wait ? 1 : 0, !isLikeNone(wait_timeout_ms), isLikeNone(wait_timeout_ms) ? BigInt(0) : wait_timeout_ms);
+        return ret;
+    }
+    /**
      * RPC URL.
      * @returns {string}
      */
@@ -584,6 +757,18 @@ export class CEP95Client {
      */
     symbol() {
         const ret = wasm.cep95client_symbol(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * Wait for a transaction hash on SSE.
+     * @param {string} transaction_hash
+     * @param {bigint | null} [timeout_ms]
+     * @returns {Promise<string>}
+     */
+    waitTransaction(transaction_hash, timeout_ms) {
+        const ptr0 = passStringToWasm0(transaction_hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep95client_waitTransaction(this.__wbg_ptr, ptr0, len0, !isLikeNone(timeout_ms), isLikeNone(timeout_ms) ? BigInt(0) : timeout_ms);
         return ret;
     }
 }
@@ -1053,12 +1238,12 @@ function __wbg_get_imports() {
             return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
         },
         __wbindgen_cast_0000000000000001: function(arg0, arg1) {
-            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 1034, ret: Result(Unit), inner_ret: Some(Result(Unit)) }, mutable: true }) -> Externref`.
+            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 1126, ret: Result(Unit), inner_ret: Some(Result(Unit)) }, mutable: true }) -> Externref`.
             const ret = makeMutClosure(arg0, arg1, wasm_bindgen_fcdb2a1b1112ab01___convert__closures_____invoke___wasm_bindgen_fcdb2a1b1112ab01___JsValue__core_7a2330d63e03cc2c___result__Result_____wasm_bindgen_fcdb2a1b1112ab01___JsError___true_);
             return ret;
         },
         __wbindgen_cast_0000000000000002: function(arg0, arg1) {
-            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 588, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 680, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
             const ret = makeMutClosure(arg0, arg1, wasm_bindgen_fcdb2a1b1112ab01___convert__closures_____invoke___wasm_bindgen_fcdb2a1b1112ab01___JsValue______true_);
             return ret;
         },
@@ -1277,6 +1462,16 @@ function makeMutClosure(arg0, arg1, f) {
     };
     CLOSURE_DTORS.register(real, state, state);
     return real;
+}
+
+function passArrayJsValueToWasm0(array, malloc) {
+    const ptr = malloc(array.length * 4, 4) >>> 0;
+    for (let i = 0; i < array.length; i++) {
+        const add = addToExternrefTable0(array[i]);
+        getDataViewMemory0().setUint32(ptr + 4 * i, add, true);
+    }
+    WASM_VECTOR_LEN = array.length;
+    return ptr;
 }
 
 function passStringToWasm0(arg, malloc, realloc) {

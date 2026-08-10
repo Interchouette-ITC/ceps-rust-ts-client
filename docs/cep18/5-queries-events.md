@@ -21,6 +21,7 @@ With `EventsMode::CES`, waited mutates soft-attach `CallResult.ces_events` when 
 
 - `parse_ces_execution` / `parse_ces_transaction`
 - `collect_ces_events` (SSE `TransactionProcessed` + CES filter by event name)
-- CLI `ces parse`, MCP `ceps_ces_*`
+- CLI `ces parse` / `ces parse-execution` / `ces collect`, MCP `ceps_ces_*`
+- Put signed JSON: CLI `put-transaction`, MCP `ceps_put_transaction`; wait later: CLI `wait-transaction`, MCP `ceps_wait_transaction`
 
 Typical CES names: `Mint`, `Burn`, `SetAllowance`, `IncreaseAllowance`, `DecreaseAllowance`, `Transfer`, `TransferFrom`, `ChangeSecurity`, `ChangeEventsMode`.

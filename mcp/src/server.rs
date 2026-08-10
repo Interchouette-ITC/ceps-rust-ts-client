@@ -1221,6 +1221,34 @@ impl CepsClientMcp {
         .await
     }
 
+    #[tool(description = "Put a signed Transaction JSON (CEPClient::put_transaction)")]
+    async fn ceps_put_transaction(
+        &self,
+        transaction_json: String,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+        contract_hash: Option<String>,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::client::put_transaction(
+            transaction_json,
+            wait,
+            wait_timeout_ms,
+            contract_hash,
+            package_hash,
+        )
+        .await
+    }
+
+    #[tool(description = "Wait for a transaction hash on SSE (CEPClient::wait_transaction)")]
+    async fn ceps_wait_transaction(
+        &self,
+        transaction_hash: String,
+        wait_timeout_ms: Option<u64>,
+    ) -> ToolOutput {
+        tools::client::wait_transaction(transaction_hash, wait_timeout_ms).await
+    }
+
     #[tool(description = "Parse CES events from execution JSON for a contract hash")]
     async fn ceps_ces_parse_execution(
         &self,
@@ -1237,6 +1265,27 @@ impl CepsClientMcp {
         transaction_hash: String,
     ) -> ToolOutput {
         tools::ces::parse_transaction(contract_hash, transaction_hash).await
+    }
+
+    #[tool(
+        description = "Collect SSE TransactionProcessed frames and decode CES for a bound contract"
+    )]
+    async fn ceps_ces_collect(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        event_names: Option<Vec<String>>,
+        max_transactions: Option<u64>,
+        timeout_ms: Option<u64>,
+    ) -> ToolOutput {
+        tools::ces::collect(
+            contract_hash,
+            package_hash,
+            event_names,
+            max_transactions,
+            timeout_ms,
+        )
+        .await
     }
 
     #[tool(description = "CEPS78 owner_of")]

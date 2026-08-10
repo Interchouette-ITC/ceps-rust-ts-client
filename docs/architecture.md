@@ -36,11 +36,11 @@ Mutate and install take `&TransactionParams`:
 
 - **Put (default):** SDK make + put. `CallResult.transaction_hash` from the put response. When `wait` is true (default), SSE wait attaches execution (and CES when bound).
 - **Make only:** `TransactionParams::make_only()` (or CLI/MCP `make_only`). Same CEP args/entrypoints, SDK `make_transaction` only, no put. `CallResult.transaction` holds puttable Transaction JSON. PEM is optional; unsigned make needs `initiator_addr`. Wait is skipped.
-- **Put signed JSON:** after external signing, `CEPClient::put_transaction(&transaction_json, wait, timeout)` submits that JSON and returns `CallResult`. Use `wait_transaction` when you put without wait and need to wait later by hash.
+- **Put signed JSON:** after external signing, `CEPClient::put_transaction(&transaction_json, wait, timeout)` submits that JSON and returns `CallResult`. Same path via CLI `put-transaction` / MCP `ceps_put_transaction`. Use `wait_transaction` (CLI `wait-transaction` / MCP `ceps_wait_transaction`) when you put without wait and need to wait later by hash.
 
 ## CLI vs library
 
-The CLI exposes status and selected queries. Install and most mutations live on the library (and `ceps-client` examples). Closet `*-cli.md` pages document the shipped surface only.
+The CLI exposes status, shared `CEPClient` helpers (`put-transaction`, `wait-transaction`, `ces *`), and CEP closet install/mutate/query. Closet `*-cli.md` pages document the shipped surface only.
 
 ## Testing layers
 
