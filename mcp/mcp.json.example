@@ -10,7 +10,7 @@
         "-e", "CEPS_MCP_HTTP=false",
         "-e", "RUST_LOG=warn",
         "--entrypoint", "ceps-client-mcp",
-        "interchouette/ceps-client-mcp:dev"
+        "interchouette/ceps-rust-ts-client-mcp:dev"
       ]
     },
     "ceps-client-mcp-http": {

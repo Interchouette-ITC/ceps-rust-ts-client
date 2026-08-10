@@ -1,6 +1,6 @@
 # CI / CD
 
-Quality gate on NCTL live tests; release ships the `ceps-client-cli` and `ceps-client-mcp` images plus GitHub Release artefacts (binaries + WASM packs). crates.io / npm publish are out of scope while the workspace path-depends on `casper-rust-wasm-sdk` (see [sdk.md](sdk.md)).
+Quality gate on NCTL live tests; release ships the `ceps-rust-ts-client` and `ceps-rust-ts-client-mcp` images plus GitHub Release artefacts (binaries + WASM packs). crates.io / npm publish are out of scope while the workspace path-depends on `casper-rust-wasm-sdk` (see [sdk.md](sdk.md)).
 
 Official repo: [`Interchouette-ITC/ceps-rust-ts-client`](https://github.com/Interchouette-ITC/ceps-rust-ts-client) (`origin`). Personal fork: `gRoussac/ceps-rust-ts-client` (`dev` remote). Push day-to-day work to **`origin`**.
 
@@ -36,13 +36,13 @@ push tip docs          →  pages
 | GHCR (org)      | `ghcr.io/interchouette-itc/ceps-rust-ts-client` |
 | GHCR (personal) | `ghcr.io/groussac/ceps-rust-ts-client`          |
 
-### MCP (`ceps-client-mcp`)
+### MCP (`ceps-rust-ts-client-mcp`)
 
-| Registry        | Image                                      |
-| --------------- | ------------------------------------------ |
-| Docker Hub      | `interchouette/ceps-client-mcp`            |
-| GHCR (org)      | `ghcr.io/interchouette-itc/ceps-client-mcp` |
-| GHCR (personal) | `ghcr.io/groussac/ceps-client-mcp`         |
+| Registry        | Image                                               |
+| --------------- | --------------------------------------------------- |
+| Docker Hub      | `interchouette/ceps-rust-ts-client-mcp`             |
+| GHCR (org)      | `ghcr.io/interchouette-itc/ceps-rust-ts-client-mcp` |
+| GHCR (personal) | `ghcr.io/groussac/ceps-rust-ts-client-mcp`          |
 
 ```bash
 make release-cli-bin && make docker-build IMAGE_TAG=local

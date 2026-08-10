@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Rename Hub/GHCR MCP image from `ceps-client-mcp` to `ceps-rust-ts-client-mcp` (product name). Crate/binary remain `ceps-client-mcp`.
+
 ## 1.0.0
 
 - Unified `ceps-client` facades for CEP-18, CEP-78, CEP-85, and CEP-95 on `casper-rust-wasm-sdk` 2.2.x

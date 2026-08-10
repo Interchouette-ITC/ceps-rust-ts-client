@@ -1,6 +1,7 @@
-# Runtime image for ceps-client-mcp (stdio default, HTTP :6790).
+# Runtime image for ceps-rust-ts-client-mcp (stdio default, HTTP :6790).
 # Build binary on the host / CI first, then:
 #   make docker-build-mcp IMAGE_TAG=local
+# Packs the stripped `ceps-client-mcp` binary (crate shortcut name).
 ARG RUNTIME_IMAGE=debian:bookworm-slim
 
 FROM ${RUNTIME_IMAGE}

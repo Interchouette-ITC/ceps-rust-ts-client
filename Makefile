@@ -29,7 +29,7 @@ WASM_DIR := $(ROOT)/tests/wasm
 
 # Docker / GHCR image naming
 IMAGE_NAME := ceps-rust-ts-client
-MCP_IMAGE_NAME := ceps-client-mcp
+MCP_IMAGE_NAME := ceps-rust-ts-client-mcp
 IMAGE_TAG ?= local
 HUB_USER ?= interchouette
 GHCR_PERSONAL ?= groussac
@@ -38,7 +38,7 @@ DOCKER_CONTEXT_BIN ?= $(ROOT)/target/release/ceps-client-cli
 DOCKERFILE := $(ROOT)/docker/Dockerfile
 MCP_DOCKERFILE := $(ROOT)/mcp/Dockerfile
 COMPOSE_MCP := $(ROOT)/docker/docker-compose.mcp.yml
-CEPS_MCP_IMAGE ?= interchouette/ceps-client-mcp:dev
+CEPS_MCP_IMAGE ?= interchouette/ceps-rust-ts-client-mcp:dev
 
 # Pin Binaryen so wasm-pack does not fall back to vendored 117.
 BINARYEN_VERSION := 131

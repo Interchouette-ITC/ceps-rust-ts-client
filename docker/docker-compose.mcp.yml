@@ -2,8 +2,8 @@
 # Use: make mcp-http / make mcp-http-stop
 services:
   ceps-mcp:
-    image: ${CEPS_MCP_IMAGE:-interchouette/ceps-client-mcp:dev}
-    container_name: ceps-client-mcp
+    image: ${CEPS_MCP_IMAGE:-interchouette/ceps-rust-ts-client-mcp:dev}
+    container_name: ceps-rust-ts-client-mcp
     ports:
       - "6790:6790"
     extra_hosts:

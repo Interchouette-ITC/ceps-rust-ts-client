@@ -7,7 +7,7 @@ Agent surface for this product: CEP-18 / 78 / 85 install, query, and mutate via 
 | Crate / binary | `ceps-client-mcp`                                   |
 | Path           | [`mcp/`](../mcp/)                                   |
 | HTTP           | `http://127.0.0.1:6790/mcp` (`CEPS_MCP_ADDR`)       |
-| Hub            | `interchouette/ceps-client-mcp:{dev,latest,semver}` |
+| Hub            | `interchouette/ceps-rust-ts-client-mcp:{dev,latest,semver}` |
 
 Raw JSON-RPC / binary-port tools stay on the SDK MCP (`sdk_*`). NCTL lifecycle stays on `nctl_*`.
 
