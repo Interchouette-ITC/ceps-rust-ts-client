@@ -104,14 +104,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ secrets.GHCR_USERNAME }}
-          password: ${{ secrets.GHCR_PAT }}
-
-      - name: Tag and push CLI + MCP (semver + latest + dev)
+      - name: Tag and push CLI + MCP to Docker Hub (semver + latest + dev)
         env:
           APP_VERSION: ${{ steps.ver.outputs.version }}
           HUB_USER: ${{ secrets.DOCKER_USERNAME_ITC }}
@@ -121,10 +114,42 @@ jobs:
             docker tag "ceps-rust-ts-client:$APP_VERSION" "ceps-rust-ts-client:$tag"
             make docker-tag IMAGE_TAG="$tag"
             make docker-push-hub IMAGE_TAG="$tag"
-            make docker-push-ghcr IMAGE_TAG="$tag"
 
             docker tag "ceps-client-mcp:$APP_VERSION" "ceps-client-mcp:$tag"
             make docker-tag-mcp IMAGE_TAG="$tag"
             make docker-push-mcp-hub IMAGE_TAG="$tag"
-            make docker-push-mcp-ghcr IMAGE_TAG="$tag"
+          done
+
+      - name: Log in to GHCR (personal)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Push CLI + MCP to personal GHCR
+        env:
+          APP_VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          for tag in "$APP_VERSION" latest dev; do
+            make docker-push-ghcr-personal IMAGE_TAG="$tag"
+            make docker-push-mcp-ghcr-personal IMAGE_TAG="$tag"
+          done
+
+      - name: Log in to GHCR (Interchouette / ITC)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_USERNAME_ITC }}
+          password: ${{ secrets.GHCR_PAT_ITC }}
+
+      - name: Push CLI + MCP to ghcr.io/interchouette and interchouette-itc
+        env:
+          APP_VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+          for tag in "$APP_VERSION" latest dev; do
+            make docker-push-ghcr-itc IMAGE_TAG="$tag"
+            make docker-push-mcp-ghcr-itc IMAGE_TAG="$tag"
           done
