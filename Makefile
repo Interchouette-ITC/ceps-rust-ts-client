@@ -33,6 +33,7 @@ MCP_IMAGE_NAME := ceps-client-mcp
 IMAGE_TAG ?= local
 HUB_USER ?= interchouette
 GHCR_PERSONAL ?= groussac
+GHCR_WORKER ?= interchouette
 GHCR_ORG ?= interchouette-itc
 DOCKER_CONTEXT_BIN ?= $(ROOT)/target/release/ceps-client-cli
 DOCKERFILE := $(ROOT)/docker/Dockerfile
@@ -58,8 +59,8 @@ CARGO := env -u CARGO_TARGET_DIR -u PLAYWRIGHT_BROWSERS_PATH cargo
 	pack web nodejs \
 	run-cli \
 	release-cli-bin release-mcp-bin \
-	docker-build docker-tag docker-push-hub docker-push-ghcr docker-push \
-	docker-build-mcp docker-tag-mcp docker-push-mcp-hub docker-push-mcp-ghcr docker-push-mcp \
+	docker-build docker-tag docker-push-hub docker-push-ghcr-personal docker-push-ghcr-itc docker-push-ghcr docker-push \
+	docker-build-mcp docker-tag-mcp docker-push-mcp-hub docker-push-mcp-ghcr-personal docker-push-mcp-ghcr-itc docker-push-mcp-ghcr docker-push-mcp \
 	mcp-build run-mcp run-mcp-http mcp-http mcp-http-stop mcp-test mcp-test-live \
 	nctl-start nctl-start-all nctl-stop nctl-stop-all nctl-status nctl-endpoints \
 	sdk-mcp-http sdk-mcp-http-stop \
@@ -287,14 +288,20 @@ docker-build-mcp: release-mcp-bin
 docker-tag-mcp:
 	docker tag "$(MCP_IMAGE_NAME):$(IMAGE_TAG)" "$(HUB_USER)/$(MCP_IMAGE_NAME):$(IMAGE_TAG)"
 	docker tag "$(MCP_IMAGE_NAME):$(IMAGE_TAG)" "ghcr.io/$(GHCR_PERSONAL)/$(MCP_IMAGE_NAME):$(IMAGE_TAG)"
+	docker tag "$(MCP_IMAGE_NAME):$(IMAGE_TAG)" "ghcr.io/$(GHCR_WORKER)/$(MCP_IMAGE_NAME):$(IMAGE_TAG)"
 	docker tag "$(MCP_IMAGE_NAME):$(IMAGE_TAG)" "ghcr.io/$(GHCR_ORG)/$(MCP_IMAGE_NAME):$(IMAGE_TAG)"
 
 docker-push-mcp-hub:
 	docker push "$(HUB_USER)/$(MCP_IMAGE_NAME):$(IMAGE_TAG)"
 
-docker-push-mcp-ghcr:
+docker-push-mcp-ghcr-personal:
 	docker push "ghcr.io/$(GHCR_PERSONAL)/$(MCP_IMAGE_NAME):$(IMAGE_TAG)"
+
+docker-push-mcp-ghcr-itc:
+	docker push "ghcr.io/$(GHCR_WORKER)/$(MCP_IMAGE_NAME):$(IMAGE_TAG)"
 	docker push "ghcr.io/$(GHCR_ORG)/$(MCP_IMAGE_NAME):$(IMAGE_TAG)"
+
+docker-push-mcp-ghcr: docker-push-mcp-ghcr-personal docker-push-mcp-ghcr-itc
 
 docker-push-mcp: docker-tag-mcp docker-push-mcp-hub docker-push-mcp-ghcr
 
@@ -313,14 +320,20 @@ docker-build:
 docker-tag:
 	docker tag "$(IMAGE_NAME):$(IMAGE_TAG)" "$(HUB_USER)/$(IMAGE_NAME):$(IMAGE_TAG)"
 	docker tag "$(IMAGE_NAME):$(IMAGE_TAG)" "ghcr.io/$(GHCR_PERSONAL)/$(IMAGE_NAME):$(IMAGE_TAG)"
+	docker tag "$(IMAGE_NAME):$(IMAGE_TAG)" "ghcr.io/$(GHCR_WORKER)/$(IMAGE_NAME):$(IMAGE_TAG)"
 	docker tag "$(IMAGE_NAME):$(IMAGE_TAG)" "ghcr.io/$(GHCR_ORG)/$(IMAGE_NAME):$(IMAGE_TAG)"
 
 docker-push-hub:
 	docker push "$(HUB_USER)/$(IMAGE_NAME):$(IMAGE_TAG)"
 
-docker-push-ghcr:
+docker-push-ghcr-personal:
 	docker push "ghcr.io/$(GHCR_PERSONAL)/$(IMAGE_NAME):$(IMAGE_TAG)"
+
+docker-push-ghcr-itc:
+	docker push "ghcr.io/$(GHCR_WORKER)/$(IMAGE_NAME):$(IMAGE_TAG)"
 	docker push "ghcr.io/$(GHCR_ORG)/$(IMAGE_NAME):$(IMAGE_TAG)"
+
+docker-push-ghcr: docker-push-ghcr-personal docker-push-ghcr-itc
 
 docker-push: docker-tag docker-push-hub docker-push-ghcr
 
