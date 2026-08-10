@@ -817,6 +817,39 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn wait_transaction_requires_sse_url() {
+        let core = CEPClient::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let err = core
+            .wait_transaction("transaction-deadbeef", Some(1_000))
+            .await
+            .expect_err("SSE URL required");
+        assert!(
+            err.to_string().to_lowercase().contains("sse"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[tokio::test]
+    async fn collect_ces_events_requires_bound_contract() {
+        let core = CEPClient::new(
+            "http://127.0.0.1:11101",
+            Some("http://127.0.0.1:18101/events".into()),
+            None,
+            None,
+        )
+        .unwrap();
+        let err = core
+            .collect_ces_events(&["Mint"], 1, 1_000)
+            .await
+            .expect_err("contract hash required");
+        assert!(
+            err.to_string().to_lowercase().contains("contract")
+                || err.to_string().to_lowercase().contains("hash"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[tokio::test]
     async fn make_only_rejects_put_without_secret() {
         let core = CEPClient::new("http://127.0.0.1:11101", None, None, None).unwrap();
         let tx = TransactionParams::for_make("1000000000");

@@ -29,3 +29,28 @@ describe('ceps-client-wasm constructors', () => {
     expect(() => client.setContractHash(hex, hex)).not.toThrow();
   });
 });
+
+describe('ceps-client-wasm CEPClient surface', () => {
+  test('putTransaction rejects invalid JSON', async () => {
+    const client = new CEP18Client('http://127.0.0.1:11101');
+    await expect(client.putTransaction('{}')).rejects.toBeTruthy();
+  });
+
+  test('waitTransaction rejects when SSE URL is unset', async () => {
+    const client = new CEP18Client('http://127.0.0.1:11101');
+    await expect(client.waitTransaction('transaction-deadbeef')).rejects.toBeTruthy();
+  });
+
+  test('parseCES rejects when contract hash is unset', async () => {
+    const client = new CEP18Client('http://127.0.0.1:11101');
+    await expect(client.parseCES('transaction-deadbeef')).rejects.toBeTruthy();
+  });
+
+  test('collectCESEvents rejects when contract hash is unset', async () => {
+    const client = new CEP78Client(
+      'http://127.0.0.1:11101',
+      'http://127.0.0.1:18101/events',
+    );
+    await expect(client.collectCESEvents(['Mint'], 1, 1000n)).rejects.toBeTruthy();
+  });
+});

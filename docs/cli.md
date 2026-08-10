@@ -4,13 +4,13 @@ Package and binary: `ceps-client-cli` (crate path `ceps-client-cli/`).
 
 ## Global flags
 
-| Flag / env | Default (NCTL) |
-| --- | --- |
-| `--rpc-url` / `CEPS_RPC_URL` | `http://127.0.0.1:11101` |
-| `--sse-url` / `CEPS_SSE_URL` | `http://127.0.0.1:18101/events` |
-| `--chain-name` / `CEPS_CHAIN_NAME` | `casper-net-1` |
-| `--verbosity` | low |
-| `--json` | off |
+| Flag / env                         | Default (NCTL)                  |
+| ---------------------------------- | ------------------------------- |
+| `--rpc-url` / `CEPS_RPC_URL`       | `http://127.0.0.1:11101`        |
+| `--sse-url` / `CEPS_SSE_URL`       | `http://127.0.0.1:18101/events` |
+| `--chain-name` / `CEPS_CHAIN_NAME` | `casper-net-1`                  |
+| `--verbosity`                      | low                             |
+| `--json`                           | off                             |
 
 ## Commands
 
