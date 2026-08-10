@@ -9,7 +9,7 @@ use std::time::Duration;
 use casper_rust_wasm_sdk::helpers::public_key_from_secret_key;
 use casper_rust_wasm_sdk::types::public_key::PublicKey;
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
-use ceps_client::Cep18Client;
+use ceps_client::CEP18Client;
 
 pub const DEFAULT_RPC: &str = "http://127.0.0.1:11101";
 pub const DEFAULT_SSE: &str = "http://127.0.0.1:18101/events";
@@ -76,11 +76,11 @@ pub fn user1_public_key_hex(secret_pem: &str) -> String {
     public_key_from_secret_key(secret_pem).expect("public key")
 }
 
-pub fn cep18_client() -> Cep18Client {
+pub fn cep18_client() -> CEP18Client {
     let rpc = env::var("CEPS_RPC_URL").unwrap_or_else(|_| DEFAULT_RPC.to_string());
     let sse = env::var("CEPS_SSE_URL").unwrap_or_else(|_| DEFAULT_SSE.to_string());
     let chain = env::var("CEPS_CHAIN_NAME").unwrap_or_else(|_| DEFAULT_CHAIN.to_string());
-    Cep18Client::new(rpc, Some(sse), Some(chain), Some(Verbosity::Low)).expect("client")
+    CEP18Client::new(rpc, Some(sse), Some(chain), Some(Verbosity::Low)).expect("client")
 }
 
 pub fn wasm_path(name: &str) -> PathBuf {

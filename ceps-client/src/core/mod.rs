@@ -12,12 +12,13 @@ pub use args::{
 };
 pub use urls::{normalize_rpc_url, normalize_sse_url};
 
-use crate::error::{CepError, CepKind, Result};
+use crate::error::{CEPError, CEPKind, Result};
 use crate::types::{CallResult, ContractTarget, TransactionParams};
 use casper_rust_wasm_sdk::types::cl::bytes::Bytes;
 use casper_rust_wasm_sdk::types::hash::addressable_entity_hash::AddressableEntityHash;
 use casper_rust_wasm_sdk::types::hash::package_hash::PackageHash;
 use casper_rust_wasm_sdk::types::hash::transaction_hash::TransactionHash;
+use casper_rust_wasm_sdk::types::transaction::Transaction;
 use casper_rust_wasm_sdk::types::transaction_params::transaction_builder_params::TransactionBuilderParams;
 use casper_rust_wasm_sdk::types::transaction_params::transaction_str_params::TransactionStrParams;
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
@@ -34,8 +35,8 @@ pub const DEFAULT_CHAIN_NAME: &str = "casper-net-1";
 /// Default wait timeout (matches JS clients): 120 seconds.
 pub const DEFAULT_WAIT_TIMEOUT_MS: u64 = 120_000;
 
-/// Shared CEP client core: endpoints, SDK handle, and contract targeting.
-pub struct CepCore {
+/// Shared CEP client: endpoints, SDK handle, and contract targeting.
+pub struct CEPClient {
     sdk: SDK,
     rpc_url: String,
     sse_url: Option<String>,
@@ -44,11 +45,11 @@ pub struct CepCore {
     target: Option<ContractTarget>,
     /// Use VmCasperV2 session runtime when `Some(true)`.
     runtime_v2: Option<bool>,
-    cep_kind: Option<CepKind>,
+    cep_kind: Option<CEPKind>,
 }
 
-impl CepCore {
-    /// Create a core client.
+impl CEPClient {
+    /// Create a shared CEP client.
     ///
     /// `rpc_url` is required. Empty `sse_url` is treated as unset.
     pub fn new(
@@ -77,7 +78,7 @@ impl CepCore {
     }
 
     /// Tag this core with a CEP kind (used when mapping user errors).
-    pub fn with_cep_kind(mut self, kind: CepKind) -> Self {
+    pub fn with_cep_kind(mut self, kind: CEPKind) -> Self {
         self.cep_kind = Some(kind);
         self
     }
@@ -87,8 +88,8 @@ impl CepCore {
         self.runtime_v2 = Some(runtime_v2);
     }
 
-    /// Borrow the underlying SDK.
-    pub fn sdk(&self) -> &SDK {
+    /// Borrow the underlying SDK (crate-internal).
+    pub(crate) fn sdk(&self) -> &SDK {
         &self.sdk
     }
 
@@ -112,7 +113,10 @@ impl CepCore {
         self.verbosity
     }
 
-    /// Bound contract target, if any.
+    /// Bound contract identity after [`Self::set_contract_hash`], if any.
+    ///
+    /// Holds the contract (entity) hash and optional package hash used for
+    /// entrypoint calls, queries, and CES helpers.
     pub fn target(&self) -> Option<&ContractTarget> {
         self.target.as_ref()
     }
@@ -122,7 +126,7 @@ impl CepCore {
         let rpc_url = normalize_rpc_url(&rpc_url.into())?;
         self.sdk
             .set_rpc_address(Some(rpc_url.clone()))
-            .map_err(CepError::Other)?;
+            .map_err(CEPError::Other)?;
         self.rpc_url = rpc_url;
         Ok(())
     }
@@ -155,17 +159,17 @@ impl CepCore {
     }
 
     /// Require a bound contract target.
-    pub fn require_target(&self) -> Result<&ContractTarget> {
-        self.target.as_ref().ok_or(CepError::ContractHashMissing)
+    pub(crate) fn require_target(&self) -> Result<&ContractTarget> {
+        self.target.as_ref().ok_or(CEPError::ContractHashMissing)
     }
 
     /// Build [`TransactionStrParams`] from transaction options and JSON session args.
-    pub fn build_tx_params(
+    pub(crate) fn build_tx_params(
         &self,
         tx: &TransactionParams,
         args_json: &str,
     ) -> Result<TransactionStrParams> {
-        tx.validate().map_err(CepError::InvalidArgument)?;
+        tx.validate().map_err(CEPError::InvalidArgument)?;
         let params = TransactionStrParams::default();
         let chain = tx.chain_name.as_deref().unwrap_or(self.chain_name.as_str());
         params.set_chain_name(chain);
@@ -200,14 +204,52 @@ impl CepCore {
         let hash = transaction.hash().to_string();
         let json_str = transaction
             .to_json_string()
-            .map_err(|e| CepError::Other(format!("serialize transaction: {e}")))?;
+            .map_err(|e| CEPError::Other(format!("serialize transaction: {e}")))?;
         let value: Value = serde_json::from_str(&json_str)
-            .map_err(|e| CepError::Other(format!("parse transaction JSON: {e}")))?;
+            .map_err(|e| CEPError::Other(format!("parse transaction JSON: {e}")))?;
         Ok(CallResult::from_make(hash, value))
     }
 
+    /// Put an already-signed Transaction JSON (for example from make-only after external signing).
+    ///
+    /// When `wait` is true, waits on SSE and attaches execution (and CES when a contract is
+    /// bound), matching the normal CEP put path.
+    pub async fn put_transaction(
+        &self,
+        transaction: &Value,
+        wait: bool,
+        wait_timeout_ms: Option<u64>,
+    ) -> Result<CallResult> {
+        let json_str = serde_json::to_string(transaction)
+            .map_err(|e| CEPError::Other(format!("serialize transaction JSON: {e}")))?;
+        let tx = Transaction::from_json_string(&json_str)
+            .map_err(|e| CEPError::Other(format!("parse transaction JSON: {e}")))?;
+        let put = self
+            .sdk
+            .put_transaction(tx, Some(self.verbosity), Some(self.rpc_url.clone()))
+            .await
+            .map_err(|e| CEPError::Other(e.to_string()))?;
+        let tx_hash = TransactionHash::from(put.result.transaction_hash).to_string();
+        let put_json = serde_json::to_value(&put.result)
+            .map_err(|e| CEPError::Other(format!("serialize put result: {e}")))?;
+        let result = CallResult::new(tx_hash, put_json);
+        if !wait {
+            return Ok(result);
+        }
+        let wait_params = TransactionParams {
+            secret_key_pem: None,
+            payment_amount: String::new(),
+            chain_name: None,
+            wait: true,
+            wait_timeout_ms,
+            put: true,
+            initiator_addr: None,
+        };
+        self.maybe_wait(&wait_params, result).await
+    }
+
     /// Install a session WASM (install or upgrade path).
-    pub async fn install_wasm(
+    pub(crate) async fn install_wasm(
         &self,
         wasm: &[u8],
         tx: &TransactionParams,
@@ -217,7 +259,7 @@ impl CepCore {
     }
 
     /// Call a contract entrypoint by package hash (preferred) or entity hash.
-    pub async fn call_entrypoint(
+    pub(crate) async fn call_entrypoint(
         &self,
         entry_point: &str,
         tx: &TransactionParams,
@@ -227,7 +269,7 @@ impl CepCore {
     }
 
     /// Call a companion session WASM (CEP-78 session helpers).
-    pub async fn call_session(
+    pub(crate) async fn call_session(
         &self,
         wasm: &[u8],
         tx: &TransactionParams,
@@ -237,17 +279,21 @@ impl CepCore {
     }
 
     /// Query a named key under the bound contract (`hash-{contract}`).
-    pub async fn query_contract_key(&self, path: &[&str]) -> Result<Value> {
+    pub(crate) async fn query_contract_key(&self, path: &[&str]) -> Result<Value> {
         query::query_contract_key(self, path).await
     }
 
     /// Query a dictionary item under a named dictionary on the bound contract.
-    pub async fn query_dictionary(&self, dictionary_name: &str, item_key: &str) -> Result<Value> {
+    pub(crate) async fn query_dictionary(
+        &self,
+        dictionary_name: &str,
+        item_key: &str,
+    ) -> Result<Value> {
         query::query_dictionary(self, dictionary_name, item_key).await
     }
 
     /// Read a named key from an account (by public key hex or account-hash-…).
-    pub async fn get_account_named_key(
+    pub(crate) async fn get_account_named_key(
         &self,
         account_identifier: &str,
         named_key: &str,
@@ -256,6 +302,9 @@ impl CepCore {
     }
 
     /// Wait for a transaction hash on the configured SSE endpoint.
+    ///
+    /// Use after a put with wait disabled, or when you already have a transaction hash.
+    /// Prefer [`TransactionParams::wait`] on CEP mutate/install for the normal put path.
     pub async fn wait_transaction(
         &self,
         transaction_hash: &str,
@@ -264,18 +313,18 @@ impl CepCore {
         let sse = self
             .sse_url
             .as_deref()
-            .ok_or_else(|| CepError::WaitFailed("SSE URL is not configured".into()))?;
+            .ok_or_else(|| CEPError::WaitFailed("SSE URL is not configured".into()))?;
         let timeout = timeout_ms.or(Some(DEFAULT_WAIT_TIMEOUT_MS));
         let event = self
             .sdk
             .wait_transaction(sse, transaction_hash, timeout)
             .await
-            .map_err(CepError::WaitFailed)?;
-        serde_json::to_value(event).map_err(|e| CepError::Other(e.to_string()))
+            .map_err(CEPError::WaitFailed)?;
+        serde_json::to_value(event).map_err(|e| CEPError::Other(e.to_string()))
     }
 
-    /// Build an SDK [`CESParser`] for one or more contract hashes (schemas from chain).
-    pub async fn ces_parser_create(
+    /// Build an SDK CES parser for one or more contract hashes (schemas from chain).
+    pub(crate) async fn ces_parser_create(
         &self,
         contract_hashes: &[String],
         state_root_hash: Option<&str>,
@@ -283,10 +332,13 @@ impl CepCore {
         self.sdk
             .CES_parser(contract_hashes, state_root_hash, Some(self.rpc_url.clone()))
             .await
-            .map_err(CepError::Other)
+            .map_err(CEPError::Other)
     }
 
     /// Parse CES events from an execution-result JSON value using schemas for `contract_hashes`.
+    ///
+    /// Use when you already have execution JSON and want CES rows outside auto-attach on
+    /// [`CallResult::ces_events`].
     pub async fn parse_ces_execution(
         &self,
         contract_hashes: &[String],
@@ -296,17 +348,19 @@ impl CepCore {
         let body = extract_execution_for_ces(execution_result);
         parser
             .parse_execution_result(&body)
-            .map_err(CepError::Other)
+            .map_err(CEPError::Other)
     }
 
     /// Fetch a transaction and parse CES events for `contract_hashes`.
+    ///
+    /// Prefer this over lower-level SDK CES parser APIs when decoding CEP events by hash.
     pub async fn parse_ces_transaction(
         &self,
         contract_hashes: &[String],
         transaction_hash: &str,
     ) -> Result<Vec<CESParseResult>> {
         let tx_hash = TransactionHash::new(transaction_hash)
-            .map_err(|e| CepError::InvalidHash(format!("transaction hash: {e}")))?;
+            .map_err(|e| CEPError::InvalidHash(format!("transaction hash: {e}")))?;
         let mut json = None;
         if let Ok(get_tx) = self
             .sdk
@@ -329,7 +383,7 @@ impl CepCore {
             }
         }
         let json = json.ok_or_else(|| {
-            CepError::Other(format!(
+            CEPError::Other(format!(
                 "could not load execution JSON for transaction {transaction_hash}"
             ))
         })?;
@@ -337,7 +391,7 @@ impl CepCore {
     }
 
     /// Bounded SSE collect for node event kinds (not CES contract event names).
-    pub async fn sse_collect(
+    pub(crate) async fn sse_collect(
         &self,
         event_names: &[EventName],
         max_events: usize,
@@ -347,17 +401,18 @@ impl CepCore {
         let sse_url = self
             .sse_url
             .as_deref()
-            .ok_or_else(|| CepError::WaitFailed("SSE URL is not configured".into()))?;
+            .ok_or_else(|| CEPError::WaitFailed("SSE URL is not configured".into()))?;
         let client = self.sdk.SSE_client(sse_url);
         client
             .collect(event_names, max_events, timeout_ms, start_from)
             .await
-            .map_err(CepError::Other)
+            .map_err(CEPError::Other)
     }
 
     /// Collect `TransactionProcessed` SSE frames, then decode CES for the bound contract.
     ///
-    /// Filters decoded rows to `event_names` when non-empty (CES contract event names such as `Mint`).
+    /// Filters decoded rows to `ces_event_names` when non-empty (CES contract event names such as
+    /// `Mint`). Requires [`Self::set_contract_hash`] and a configured SSE URL.
     pub async fn collect_ces_events(
         &self,
         ces_event_names: &[&str],
@@ -405,7 +460,7 @@ impl CepCore {
         let target = self.require_target()?;
         if let Some(package_hex) = &target.package_hash {
             let package = PackageHash::new(package_hex)
-                .map_err(|e| CepError::InvalidHash(format!("package hash: {e}")))?;
+                .map_err(|e| CEPError::InvalidHash(format!("package hash: {e}")))?;
             Ok(TransactionBuilderParams::new_package(
                 package,
                 entry_point,
@@ -413,7 +468,7 @@ impl CepCore {
             ))
         } else {
             let entity = AddressableEntityHash::new(&target.contract_hash)
-                .map_err(|e| CepError::InvalidHash(format!("contract hash: {e}")))?;
+                .map_err(|e| CEPError::InvalidHash(format!("contract hash: {e}")))?;
             Ok(TransactionBuilderParams::new_invocable_entity(
                 entity,
                 entry_point,
@@ -438,7 +493,7 @@ impl CepCore {
             .await?;
         let event = _event;
         let tx_hash = TransactionHash::new(&result.transaction_hash)
-            .map_err(|e| CepError::InvalidHash(format!("transaction hash: {e}")))?;
+            .map_err(|e| CEPError::InvalidHash(format!("transaction hash: {e}")))?;
 
         // After SSE reports processed: try to attach execution JSON when the node
         // can return it. Some large successful installs fail NCTL deserialize.
@@ -474,7 +529,7 @@ impl CepCore {
 
             if let Some(json) = &last_json {
                 if let Some(err) = extract_execution_error(json) {
-                    return Err(CepError::from_execution_message(err, self.cep_kind));
+                    return Err(CEPError::from_execution_message(err, self.cep_kind));
                 }
                 if json_has_execution(json) {
                     break;
@@ -487,7 +542,7 @@ impl CepCore {
         }
         if let Some(json) = last_json {
             if let Some(err) = extract_execution_error(&json) {
-                return Err(CepError::from_execution_message(err, self.cep_kind));
+                return Err(CEPError::from_execution_message(err, self.cep_kind));
             }
             result = result.with_execution(json);
             if let Some(target) = &self.target {
@@ -626,14 +681,14 @@ mod tests {
 
     #[test]
     fn core_new_normalizes_urls() {
-        let core = CepCore::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let core = CEPClient::new("http://127.0.0.1:11101", None, None, None).unwrap();
         assert_eq!(core.rpc_url(), "http://127.0.0.1:11101/rpc");
         assert!(core.sse_url().is_none());
     }
 
     #[test]
     fn core_rejects_empty_rpc() {
-        assert!(CepCore::new("", None, None, None).is_err());
+        assert!(CEPClient::new("", None, None, None).is_err());
     }
 
     #[test]
@@ -676,7 +731,7 @@ mod tests {
 
     #[test]
     fn build_tx_params_put_requires_secret() {
-        let core = CepCore::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let core = CEPClient::new("http://127.0.0.1:11101", None, None, None).unwrap();
         let mut tx = TransactionParams::new("pem", "1000000000");
         tx.secret_key_pem = None;
         let err = core.build_tx_params(&tx, "[]").unwrap_err();
@@ -685,7 +740,7 @@ mod tests {
 
     #[test]
     fn build_tx_params_unsigned_make_needs_initiator() {
-        let core = CepCore::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let core = CEPClient::new("http://127.0.0.1:11101", None, None, None).unwrap();
         let tx = TransactionParams::for_make("1000000000");
         assert!(core.build_tx_params(&tx, "[]").is_err());
         let tx = tx.with_initiator_addr(
@@ -698,7 +753,7 @@ mod tests {
     #[tokio::test]
     async fn make_only_install_returns_transaction_json_without_put() {
         let (pem, _pk) = sample_pem_and_pk();
-        let core = CepCore::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let core = CEPClient::new("http://127.0.0.1:11101", None, None, None).unwrap();
         let tx = TransactionParams::new(&pem, "1000000000").make_only();
         // Minimal empty Wasm module header (make does not execute it).
         let wasm = [0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00];
@@ -726,7 +781,7 @@ mod tests {
     #[tokio::test]
     async fn make_only_call_with_initiator_addr() {
         let (_pem, pk) = sample_pem_and_pk();
-        let mut core = CepCore::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let mut core = CEPClient::new("http://127.0.0.1:11101", None, None, None).unwrap();
         core.set_contract_hash(
             "cfa781f5eb69c3eee952c2944ce9670a049f88c5e46b83fb5881ebe13fb98e6d",
             None::<&str>,
@@ -745,8 +800,25 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn put_transaction_rejects_invalid_json() {
+        let core = CEPClient::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let bad = serde_json::json!({"not": "a_transaction"});
+        let err = core
+            .put_transaction(&bad, false, None)
+            .await
+            .expect_err("invalid transaction JSON must fail");
+        assert!(
+            err.to_string().contains("parse transaction JSON")
+                || err.to_string().to_lowercase().contains("parse")
+                || err.to_string().to_lowercase().contains("deserialize")
+                || err.to_string().to_lowercase().contains("invalid"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[tokio::test]
     async fn make_only_rejects_put_without_secret() {
-        let core = CepCore::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let core = CEPClient::new("http://127.0.0.1:11101", None, None, None).unwrap();
         let tx = TransactionParams::for_make("1000000000");
         // for_make already put=false; force invalid put without secret via validate path
         let mut bad = TransactionParams::new("x", "1");

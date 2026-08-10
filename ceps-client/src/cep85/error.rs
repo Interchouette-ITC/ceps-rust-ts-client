@@ -2,10 +2,10 @@
 
 use serde::{Deserialize, Serialize};
 
-/// On-chain CEP-85 `Cep85Error` user codes (subset of common ones; full range 1..=91).
+/// On-chain CEP-85 `CEP85Error` user codes (subset of common ones; full range 1..=91).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(u16)]
-pub enum Cep85Error {
+pub enum CEP85Error {
     /// Burn disabled.
     BurnDisabled = 1,
     /// Insufficient balance.
@@ -22,7 +22,7 @@ pub enum Cep85Error {
     SelfOperatorApproval = 7,
 }
 
-impl Cep85Error {
+impl CEP85Error {
     /// Map a known code when it matches a listed variant.
     pub fn from_code(code: u16) -> Option<Self> {
         Some(match code {

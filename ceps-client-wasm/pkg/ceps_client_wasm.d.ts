@@ -9,11 +9,15 @@
 export type ReadableStreamType = "bytes";
 
 /**
- * WASM wrapper for [`Cep18Client`].
+ * WASM wrapper for [`CEP18Client`].
  */
-export class Cep18Client {
+export class CEP18Client {
     free(): void;
     [Symbol.dispose](): void;
+    /**
+     * SSE URL when set.
+     */
+    SSEUrl(): string | undefined;
     /**
      * Balance of `account` (`account-hash-…` or prefixed).
      */
@@ -43,21 +47,21 @@ export class Cep18Client {
      */
     setContractHash(contract_hash: string, package_hash?: string | null): void;
     /**
-     * SSE URL when set.
-     */
-    sseUrl(): string | undefined;
-    /**
      * Token symbol.
      */
     symbol(): Promise<string>;
 }
 
 /**
- * WASM wrapper for [`Cep78Client`].
+ * WASM wrapper for [`CEP78Client`].
  */
-export class Cep78Client {
+export class CEP78Client {
     free(): void;
     [Symbol.dispose](): void;
+    /**
+     * SSE URL when set.
+     */
+    SSEUrl(): string | undefined;
     /**
      * Balance of owner.
      */
@@ -81,7 +85,7 @@ export class Cep78Client {
     /**
      * Parse CES events for a transaction against the bound contract.
      */
-    parseCes(transaction_hash: string): Promise<string>;
+    parseCES(transaction_hash: string): Promise<string>;
     /**
      * RPC URL.
      */
@@ -90,18 +94,18 @@ export class Cep78Client {
      * Bind contract hashes.
      */
     setContractHash(contract_hash: string, package_hash?: string | null): void;
-    /**
-     * SSE URL when set.
-     */
-    sseUrl(): string | undefined;
 }
 
 /**
- * WASM wrapper for [`Cep85Client`].
+ * WASM wrapper for [`CEP85Client`].
  */
-export class Cep85Client {
+export class CEP85Client {
     free(): void;
     [Symbol.dispose](): void;
+    /**
+     * SSE URL when set.
+     */
+    SSEUrl(): string | undefined;
     /**
      * Balance for account + token id.
      */
@@ -126,24 +130,24 @@ export class Cep85Client {
      * Bind contract hashes.
      */
     setContractHash(contract_hash: string, package_hash?: string | null): void;
-    /**
-     * SSE URL when set.
-     */
-    sseUrl(): string | undefined;
 }
 
 /**
- * WASM wrapper for [`Cep95Client`].
+ * WASM wrapper for [`CEP95Client`].
  */
-export class Cep95Client {
+export class CEP95Client {
     free(): void;
     [Symbol.dispose](): void;
+    /**
+     * SSE URL when set.
+     */
+    SSEUrl(): string | undefined;
     /**
      * Balance of owner.
      */
     balanceOf(owner: string): Promise<string>;
     /**
-     * Install Odra OwnedCep95 (or compatible) with package named-key name.
+     * Install Odra OwnedCEP95 (or compatible) with package named-key name.
      */
     install(name: string, symbol: string, package_hash_key_name: string, wasm: Uint8Array, secret_key_pem: string | null | undefined, payment_amount: string, wait?: boolean | null, make_only?: boolean | null, initiator_addr?: string | null): Promise<string>;
     /**
@@ -166,10 +170,6 @@ export class Cep95Client {
      * Bind contract hashes.
      */
     setContractHash(contract_hash: string, package_hash?: string | null): void;
-    /**
-     * SSE URL when set.
-     */
-    sseUrl(): string | undefined;
     /**
      * Collection symbol.
      */
@@ -209,6 +209,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly __wbg_cep18client_free: (a: number, b: number) => void;
+    readonly cep18client_SSEUrl: (a: number) => [number, number];
     readonly cep18client_balanceOf: (a: number, b: number, c: number) => any;
     readonly cep18client_chainName: (a: number) => [number, number];
     readonly cep18client_install: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: any, k: number, l: number, m: number, n: number, o: number, p: number, q: number, r: number) => any;
@@ -216,14 +217,13 @@ export interface InitOutput {
     readonly cep18client_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
     readonly cep18client_rpcUrl: (a: number) => [number, number];
     readonly cep18client_setContractHash: (a: number, b: number, c: number, d: number, e: number) => [number, number];
-    readonly cep18client_sseUrl: (a: number) => [number, number];
     readonly cep18client_symbol: (a: number) => any;
     readonly cep78client_balanceOf: (a: number, b: number, c: number) => any;
     readonly cep78client_collectionName: (a: number) => any;
     readonly cep78client_install: (a: number, b: number, c: number, d: number, e: number, f: bigint, g: number, h: any, i: number, j: number, k: number, l: number, m: number, n: number, o: number, p: number) => any;
     readonly cep78client_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
     readonly cep78client_ownershipMode: (a: number) => any;
-    readonly cep78client_parseCes: (a: number, b: number, c: number) => any;
+    readonly cep78client_parseCES: (a: number, b: number, c: number) => any;
     readonly cep85client_balanceOf: (a: number, b: number, c: number, d: number, e: number) => any;
     readonly cep85client_collectionName: (a: number) => any;
     readonly cep85client_install: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: any, i: number, j: number, k: number, l: number, m: number, n: number, o: number, p: number) => any;
@@ -234,9 +234,9 @@ export interface InitOutput {
     readonly cep95client_new: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number];
     readonly cep95client_ownerOf: (a: number, b: number, c: number) => any;
     readonly cep95client_symbol: (a: number) => any;
-    readonly cep78client_sseUrl: (a: number) => [number, number];
-    readonly cep85client_sseUrl: (a: number) => [number, number];
-    readonly cep95client_sseUrl: (a: number) => [number, number];
+    readonly cep78client_SSEUrl: (a: number) => [number, number];
+    readonly cep85client_SSEUrl: (a: number) => [number, number];
+    readonly cep95client_SSEUrl: (a: number) => [number, number];
     readonly cep78client_rpcUrl: (a: number) => [number, number];
     readonly cep85client_rpcUrl: (a: number) => [number, number];
     readonly cep95client_rpcUrl: (a: number) => [number, number];

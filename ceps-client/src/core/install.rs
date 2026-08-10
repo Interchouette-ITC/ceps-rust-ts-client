@@ -1,19 +1,19 @@
 //! Session install / upgrade / companion session calls.
 
-use super::CepCore;
-use crate::error::{CepError, Result};
+use super::CEPClient;
+use crate::error::{CEPError, Result};
 use crate::types::{CallResult, TransactionParams};
 use casper_rust_wasm_sdk::types::hash::transaction_hash::TransactionHash;
 use casper_rust_wasm_sdk::types::transaction_params::transaction_builder_params::TransactionBuilderParams;
 
 pub(super) async fn install_wasm(
-    core: &CepCore,
+    core: &CEPClient,
     wasm: &[u8],
     tx: &TransactionParams,
     args_json: &str,
 ) -> Result<CallResult> {
     let params = core.build_tx_params(tx, args_json)?;
-    let bytes = CepCore::bytes_from_slice(wasm);
+    let bytes = CEPClient::bytes_from_slice(wasm);
     if !tx.put {
         let mut builder = TransactionBuilderParams::new_session(Some(bytes), Some(true));
         apply_runtime_v2(&mut builder, core.runtime_v2());
@@ -30,20 +30,20 @@ pub(super) async fn install_wasm(
         .await?;
     let tx_hash = TransactionHash::from(put.result.transaction_hash).to_string();
     let put_json = serde_json::to_value(&put.result)
-        .map_err(|e| CepError::Other(format!("serialize put result: {e}")))?;
+        .map_err(|e| CEPError::Other(format!("serialize put result: {e}")))?;
     let result = CallResult::new(tx_hash, put_json);
     core.maybe_wait(tx, result).await
 }
 
 /// Run a session WASM that is not an install/upgrade (companion session).
 pub(super) async fn call_session(
-    core: &CepCore,
+    core: &CEPClient,
     wasm: &[u8],
     tx: &TransactionParams,
     args_json: &str,
 ) -> Result<CallResult> {
     let params = core.build_tx_params(tx, args_json)?;
-    let bytes = CepCore::bytes_from_slice(wasm);
+    let bytes = CEPClient::bytes_from_slice(wasm);
     let mut builder = TransactionBuilderParams::new_session(Some(bytes), Some(false));
     apply_runtime_v2(&mut builder, core.runtime_v2());
     if !tx.put {
@@ -60,7 +60,7 @@ pub(super) async fn call_session(
         .await?;
     let tx_hash = TransactionHash::from(put.result.transaction_hash).to_string();
     let put_json = serde_json::to_value(&put.result)
-        .map_err(|e| CepError::Other(format!("serialize put result: {e}")))?;
+        .map_err(|e| CEPError::Other(format!("serialize put result: {e}")))?;
     let result = CallResult::new(tx_hash, put_json);
     core.maybe_wait(tx, result).await
 }

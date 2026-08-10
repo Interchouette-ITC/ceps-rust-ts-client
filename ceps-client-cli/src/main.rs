@@ -2,12 +2,12 @@
 
 use anyhow::{bail, Context, Result};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
-use ceps_client::cep18::InstallArgs as Cep18InstallArgs;
-use ceps_client::cep78::{InstallArgs as Cep78InstallArgs, TokenIdentifier};
-use ceps_client::cep85::InstallArgs as Cep85InstallArgs;
-use ceps_client::cep95::InstallArgs as Cep95InstallArgs;
+use ceps_client::cep18::InstallArgs as CEP18InstallArgs;
+use ceps_client::cep78::{InstallArgs as CEP78InstallArgs, TokenIdentifier};
+use ceps_client::cep85::InstallArgs as CEP85InstallArgs;
+use ceps_client::cep95::InstallArgs as CEP95InstallArgs;
 use ceps_client::{
-    Cep18Client, Cep78Client, Cep85Client, Cep95Client, EventsMode, EventsMode78, TransactionParams,
+    CEP18Client, CEP78Client, CEP85Client, CEP95Client, EventsMode, EventsMode78, TransactionParams,
 };
 use clap::{Parser, Subcommand, ValueEnum};
 use std::fs;
@@ -71,34 +71,40 @@ enum Commands {
     /// Show configured network endpoints.
     Status,
     /// CEP-18 fungible token commands.
-    Cep18 {
+    #[command(name = "cep18")]
+    CEP18 {
         #[command(subcommand)]
-        command: Cep18Commands,
+        command: CEP18Commands,
     },
     /// CEP-78 NFT commands.
-    Cep78 {
+    #[command(name = "cep78")]
+    CEP78 {
         #[command(subcommand)]
-        command: Cep78Commands,
+        command: CEP78Commands,
     },
     /// CEP-85 multi-token commands.
-    Cep85 {
+    #[command(name = "cep85")]
+    CEP85 {
         #[command(subcommand)]
-        command: Cep85Commands,
+        command: CEP85Commands,
     },
     /// CEP-95 NFT commands (supported simpler API).
-    Cep95 {
+    #[command(name = "cep95")]
+    CEP95 {
         #[command(subcommand)]
-        command: Cep95Commands,
+        command: CEP95Commands,
     },
     /// CES parse helpers (SDK CESParser).
-    Ces {
+    #[command(name = "ces")]
+    #[allow(clippy::upper_case_acronyms)]
+    CES {
         #[command(subcommand)]
-        command: CesCommands,
+        command: CESCommands,
     },
 }
 
 #[derive(Debug, Subcommand)]
-enum Cep18Commands {
+enum CEP18Commands {
     /// Print client endpoint configuration.
     Info,
     /// Install CEP-18 WASM (`--wasm`, `--secret-key` or `--make-only`).
@@ -243,7 +249,7 @@ enum Cep18Commands {
 }
 
 #[derive(Debug, Subcommand)]
-enum Cep78Commands {
+enum CEP78Commands {
     /// Print client endpoint configuration.
     Info,
     /// Install CEP-78 WASM (`--wasm`, `--secret-key` or `--make-only`).
@@ -378,7 +384,7 @@ enum Cep78Commands {
 }
 
 #[derive(Debug, Subcommand)]
-enum CesCommands {
+enum CESCommands {
     /// Parse CES events for a transaction against a contract hash.
     Parse {
         #[arg(long)]
@@ -389,7 +395,7 @@ enum CesCommands {
 }
 
 #[derive(Debug, Subcommand)]
-enum Cep85Commands {
+enum CEP85Commands {
     /// Print client endpoint configuration.
     Info,
     /// Install CEP-85 WASM (`--wasm`, `--secret-key` or `--make-only`).
@@ -520,10 +526,10 @@ enum Cep85Commands {
 }
 
 #[derive(Debug, Subcommand)]
-enum Cep95Commands {
+enum CEP95Commands {
     /// Print client endpoint configuration.
     Info,
-    /// Install Odra OwnedCep95 WASM (`--wasm`, `--secret-key` or `--make-only`).
+    /// Install Odra OwnedCEP95 WASM (`--wasm`, `--secret-key` or `--make-only`).
     Install {
         #[arg(long)]
         name: String,
@@ -853,18 +859,18 @@ async fn run() -> Result<()> {
                 println!("verbosity   {:?}", Verbosity::from(cli.verbosity));
             }
         }
-        Commands::Cep18 { command } => {
+        Commands::CEP18 { command } => {
             run_cep18(&cli.rpc_url, sse, chain, verbosity, cli.json, command).await?
         }
-        Commands::Cep78 { command } => {
+        Commands::CEP78 { command } => {
             run_cep78(&cli.rpc_url, sse, chain, verbosity, cli.json, command).await?
         }
-        Commands::Ces { command } => match command {
-            CesCommands::Parse {
+        Commands::CES { command } => match command {
+            CESCommands::Parse {
                 contract_hash,
                 transaction_hash,
             } => {
-                let client = Cep18Client::new(&cli.rpc_url, sse, chain, verbosity)
+                let client = CEP18Client::new(&cli.rpc_url, sse, chain, verbosity)
                     .context("create client for CES")?;
                 let hash =
                     if contract_hash.starts_with("hash-") || contract_hash.starts_with("entity-") {
@@ -880,10 +886,10 @@ async fn run() -> Result<()> {
                 println!("{}", serde_json::to_string_pretty(&rows)?);
             }
         },
-        Commands::Cep85 { command } => {
+        Commands::CEP85 { command } => {
             run_cep85(&cli.rpc_url, sse, chain, verbosity, cli.json, command).await?
         }
-        Commands::Cep95 { command } => {
+        Commands::CEP95 { command } => {
             run_cep95(&cli.rpc_url, sse, chain, verbosity, cli.json, command).await?
         }
     }
@@ -896,12 +902,12 @@ async fn run_cep18(
     chain: Option<String>,
     verbosity: Option<Verbosity>,
     json: bool,
-    command: Cep18Commands,
+    command: CEP18Commands,
 ) -> Result<()> {
     match command {
-        Cep18Commands::Info => {
+        CEP18Commands::Info => {
             let client =
-                Cep18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
+                CEP18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
             print_info(
                 "cep18",
                 client.rpc_url(),
@@ -910,7 +916,7 @@ async fn run_cep18(
                 json,
             )?;
         }
-        Cep18Commands::Install {
+        CEP18Commands::Install {
             name,
             symbol,
             decimals,
@@ -925,8 +931,8 @@ async fn run_cep18(
         } => {
             let bytes = fs::read(&wasm).with_context(|| format!("read wasm {}", wasm.display()))?;
             let client =
-                Cep18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
-            let mut args = Cep18InstallArgs::new(&name, &symbol, decimals, &total_supply);
+                CEP18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
+            let mut args = CEP18InstallArgs::new(&name, &symbol, decimals, &total_supply);
             if let Some(mode) = events_mode18(events_mode)? {
                 args = args.with_events_mode(mode);
             }
@@ -946,19 +952,17 @@ async fn run_cep18(
                 let pk = casper_rust_wasm_sdk::helpers::public_key_from_secret_key(&secret)
                     .context("public key")?;
                 let contract = client
-                    .core()
                     .get_account_named_key(&pk, &format!("cep18_contract_hash_{name}"))
                     .await
                     .context("contract named key")?;
                 let package = client
-                    .core()
                     .get_account_named_key(&pk, &format!("cep18_contract_package_{name}"))
                     .await
                     .context("package named key")?;
                 print_install_put(&put, &contract, &package, json)?;
             }
         }
-        Cep18Commands::Transfer {
+        CEP18Commands::Transfer {
             contract_hash,
             package_hash,
             recipient,
@@ -970,7 +974,7 @@ async fn run_cep18(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
+                CEP18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -980,7 +984,7 @@ async fn run_cep18(
                 .context("transfer")?;
             print_call_result(&put, json)?;
         }
-        Cep18Commands::TransferFrom {
+        CEP18Commands::TransferFrom {
             contract_hash,
             package_hash,
             owner,
@@ -993,7 +997,7 @@ async fn run_cep18(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
+                CEP18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1003,7 +1007,7 @@ async fn run_cep18(
                 .context("transfer_from")?;
             print_call_result(&put, json)?;
         }
-        Cep18Commands::Approve {
+        CEP18Commands::Approve {
             contract_hash,
             package_hash,
             spender,
@@ -1015,7 +1019,7 @@ async fn run_cep18(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
+                CEP18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1025,7 +1029,7 @@ async fn run_cep18(
                 .context("approve")?;
             print_call_result(&put, json)?;
         }
-        Cep18Commands::Mint {
+        CEP18Commands::Mint {
             contract_hash,
             package_hash,
             owner,
@@ -1037,14 +1041,14 @@ async fn run_cep18(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
+                CEP18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
             let put = client.mint(&owner, &amount, &tx).await.context("mint")?;
             print_call_result(&put, json)?;
         }
-        Cep18Commands::Burn {
+        CEP18Commands::Burn {
             contract_hash,
             package_hash,
             owner,
@@ -1056,19 +1060,19 @@ async fn run_cep18(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
+                CEP18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
             let put = client.burn(&owner, &amount, &tx).await.context("burn")?;
             print_call_result(&put, json)?;
         }
-        Cep18Commands::Name {
+        CEP18Commands::Name {
             contract_hash,
             package_hash,
         } => {
             let mut client =
-                Cep18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
+                CEP18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1079,13 +1083,13 @@ async fn run_cep18(
                 println!("{name}");
             }
         }
-        Cep18Commands::Balance {
+        CEP18Commands::Balance {
             contract_hash,
             package_hash,
             account,
         } => {
             let mut client =
-                Cep18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
+                CEP18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1109,12 +1113,12 @@ async fn run_cep78(
     chain: Option<String>,
     verbosity: Option<Verbosity>,
     json: bool,
-    command: Cep78Commands,
+    command: CEP78Commands,
 ) -> Result<()> {
     match command {
-        Cep78Commands::Info => {
+        CEP78Commands::Info => {
             let client =
-                Cep78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
+                CEP78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
             print_info(
                 "cep78",
                 client.rpc_url(),
@@ -1123,7 +1127,7 @@ async fn run_cep78(
                 json,
             )?;
         }
-        Cep78Commands::Install {
+        CEP78Commands::Install {
             name,
             symbol,
             total_token_supply,
@@ -1136,8 +1140,8 @@ async fn run_cep78(
         } => {
             let bytes = fs::read(&wasm).with_context(|| format!("read wasm {}", wasm.display()))?;
             let client =
-                Cep78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
-            let mut args = Cep78InstallArgs::new(&name, &symbol, total_token_supply);
+                CEP78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
+            let mut args = CEP78InstallArgs::new(&name, &symbol, total_token_supply);
             if let Some(mode) = events_mode78(events_mode)? {
                 args = args.with_events_mode(mode);
             }
@@ -1154,19 +1158,17 @@ async fn run_cep78(
                 let pk = casper_rust_wasm_sdk::helpers::public_key_from_secret_key(&secret)
                     .context("public key")?;
                 let contract = client
-                    .core()
                     .get_account_named_key(&pk, &format!("cep78_contract_hash_{name}"))
                     .await
                     .context("contract named key")?;
                 let package = client
-                    .core()
                     .get_account_named_key(&pk, &format!("cep78_contract_package_{name}"))
                     .await
                     .context("package named key")?;
                 print_install_put(&put, &contract, &package, json)?;
             }
         }
-        Cep78Commands::Mint {
+        CEP78Commands::Mint {
             contract_hash,
             package_hash,
             token_owner,
@@ -1179,7 +1181,7 @@ async fn run_cep78(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
+                CEP78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1189,7 +1191,7 @@ async fn run_cep78(
                 .context("mint")?;
             print_call_result(&put, json)?;
         }
-        Cep78Commands::Burn {
+        CEP78Commands::Burn {
             contract_hash,
             package_hash,
             token_id,
@@ -1202,14 +1204,14 @@ async fn run_cep78(
             let token = cep78_token(token_id, token_hash)?;
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
+                CEP78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
             let put = client.burn(&token, &tx).await.context("burn")?;
             print_call_result(&put, json)?;
         }
-        Cep78Commands::Transfer {
+        CEP78Commands::Transfer {
             contract_hash,
             package_hash,
             source,
@@ -1224,7 +1226,7 @@ async fn run_cep78(
             let token = cep78_token(token_id, token_hash)?;
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
+                CEP78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1234,7 +1236,7 @@ async fn run_cep78(
                 .context("transfer")?;
             print_call_result(&put, json)?;
         }
-        Cep78Commands::Approve {
+        CEP78Commands::Approve {
             contract_hash,
             package_hash,
             operator,
@@ -1248,7 +1250,7 @@ async fn run_cep78(
             let token = cep78_token(token_id, token_hash)?;
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
+                CEP78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1258,12 +1260,12 @@ async fn run_cep78(
                 .context("approve")?;
             print_call_result(&put, json)?;
         }
-        Cep78Commands::Name {
+        CEP78Commands::Name {
             contract_hash,
             package_hash,
         } => {
             let mut client =
-                Cep78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
+                CEP78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1274,13 +1276,13 @@ async fn run_cep78(
                 println!("{name}");
             }
         }
-        Cep78Commands::Balance {
+        CEP78Commands::Balance {
             contract_hash,
             package_hash,
             account,
         } => {
             let mut client =
-                Cep78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
+                CEP78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1294,12 +1296,12 @@ async fn run_cep78(
                 println!("{bal}");
             }
         }
-        Cep78Commands::OwnershipMode {
+        CEP78Commands::OwnershipMode {
             contract_hash,
             package_hash,
         } => {
             let mut client =
-                Cep78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
+                CEP78Client::new(rpc_url, sse, chain, verbosity).context("create CEP-78 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1323,12 +1325,12 @@ async fn run_cep85(
     chain: Option<String>,
     verbosity: Option<Verbosity>,
     json: bool,
-    command: Cep85Commands,
+    command: CEP85Commands,
 ) -> Result<()> {
     match command {
-        Cep85Commands::Info => {
+        CEP85Commands::Info => {
             let client =
-                Cep85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
             print_info(
                 "cep85",
                 client.rpc_url(),
@@ -1337,7 +1339,7 @@ async fn run_cep85(
                 json,
             )?;
         }
-        Cep85Commands::Install {
+        CEP85Commands::Install {
             name,
             uri,
             wasm,
@@ -1350,8 +1352,8 @@ async fn run_cep85(
         } => {
             let bytes = fs::read(&wasm).with_context(|| format!("read wasm {}", wasm.display()))?;
             let client =
-                Cep85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
-            let mut args = Cep85InstallArgs::new(&name, &uri);
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+            let mut args = CEP85InstallArgs::new(&name, &uri);
             if let Some(mode) = events_mode18(events_mode)? {
                 args = args.with_events_mode(mode);
             }
@@ -1371,19 +1373,17 @@ async fn run_cep85(
                 let pk = casper_rust_wasm_sdk::helpers::public_key_from_secret_key(&secret)
                     .context("public key")?;
                 let contract = client
-                    .core()
                     .get_account_named_key(&pk, &format!("cep85_contract_hash_{name}"))
                     .await
                     .context("contract named key")?;
                 let package = client
-                    .core()
                     .get_account_named_key(&pk, &format!("cep85_contract_package_{name}"))
                     .await
                     .context("package named key")?;
                 print_install_put(&put, &contract, &package, json)?;
             }
         }
-        Cep85Commands::Mint {
+        CEP85Commands::Mint {
             contract_hash,
             package_hash,
             recipient,
@@ -1397,7 +1397,7 @@ async fn run_cep85(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1407,7 +1407,7 @@ async fn run_cep85(
                 .context("mint")?;
             print_call_result(&put, json)?;
         }
-        Cep85Commands::Burn {
+        CEP85Commands::Burn {
             contract_hash,
             package_hash,
             owner,
@@ -1420,7 +1420,7 @@ async fn run_cep85(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1430,7 +1430,7 @@ async fn run_cep85(
                 .context("burn")?;
             print_call_result(&put, json)?;
         }
-        Cep85Commands::Transfer {
+        CEP85Commands::Transfer {
             contract_hash,
             package_hash,
             from,
@@ -1444,7 +1444,7 @@ async fn run_cep85(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1454,7 +1454,7 @@ async fn run_cep85(
                 .context("transfer")?;
             print_call_result(&put, json)?;
         }
-        Cep85Commands::SetApprovalForAll {
+        CEP85Commands::SetApprovalForAll {
             contract_hash,
             package_hash,
             operator,
@@ -1466,7 +1466,7 @@ async fn run_cep85(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1476,12 +1476,12 @@ async fn run_cep85(
                 .context("set_approval_for_all")?;
             print_call_result(&put, json)?;
         }
-        Cep85Commands::Name {
+        CEP85Commands::Name {
             contract_hash,
             package_hash,
         } => {
             let mut client =
-                Cep85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1492,14 +1492,14 @@ async fn run_cep85(
                 println!("{name}");
             }
         }
-        Cep85Commands::Balance {
+        CEP85Commands::Balance {
             contract_hash,
             package_hash,
             account,
             id,
         } => {
             let mut client =
-                Cep85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1526,12 +1526,12 @@ async fn run_cep95(
     chain: Option<String>,
     verbosity: Option<Verbosity>,
     json: bool,
-    command: Cep95Commands,
+    command: CEP95Commands,
 ) -> Result<()> {
     match command {
-        Cep95Commands::Info => {
+        CEP95Commands::Info => {
             let client =
-                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
             print_info(
                 "cep95",
                 client.rpc_url(),
@@ -1540,7 +1540,7 @@ async fn run_cep95(
                 json,
             )?;
         }
-        Cep95Commands::Install {
+        CEP95Commands::Install {
             name,
             symbol,
             package_key_name,
@@ -1552,8 +1552,8 @@ async fn run_cep95(
         } => {
             let bytes = fs::read(&wasm).with_context(|| format!("read wasm {}", wasm.display()))?;
             let mut client =
-                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
-            let args = Cep95InstallArgs::new(&name, &symbol, &package_key_name);
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            let args = CEP95InstallArgs::new(&name, &symbol, &package_key_name);
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let put = client
                 .install(&args, &bytes, &tx)
@@ -1573,7 +1573,7 @@ async fn run_cep95(
                 print_install_put(&put, &contract, &package, json)?;
             }
         }
-        Cep95Commands::Mint {
+        CEP95Commands::Mint {
             contract_hash,
             package_hash,
             to,
@@ -1585,7 +1585,7 @@ async fn run_cep95(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1595,7 +1595,7 @@ async fn run_cep95(
                 .context("mint")?;
             print_call_result(&put, json)?;
         }
-        Cep95Commands::Burn {
+        CEP95Commands::Burn {
             contract_hash,
             package_hash,
             token_id,
@@ -1606,14 +1606,14 @@ async fn run_cep95(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
             let put = client.burn(&token_id, &tx).await.context("burn")?;
             print_call_result(&put, json)?;
         }
-        Cep95Commands::TransferFrom {
+        CEP95Commands::TransferFrom {
             contract_hash,
             package_hash,
             from,
@@ -1626,7 +1626,7 @@ async fn run_cep95(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1636,7 +1636,7 @@ async fn run_cep95(
                 .context("transfer_from")?;
             print_call_result(&put, json)?;
         }
-        Cep95Commands::Approve {
+        CEP95Commands::Approve {
             contract_hash,
             package_hash,
             spender,
@@ -1648,7 +1648,7 @@ async fn run_cep95(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1658,7 +1658,7 @@ async fn run_cep95(
                 .context("approve")?;
             print_call_result(&put, json)?;
         }
-        Cep95Commands::RevokeApproval {
+        CEP95Commands::RevokeApproval {
             contract_hash,
             package_hash,
             token_id,
@@ -1669,7 +1669,7 @@ async fn run_cep95(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1679,7 +1679,7 @@ async fn run_cep95(
                 .context("revoke_approval")?;
             print_call_result(&put, json)?;
         }
-        Cep95Commands::ApproveForAll {
+        CEP95Commands::ApproveForAll {
             contract_hash,
             package_hash,
             operator,
@@ -1690,7 +1690,7 @@ async fn run_cep95(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1700,7 +1700,7 @@ async fn run_cep95(
                 .context("approve_for_all")?;
             print_call_result(&put, json)?;
         }
-        Cep95Commands::RevokeApprovalForAll {
+        CEP95Commands::RevokeApprovalForAll {
             contract_hash,
             package_hash,
             operator,
@@ -1711,7 +1711,7 @@ async fn run_cep95(
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
-                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1721,12 +1721,12 @@ async fn run_cep95(
                 .context("revoke_approval_for_all")?;
             print_call_result(&put, json)?;
         }
-        Cep95Commands::Name {
+        CEP95Commands::Name {
             contract_hash,
             package_hash,
         } => {
             let mut client =
-                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1737,12 +1737,12 @@ async fn run_cep95(
                 println!("{name}");
             }
         }
-        Cep95Commands::Symbol {
+        CEP95Commands::Symbol {
             contract_hash,
             package_hash,
         } => {
             let mut client =
-                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1753,13 +1753,13 @@ async fn run_cep95(
                 println!("{symbol}");
             }
         }
-        Cep95Commands::Balance {
+        CEP95Commands::Balance {
             contract_hash,
             package_hash,
             account,
         } => {
             let mut client =
-                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1773,13 +1773,13 @@ async fn run_cep95(
                 println!("{bal}");
             }
         }
-        Cep95Commands::OwnerOf {
+        CEP95Commands::OwnerOf {
             contract_hash,
             package_hash,
             token_id,
         } => {
             let mut client =
-                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1793,13 +1793,13 @@ async fn run_cep95(
                 println!("{owner}");
             }
         }
-        Cep95Commands::GetApproved {
+        CEP95Commands::GetApproved {
             contract_hash,
             package_hash,
             token_id,
         } => {
             let mut client =
-                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1819,14 +1819,14 @@ async fn run_cep95(
                 }
             }
         }
-        Cep95Commands::IsApprovedForAll {
+        CEP95Commands::IsApprovedForAll {
             contract_hash,
             package_hash,
             owner,
             operator,
         } => {
             let mut client =
-                Cep95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
@@ -1900,9 +1900,9 @@ mod tests {
         ])
         .expect("parse");
         match cli.command {
-            Commands::Cep18 {
+            Commands::CEP18 {
                 command:
-                    Cep18Commands::Transfer {
+                    CEP18Commands::Transfer {
                         make_only,
                         amount,
                         secret_key,
@@ -1936,8 +1936,8 @@ mod tests {
         .expect("parse");
         assert!(matches!(
             cli.command,
-            Commands::Cep78 {
-                command: Cep78Commands::Install {
+            Commands::CEP78 {
+                command: CEP78Commands::Install {
                     make_only: true,
                     ..
                 }
@@ -1965,8 +1965,8 @@ mod tests {
         ])
         .expect("parse");
         match cli.command {
-            Commands::Cep85 {
-                command: Cep85Commands::Mint { make_only, id, .. },
+            Commands::CEP85 {
+                command: CEP85Commands::Mint { make_only, id, .. },
             } => {
                 assert!(make_only);
                 assert_eq!(id, "1");
@@ -1990,8 +1990,8 @@ mod tests {
         ])
         .expect("parse");
         match cli.command {
-            Commands::Cep85 {
-                command: Cep85Commands::Balance { id, .. },
+            Commands::CEP85 {
+                command: CEP85Commands::Balance { id, .. },
             } => assert_eq!(id, "1"),
             other => panic!("unexpected {other:?}"),
         }
@@ -2009,8 +2009,8 @@ mod tests {
         .expect("parse");
         assert!(matches!(
             cli.command,
-            Commands::Cep78 {
-                command: Cep78Commands::Name { .. }
+            Commands::CEP78 {
+                command: CEP78Commands::Name { .. }
             }
         ));
     }
@@ -2028,8 +2028,8 @@ mod tests {
         ])
         .expect("parse");
         match cli.command {
-            Commands::Cep95 {
-                command: Cep95Commands::OwnerOf { token_id, .. },
+            Commands::CEP95 {
+                command: CEP95Commands::OwnerOf { token_id, .. },
             } => assert_eq!(token_id, "1"),
             other => panic!("unexpected {other:?}"),
         }

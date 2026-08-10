@@ -5,26 +5,26 @@ mod error;
 mod keys;
 mod types;
 
-pub use error::Cep95Error;
+pub use error::CEP95Error;
 pub use types::InstallArgs;
 
-use crate::core::CepCore;
+use crate::core::CEPClient;
 use crate::core::{
     bool_arg, json_args, key_arg, option_byte_list_arg, string_arg, string_pair_list_arg, u256_arg,
 };
-use crate::error::{CepError, CepKind, Result};
+use crate::error::{CEPError, CEPKind, Result};
 use crate::types::{CallResult, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use entity::prefixed_key;
 use keys::{balance_dictionary_key, operator_dictionary_key, token_id_dictionary_key};
 use serde_json::Value;
 
-/// Client for CEP-95 NFT contracts (Odra OwnedCep95 tip and compatible ABIs).
-pub struct Cep95Client {
-    core: CepCore,
+/// Client for CEP-95 NFT contracts (Odra OwnedCEP95 tip and compatible ABIs).
+pub struct CEP95Client {
+    core: CEPClient,
 }
 
-impl Cep95Client {
+impl CEP95Client {
     /// Create a CEP-95 client.
     pub fn new(
         rpc_url: impl Into<String>,
@@ -33,17 +33,17 @@ impl Cep95Client {
         verbosity: Option<Verbosity>,
     ) -> Result<Self> {
         let core =
-            CepCore::new(rpc_url, sse_url, chain_name, verbosity)?.with_cep_kind(CepKind::Cep95);
+            CEPClient::new(rpc_url, sse_url, chain_name, verbosity)?.with_cep_kind(CEPKind::CEP95);
         Ok(Self { core })
     }
 
     /// Borrow the shared core.
-    pub fn core(&self) -> &CepCore {
+    pub fn core(&self) -> &CEPClient {
         &self.core
     }
 
     /// Mutable core access.
-    pub fn core_mut(&mut self) -> &mut CepCore {
+    pub fn core_mut(&mut self) -> &mut CEPClient {
         &mut self.core
     }
 
@@ -96,7 +96,18 @@ impl Cep95Client {
         self.core.set_contract_hash(contract_hash, package_hash)
     }
 
-    /// Install an Odra OwnedCep95 (or compatible) WASM.
+    /// Read a named key from an account (public key hex or `account-hash-…`).
+    pub async fn get_account_named_key(
+        &self,
+        account_identifier: &str,
+        named_key: &str,
+    ) -> Result<String> {
+        self.core
+            .get_account_named_key(account_identifier, named_key)
+            .await
+    }
+
+    /// Install an Odra OwnedCEP95 (or compatible) WASM.
     pub async fn install(
         &self,
         args: &InstallArgs,
@@ -194,7 +205,7 @@ impl Cep95Client {
             .await
     }
 
-    /// Mint a token (owner-gated on OwnedCep95). Metadata defaults to empty.
+    /// Mint a token (owner-gated on OwnedCEP95). Metadata defaults to empty.
     pub async fn mint(
         &self,
         to: &str,
@@ -211,7 +222,7 @@ impl Cep95Client {
         self.core.call_entrypoint("mint", tx, &args).await
     }
 
-    /// Burn a token (token-owner gated on OwnedCep95).
+    /// Burn a token (token-owner gated on OwnedCEP95).
     pub async fn burn(&self, token_id: &str, tx: &TransactionParams) -> Result<CallResult> {
         let args = json_args(&[u256_arg("token_id", token_id)]);
         self.core.call_entrypoint("burn", tx, &args).await
@@ -237,7 +248,7 @@ impl Cep95Client {
         let item_key = balance_dictionary_key(owner)?;
         match self.core.query_dictionary("balances", &item_key).await {
             Ok(raw) => decode_u256_cl(raw),
-            Err(CepError::EmptyQuery(_)) | Err(CepError::Sdk(_)) => Ok("0".into()),
+            Err(CEPError::EmptyQuery(_)) | Err(CEPError::Sdk(_)) => Ok("0".into()),
             Err(e) => Err(e),
         }
     }
@@ -254,7 +265,7 @@ impl Cep95Client {
         let item_key = token_id_dictionary_key(token_id)?;
         match self.core.query_dictionary("approvals", &item_key).await {
             Ok(raw) => Ok(Some(decode_key_cl(raw)?)),
-            Err(CepError::EmptyQuery(_)) | Err(CepError::Sdk(_)) => Ok(None),
+            Err(CEPError::EmptyQuery(_)) | Err(CEPError::Sdk(_)) => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -264,7 +275,7 @@ impl Cep95Client {
         let item_key = operator_dictionary_key(owner, operator)?;
         match self.core.query_dictionary("operators", &item_key).await {
             Ok(raw) => decode_bool_cl(raw),
-            Err(CepError::EmptyQuery(_)) | Err(CepError::Sdk(_)) => Ok(false),
+            Err(CEPError::EmptyQuery(_)) | Err(CEPError::Sdk(_)) => Ok(false),
             Err(e) => Err(e),
         }
     }
@@ -278,7 +289,7 @@ impl Cep95Client {
             .await
         {
             Ok(raw) => decode_string_map_cl(raw),
-            Err(CepError::EmptyQuery(_)) | Err(CepError::Sdk(_)) => Ok(Vec::new()),
+            Err(CEPError::EmptyQuery(_)) | Err(CEPError::Sdk(_)) => Ok(Vec::new()),
             Err(e) => Err(e),
         }
     }
@@ -314,7 +325,7 @@ fn install_args_json(args: &InstallArgs) -> String {
     ])
 }
 
-async fn resolve_latest_contract_hash(core: &CepCore, package_key: &str) -> Result<String> {
+async fn resolve_latest_contract_hash(core: &CEPClient, package_key: &str) -> Result<String> {
     use crate::types::strip_hash_prefix;
     use casper_rust_wasm_sdk::rpcs::query_global_state::{
         KeyIdentifierInput, QueryGlobalStateParams,
@@ -340,19 +351,19 @@ async fn resolve_latest_contract_hash(core: &CepCore, package_key: &str) -> Resu
         match core.sdk().query_global_state(params).await {
             Ok(response) => {
                 let value = serde_json::to_value(&response.result)
-                    .map_err(|e| CepError::Decode(format!("package query serialize: {e}")))?;
+                    .map_err(|e| CEPError::Decode(format!("package query serialize: {e}")))?;
                 if let Some(hash) = extract_latest_contract_hash(&value) {
                     return Ok(hash);
                 }
-                last_err = Some(CepError::Decode(format!(
+                last_err = Some(CEPError::Decode(format!(
                     "no contract version in package under {key}: {value}"
                 )));
             }
-            Err(e) => last_err = Some(CepError::from(e)),
+            Err(e) => last_err = Some(CEPError::from(e)),
         }
     }
     Err(last_err.unwrap_or_else(|| {
-        CepError::EmptyQuery(format!("package contract hash for {package_key}"))
+        CEPError::EmptyQuery(format!("package contract hash for {package_key}"))
     }))
 }
 
@@ -419,7 +430,7 @@ fn decode_string_cl(value: Value) -> Result<String> {
     if let Some(s) = value.as_str() {
         return Ok(s.to_string());
     }
-    Err(CepError::Decode(format!(
+    Err(CEPError::Decode(format!(
         "expected string CLValue, got {value}"
     )))
 }
@@ -433,7 +444,7 @@ fn decode_u256_cl(value: Value) -> Result<String> {
     match parsed {
         Value::String(s) => Ok(s),
         Value::Number(n) => Ok(n.to_string()),
-        other => Err(CepError::Decode(format!("expected U256, got {other}"))),
+        other => Err(CEPError::Decode(format!("expected U256, got {other}"))),
     }
 }
 
@@ -447,7 +458,7 @@ fn decode_bool_cl(value: Value) -> Result<bool> {
         Value::Bool(b) => Ok(b),
         Value::String(s) => Ok(s == "true" || s == "1"),
         Value::Number(n) => Ok(n.as_u64().unwrap_or(0) != 0),
-        other => Err(CepError::Decode(format!("expected Bool, got {other}"))),
+        other => Err(CEPError::Decode(format!("expected Bool, got {other}"))),
     }
 }
 
@@ -471,7 +482,7 @@ fn decode_key_cl(value: Value) -> Result<String> {
     {
         return Ok(s.to_string());
     }
-    Err(CepError::Decode(format!("expected Key, got {value}")))
+    Err(CEPError::Decode(format!("expected Key, got {value}")))
 }
 
 fn decode_string_map_cl(value: Value) -> Result<Vec<(String, String)>> {
@@ -501,7 +512,7 @@ fn decode_string_map_cl(value: Value) -> Result<Vec<(String, String)>> {
             }
         }
         _ => {
-            return Err(CepError::Decode(format!(
+            return Err(CEPError::Decode(format!(
                 "expected metadata map, got {parsed}"
             )));
         }
@@ -515,7 +526,7 @@ mod tests {
 
     #[test]
     fn constructs_client() {
-        let client = Cep95Client::new(
+        let client = CEP95Client::new(
             "http://127.0.0.1:11101",
             Some("http://127.0.0.1:18101".into()),
             None,

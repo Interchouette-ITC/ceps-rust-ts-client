@@ -2,16 +2,16 @@
 
 ```rust
 use ceps_client::cep85::InstallArgs;
-use ceps_client::{Cep85Client, TransactionParams, EventsMode, Verbosity};
+use ceps_client::{CEP85Client, TransactionParams, EventsMode, Verbosity};
 
-let mut client = Cep85Client::new(
+let mut client = CEP85Client::new(
     "http://127.0.0.1:11101",
     Some("http://127.0.0.1:18101/events".into()),
     Some("casper-net-1".into()),
     Some(Verbosity::Low),
 )?;
 let args = InstallArgs::new("MyMulti", "https://example.com/{id}.json")
-    .with_events_mode(EventsMode::Ces)
+    .with_events_mode(EventsMode::CES)
     .with_enable_burn(true);
 client.install(&args, &wasm, &TransactionParams::new(&secret, "550000000000")).await?;
 // Bind cep85_contract_hash_{name} / cep85_contract_package_{name}

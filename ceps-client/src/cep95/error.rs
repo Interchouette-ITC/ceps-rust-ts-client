@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 /// On-chain CEP-95 / Ownable error discriminants from Odra modules.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(u16)]
-pub enum Cep95Error {
+pub enum CEP95Error {
     /// Ownable: owner not set.
     OwnerNotSet = 20000,
     /// Ownable: caller is not the owner.
@@ -32,7 +32,7 @@ pub enum Cep95Error {
     TokenAlreadyExists = 40006,
 }
 
-impl Cep95Error {
+impl CEP95Error {
     /// Map a user-error code to a typed variant.
     pub fn from_code(code: u16) -> Option<Self> {
         Some(match code {
@@ -78,9 +78,9 @@ mod tests {
     #[test]
     fn maps_known_codes() {
         assert_eq!(
-            Cep95Error::from_code(40006),
-            Some(Cep95Error::TokenAlreadyExists)
+            CEP95Error::from_code(40006),
+            Some(CEP95Error::TokenAlreadyExists)
         );
-        assert_eq!(Cep95Error::from_code(1), None);
+        assert_eq!(CEP95Error::from_code(1), None);
     }
 }

@@ -4,7 +4,7 @@
 
 use crate::tools::{cep18, cep78, cep85, cep95};
 use casper_rust_wasm_sdk::helpers::public_key_from_secret_key;
-use ceps_client::{Cep18Client, Cep78Client, Cep85Client, Cep95Client, Verbosity};
+use ceps_client::{CEP18Client, CEP78Client, CEP85Client, CEP95Client, Verbosity};
 use mcpkit::prelude::ToolOutput;
 use mcpkit::types::CallToolResult;
 use std::env;
@@ -123,7 +123,7 @@ async fn live_ceps18_install_query() {
     assert_tx_hash(&install_text);
 
     let (rpc, sse) = rpc_sse();
-    let client = Cep18Client::new(
+    let client = CEP18Client::new(
         rpc,
         Some(sse),
         Some("casper-net-1".into()),
@@ -132,12 +132,10 @@ async fn live_ceps18_install_query() {
     .expect("client");
     let pk = pk_hex(&secret);
     let contract = client
-        .core()
         .get_account_named_key(&pk, &format!("cep18_contract_hash_{name}"))
         .await
         .expect("contract hash");
     let package = client
-        .core()
         .get_account_named_key(&pk, &format!("cep18_contract_package_{name}"))
         .await
         .expect("package hash");
@@ -183,7 +181,7 @@ async fn live_ceps78_install_query() {
     assert_tx_hash(&install_text);
 
     let (rpc, sse) = rpc_sse();
-    let client = Cep78Client::new(
+    let client = CEP78Client::new(
         rpc,
         Some(sse),
         Some("casper-net-1".into()),
@@ -192,12 +190,10 @@ async fn live_ceps78_install_query() {
     .expect("client");
     let pk = pk_hex(&secret);
     let contract = client
-        .core()
         .get_account_named_key(&pk, &format!("cep78_contract_hash_{name}"))
         .await
         .expect("contract hash");
     let package = client
-        .core()
         .get_account_named_key(&pk, &format!("cep78_contract_package_{name}"))
         .await
         .expect("package hash");
@@ -247,7 +243,7 @@ async fn live_ceps85_install_query() {
     assert_tx_hash(&install_text);
 
     let (rpc, sse) = rpc_sse();
-    let client = Cep85Client::new(
+    let client = CEP85Client::new(
         rpc,
         Some(sse),
         Some("casper-net-1".into()),
@@ -256,12 +252,10 @@ async fn live_ceps85_install_query() {
     .expect("client");
     let pk = pk_hex(&secret);
     let contract = client
-        .core()
         .get_account_named_key(&pk, &format!("cep85_contract_hash_{name}"))
         .await
         .expect("contract hash");
     let package = client
-        .core()
         .get_account_named_key(&pk, &format!("cep85_contract_package_{name}"))
         .await
         .expect("package hash");
@@ -318,7 +312,7 @@ async fn live_ceps95_install_query() {
     );
 
     let (rpc, sse) = rpc_sse();
-    let mut client = Cep95Client::new(
+    let mut client = CEP95Client::new(
         rpc,
         Some(sse),
         Some("casper-net-1".into()),

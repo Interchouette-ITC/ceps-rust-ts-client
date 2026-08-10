@@ -6,7 +6,7 @@ mod tests {
         nctl_available, user1_account_hash, user1_public_key_hex, user1_secret_pem, CALL_PAYMENT,
     };
     use ceps_client::cep85::InstallArgs;
-    use ceps_client::{Cep85Client, EventsMode, TransactionParams, Verbosity};
+    use ceps_client::{CEP85Client, EventsMode, TransactionParams, Verbosity};
     use std::env;
     use std::fs;
     use std::path::PathBuf;
@@ -14,11 +14,11 @@ mod tests {
 
     const INSTALL_PAYMENT: &str = "550000000000";
 
-    fn cep85_client() -> Cep85Client {
+    fn cep85_client() -> CEP85Client {
         let rpc = env::var("CEPS_RPC_URL").unwrap_or_else(|_| "http://127.0.0.1:11101".into());
         let sse =
             env::var("CEPS_SSE_URL").unwrap_or_else(|_| "http://127.0.0.1:18101/events".into());
-        Cep85Client::new(
+        CEP85Client::new(
             rpc,
             Some(sse),
             Some("casper-net-1".into()),
@@ -54,7 +54,7 @@ mod tests {
             .as_secs();
         let name = format!("Ceps85{nonce}");
         let args = InstallArgs::new(&name, "https://example.com/metadata/{id}.json")
-            .with_events_mode(EventsMode::Ces)
+            .with_events_mode(EventsMode::CES)
             .with_enable_burn(true);
         let tx = TransactionParams::new(&secret, INSTALL_PAYMENT);
         let put = client.install(&args, &wasm, &tx).await.expect("install");
@@ -62,12 +62,10 @@ mod tests {
 
         let pk = user1_public_key_hex(&secret);
         let contract = client
-            .core()
             .get_account_named_key(&pk, &format!("cep85_contract_hash_{name}"))
             .await
             .expect("contract hash");
         let package = client
-            .core()
             .get_account_named_key(&pk, &format!("cep85_contract_package_{name}"))
             .await
             .expect("package hash");

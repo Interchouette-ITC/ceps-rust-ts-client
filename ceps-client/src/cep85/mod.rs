@@ -6,26 +6,26 @@ mod keys;
 mod types;
 
 pub use entity::prefixed_key;
-pub use error::Cep85Error;
+pub use error::CEP85Error;
 pub use types::{ChangeSecurityArgs, InstallArgs, UpgradeArgs};
 
-use crate::core::CepCore;
+use crate::core::CEPClient;
 use crate::core::{
     bool_arg, json_args, key_arg, key_list_arg, string_arg, u256_arg, u256_list_arg, u8_arg,
     JsonArg,
 };
-use crate::error::{CepError, CepKind, Result};
+use crate::error::{CEPError, CEPKind, Result};
 use crate::types::{CallResult, EventsMode, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use keys::{balance_dictionary_key, operator_dictionary_key};
 use serde_json::Value;
 
 /// Client for CEP-85 multi-token contracts.
-pub struct Cep85Client {
-    core: CepCore,
+pub struct CEP85Client {
+    core: CEPClient,
 }
 
-impl Cep85Client {
+impl CEP85Client {
     /// Create a CEP-85 client.
     pub fn new(
         rpc_url: impl Into<String>,
@@ -34,17 +34,17 @@ impl Cep85Client {
         verbosity: Option<Verbosity>,
     ) -> Result<Self> {
         let core =
-            CepCore::new(rpc_url, sse_url, chain_name, verbosity)?.with_cep_kind(CepKind::Cep85);
+            CEPClient::new(rpc_url, sse_url, chain_name, verbosity)?.with_cep_kind(CEPKind::CEP85);
         Ok(Self { core })
     }
 
     /// Borrow the shared core.
-    pub fn core(&self) -> &CepCore {
+    pub fn core(&self) -> &CEPClient {
         &self.core
     }
 
     /// Mutable core access.
-    pub fn core_mut(&mut self) -> &mut CepCore {
+    pub fn core_mut(&mut self) -> &mut CEPClient {
         &mut self.core
     }
 
@@ -95,6 +95,19 @@ impl Cep85Client {
         package_hash: Option<impl AsRef<str>>,
     ) -> Result<()> {
         self.core.set_contract_hash(contract_hash, package_hash)
+    }
+
+    /// Read a named key from an account (public key hex or `account-hash-…`).
+    ///
+    /// Typical post-install: `cep85_contract_hash_{name}` / `cep85_contract_package_{name}`.
+    pub async fn get_account_named_key(
+        &self,
+        account_identifier: &str,
+        named_key: &str,
+    ) -> Result<String> {
+        self.core
+            .get_account_named_key(account_identifier, named_key)
+            .await
     }
 
     /// Install a CEP-85 contract.
@@ -337,7 +350,7 @@ impl Cep85Client {
             v.push(key_list_arg("none_list", &map_keys(list)?));
         }
         if v.is_empty() {
-            return Err(CepError::MissingArgument(
+            return Err(CEPError::MissingArgument(
                 "change_security requires at least one list".into(),
             ));
         }
@@ -361,7 +374,7 @@ impl Cep85Client {
             v.push(u8_arg("events_mode", m.into()));
         }
         if v.is_empty() {
-            return Err(CepError::MissingArgument(
+            return Err(CEPError::MissingArgument(
                 "set_modalities requires enable_burn and/or events_mode".into(),
             ));
         }
@@ -438,7 +451,7 @@ fn decode_string_cl(value: Value) -> Result<String> {
     if let Some(s) = value.pointer("/CLValue/parsed").and_then(|v| v.as_str()) {
         return Ok(s.to_string());
     }
-    Err(CepError::Decode(format!("expected string, got {value}")))
+    Err(CEPError::Decode(format!("expected string, got {value}")))
 }
 
 fn decode_u256_cl(value: Value) -> Result<String> {
@@ -450,7 +463,7 @@ fn decode_u256_cl(value: Value) -> Result<String> {
     match parsed {
         Value::String(s) => Ok(s),
         Value::Number(n) => Ok(n.to_string()),
-        other => Err(CepError::Decode(format!("expected U256, got {other}"))),
+        other => Err(CEPError::Decode(format!("expected U256, got {other}"))),
     }
 }
 
@@ -463,7 +476,7 @@ fn decode_bool_cl(value: Value) -> Result<bool> {
     match parsed {
         Value::Bool(b) => Ok(b),
         Value::Number(n) => Ok(n.as_u64().unwrap_or(0) != 0),
-        other => Err(CepError::Decode(format!("expected bool, got {other}"))),
+        other => Err(CEPError::Decode(format!("expected bool, got {other}"))),
     }
 }
 
@@ -474,7 +487,7 @@ mod tests {
     #[test]
     fn constructs_client() {
         let client =
-            Cep85Client::new("http://127.0.0.1:11101", None, None, Some(Verbosity::Low)).unwrap();
+            CEP85Client::new("http://127.0.0.1:11101", None, None, Some(Verbosity::Low)).unwrap();
         assert_eq!(client.rpc_url(), "http://127.0.0.1:11101/rpc");
     }
 
@@ -490,7 +503,7 @@ mod tests {
     #[test]
     fn install_args_include_uri_and_burn() {
         let args = InstallArgs::new("Bag", "https://x/{id}.json")
-            .with_events_mode(EventsMode::Ces)
+            .with_events_mode(EventsMode::CES)
             .with_enable_burn(true);
         let mut v = vec![string_arg("name", &args.name), string_arg("uri", &args.uri)];
         if let Some(mode) = args.events_mode {
@@ -507,7 +520,7 @@ mod tests {
 
     #[tokio::test]
     async fn make_only_install_returns_transaction_json() {
-        let client = Cep85Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let client = CEP85Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
         let tx = TransactionParams::for_make("1000000000").with_initiator_addr(
             "010101010101010101010101010101010101010101010101010101010101010101",
         );
@@ -524,7 +537,7 @@ mod tests {
 
     #[tokio::test]
     async fn make_only_mint_returns_transaction_json() {
-        let mut client = Cep85Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let mut client = CEP85Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
         client
             .set_contract_hash(
                 "cfa781f5eb69c3eee952c2944ce9670a049f88c5e46b83fb5881ebe13fb98e6d",

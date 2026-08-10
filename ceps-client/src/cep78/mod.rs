@@ -5,7 +5,7 @@ mod keys;
 mod modes;
 mod types;
 
-pub use error::Cep78Error;
+pub use error::CEP78Error;
 pub use keys::{key_hex_body, operator_dictionary_key, prefixed_key};
 pub use modes::{
     BurnMode, HolderMode, IdentifierMode, MetadataMutability, MintingMode, NamedKeyConventionMode,
@@ -13,21 +13,21 @@ pub use modes::{
 };
 pub use types::{InstallArgs, SetVariablesArgs, TokenIdentifier, UpgradeArgs};
 
-use crate::core::CepCore;
+use crate::core::CEPClient;
 use crate::core::{
     bool_arg, json_args, key_arg, key_list_arg, string_arg, u64_arg, u8_arg, JsonArg,
 };
-use crate::error::{CepError, CepKind, Result};
+use crate::error::{CEPError, CEPKind, Result};
 use crate::types::{CallResult, EventsMode78, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use serde_json::Value;
 
 /// Client for CEP-78 enhanced NFT contracts.
-pub struct Cep78Client {
-    core: CepCore,
+pub struct CEP78Client {
+    core: CEPClient,
 }
 
-impl Cep78Client {
+impl CEP78Client {
     /// Create a CEP-78 client.
     pub fn new(
         rpc_url: impl Into<String>,
@@ -36,17 +36,17 @@ impl Cep78Client {
         verbosity: Option<Verbosity>,
     ) -> Result<Self> {
         let core =
-            CepCore::new(rpc_url, sse_url, chain_name, verbosity)?.with_cep_kind(CepKind::Cep78);
+            CEPClient::new(rpc_url, sse_url, chain_name, verbosity)?.with_cep_kind(CEPKind::CEP78);
         Ok(Self { core })
     }
 
     /// Borrow the shared core.
-    pub fn core(&self) -> &CepCore {
+    pub fn core(&self) -> &CEPClient {
         &self.core
     }
 
     /// Mutable core access.
-    pub fn core_mut(&mut self) -> &mut CepCore {
+    pub fn core_mut(&mut self) -> &mut CEPClient {
         &mut self.core
     }
 
@@ -97,6 +97,19 @@ impl Cep78Client {
         package_hash: Option<impl AsRef<str>>,
     ) -> Result<()> {
         self.core.set_contract_hash(contract_hash, package_hash)
+    }
+
+    /// Read a named key from an account (public key hex or `account-hash-…`).
+    ///
+    /// Typical post-install: `cep78_contract_hash_{name}` / `cep78_contract_package_{name}`.
+    pub async fn get_account_named_key(
+        &self,
+        account_identifier: &str,
+        named_key: &str,
+    ) -> Result<String> {
+        self.core
+            .get_account_named_key(account_identifier, named_key)
+            .await
     }
 
     /// Install a CEP-78 contract.
@@ -319,7 +332,7 @@ impl Cep78Client {
             v.push(bool_arg("operator_burn_mode", b));
         }
         if v.is_empty() {
-            return Err(CepError::MissingArgument(
+            return Err(CEPError::MissingArgument(
                 "set_variables requires at least one field".into(),
             ));
         }
@@ -339,7 +352,7 @@ impl Cep78Client {
             .require_target()?
             .package_hash
             .as_ref()
-            .ok_or_else(|| CepError::MissingArgument("package hash required".into()))?;
+            .ok_or_else(|| CEPError::MissingArgument("package hash required".into()))?;
         let v = vec![key_arg("nft_contract_hash", &format!("hash-{package}"))];
         self.core
             .call_session(session_wasm, tx, &json_args(&v))
@@ -377,7 +390,7 @@ impl Cep78Client {
     /// Events mode.
     pub async fn events_mode(&self) -> Result<EventsMode78> {
         let v = decode_u8_cl(self.core.query_contract_key(&["events_mode"]).await?)?;
-        EventsMode78::from_u8(v).ok_or_else(|| CepError::Decode(format!("unknown events_mode {v}")))
+        EventsMode78::from_u8(v).ok_or_else(|| CEPError::Decode(format!("unknown events_mode {v}")))
     }
 
     /// Whether minting is currently allowed.
@@ -468,7 +481,7 @@ impl Cep78Client {
         let item = key_hex_body(entity)?;
         match self.core.query_dictionary("acl_whitelist", &item).await {
             Ok(raw) => decode_bool_cl(raw),
-            Err(CepError::EmptyQuery(_)) => Ok(false),
+            Err(CEPError::EmptyQuery(_)) => Ok(false),
             Err(e) => Err(e),
         }
     }
@@ -558,7 +571,7 @@ impl Cep78Client {
         let item = key_hex_body(owner)?;
         match self.core.query_dictionary("balances", &item).await {
             Ok(raw) => decode_u64_string(raw),
-            Err(CepError::EmptyQuery(_)) => Ok("0".into()),
+            Err(CEPError::EmptyQuery(_)) => Ok("0".into()),
             Err(e) => Err(e),
         }
     }
@@ -568,7 +581,7 @@ impl Cep78Client {
         let item = token_item_key(token);
         match self.core.query_dictionary("approved", &item).await {
             Ok(raw) => Ok(Some(decode_key_cl(raw)?)),
-            Err(CepError::EmptyQuery(_)) => Ok(None),
+            Err(CEPError::EmptyQuery(_)) => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -578,7 +591,7 @@ impl Cep78Client {
         let item = operator_dictionary_key(owner, operator)?;
         match self.core.query_dictionary("operators", &item).await {
             Ok(raw) => decode_bool_cl(raw),
-            Err(CepError::EmptyQuery(_)) => Ok(false),
+            Err(CEPError::EmptyQuery(_)) => Ok(false),
             Err(e) => Err(e),
         }
     }
@@ -586,7 +599,7 @@ impl Cep78Client {
     /// Token metadata for the given kind dictionary.
     pub async fn metadata(&self, token: &TokenIdentifier, kind: NftMetadataKind) -> Result<String> {
         let dict = match kind {
-            NftMetadataKind::Cep78 => "metadata_cep78",
+            NftMetadataKind::CEP78 => "metadata_cep78",
             NftMetadataKind::Nft721 => "metadata_nft721",
             NftMetadataKind::Raw => "metadata_raw",
             NftMetadataKind::CustomValidated => "metadata_custom_validated",
@@ -673,7 +686,7 @@ fn install_args_json(args: &InstallArgs) -> Result<String> {
         Some(NamedKeyConventionMode::V1_0Custom)
     ) && (args.access_key_name.is_none() || args.hash_key_name.is_none())
     {
-        return Err(CepError::MissingArgument(
+        return Err(CEPError::MissingArgument(
             "V1_0Custom requires access_key_name and hash_key_name".into(),
         ));
     }
@@ -704,7 +717,7 @@ fn decode_string_cl(value: Value) -> Result<String> {
     if let Some(s) = value.pointer("/CLValue/parsed").and_then(|v| v.as_str()) {
         return Ok(s.to_string());
     }
-    Err(CepError::Decode(format!("expected string, got {value}")))
+    Err(CEPError::Decode(format!("expected string, got {value}")))
 }
 
 fn decode_u8_cl(value: Value) -> Result<u8> {
@@ -717,11 +730,11 @@ fn decode_u8_cl(value: Value) -> Result<u8> {
         Value::Number(n) => n
             .as_u64()
             .map(|v| v as u8)
-            .ok_or_else(|| CepError::Decode(format!("expected u8, got {n}"))),
+            .ok_or_else(|| CEPError::Decode(format!("expected u8, got {n}"))),
         Value::String(s) => s
             .parse()
-            .map_err(|e| CepError::Decode(format!("expected u8: {e}"))),
-        other => Err(CepError::Decode(format!("expected u8, got {other}"))),
+            .map_err(|e| CEPError::Decode(format!("expected u8: {e}"))),
+        other => Err(CEPError::Decode(format!("expected u8, got {other}"))),
     }
 }
 
@@ -734,11 +747,11 @@ fn decode_u64_cl(value: Value) -> Result<u64> {
     match parsed {
         Value::Number(n) => n
             .as_u64()
-            .ok_or_else(|| CepError::Decode(format!("expected u64, got {n}"))),
+            .ok_or_else(|| CEPError::Decode(format!("expected u64, got {n}"))),
         Value::String(s) => s
             .parse()
-            .map_err(|e| CepError::Decode(format!("expected u64: {e}"))),
-        other => Err(CepError::Decode(format!("expected u64, got {other}"))),
+            .map_err(|e| CEPError::Decode(format!("expected u64: {e}"))),
+        other => Err(CEPError::Decode(format!("expected u64, got {other}"))),
     }
 }
 
@@ -758,20 +771,20 @@ fn decode_bool_cl(value: Value) -> Result<bool> {
         Value::String(s) => match s.to_ascii_lowercase().as_str() {
             "true" | "1" => Ok(true),
             "false" | "0" => Ok(false),
-            other => Err(CepError::Decode(format!(
+            other => Err(CEPError::Decode(format!(
                 "expected bool string, got {other}"
             ))),
         },
-        other => Err(CepError::Decode(format!("expected bool, got {other}"))),
+        other => Err(CEPError::Decode(format!("expected bool, got {other}"))),
     }
 }
 
-async fn mode_u8<T, F>(client: &Cep78Client, named_key: &str, map: F) -> Result<T>
+async fn mode_u8<T, F>(client: &CEP78Client, named_key: &str, map: F) -> Result<T>
 where
     F: FnOnce(u8) -> Option<T>,
 {
     let v = decode_u8_cl(client.core.query_contract_key(&[named_key]).await?)?;
-    map(v).ok_or_else(|| CepError::Decode(format!("unknown {named_key} {v}")))
+    map(v).ok_or_else(|| CEPError::Decode(format!("unknown {named_key} {v}")))
 }
 
 fn decode_key_cl(value: Value) -> Result<String> {
@@ -790,7 +803,7 @@ fn decode_key_cl(value: Value) -> Result<String> {
     if let Some(s) = value.pointer("/CLValue/parsed").and_then(|v| v.as_str()) {
         return Ok(s.to_string());
     }
-    Err(CepError::Decode(format!("expected Key, got {value}")))
+    Err(CEPError::Decode(format!("expected Key, got {value}")))
 }
 
 #[cfg(test)]
@@ -800,14 +813,14 @@ mod tests {
     #[test]
     fn constructs_client() {
         let client =
-            Cep78Client::new("http://127.0.0.1:11101", None, None, Some(Verbosity::High)).unwrap();
+            CEP78Client::new("http://127.0.0.1:11101", None, None, Some(Verbosity::High)).unwrap();
         assert_eq!(client.rpc_url(), "http://127.0.0.1:11101/rpc");
         assert!(client.sse_url().is_none());
     }
 
     #[test]
     fn install_json_includes_required() {
-        let args = InstallArgs::new("Col", "COL", 100).with_events_mode(EventsMode78::Ces);
+        let args = InstallArgs::new("Col", "COL", 100).with_events_mode(EventsMode78::CES);
         let s = install_args_json(&args).unwrap();
         assert!(s.contains("collection_name"));
         assert!(s.contains("events_mode"));
@@ -823,7 +836,7 @@ mod tests {
 
     #[tokio::test]
     async fn make_only_install_returns_transaction_json() {
-        let client = Cep78Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let client = CEP78Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
         let tx = TransactionParams::for_make("1000000000").with_initiator_addr(
             "010101010101010101010101010101010101010101010101010101010101010101",
         );
@@ -840,7 +853,7 @@ mod tests {
 
     #[tokio::test]
     async fn make_only_mint_returns_transaction_json() {
-        let mut client = Cep78Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
+        let mut client = CEP78Client::new("http://127.0.0.1:11101", None, None, None).unwrap();
         client
             .set_contract_hash(
                 "cfa781f5eb69c3eee952c2944ce9670a049f88c5e46b83fb5881ebe13fb98e6d",

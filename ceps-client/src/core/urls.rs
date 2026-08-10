@@ -1,18 +1,18 @@
 //! URL normalization for RPC and SSE endpoints.
 
-use crate::error::{CepError, Result};
+use crate::error::{CEPError, Result};
 use url::Url;
 
 /// Normalize an RPC URL: require http(s), append `/rpc` when missing.
 pub fn normalize_rpc_url(input: &str) -> Result<String> {
     let trimmed = input.trim();
     if trimmed.is_empty() {
-        return Err(CepError::InvalidUrl("RPC URL is empty".into()));
+        return Err(CEPError::InvalidUrl("RPC URL is empty".into()));
     }
     let parsed = Url::parse(trimmed)
-        .map_err(|e| CepError::InvalidUrl(format!("RPC URL parse error: {e}")))?;
+        .map_err(|e| CEPError::InvalidUrl(format!("RPC URL parse error: {e}")))?;
     if parsed.scheme() != "http" && parsed.scheme() != "https" {
-        return Err(CepError::InvalidUrl(
+        return Err(CEPError::InvalidUrl(
             "RPC URL must use http or https".into(),
         ));
     }
@@ -27,12 +27,12 @@ pub fn normalize_rpc_url(input: &str) -> Result<String> {
 pub fn normalize_sse_url(input: &str) -> Result<String> {
     let trimmed = input.trim();
     if trimmed.is_empty() {
-        return Err(CepError::InvalidUrl("SSE URL is empty".into()));
+        return Err(CEPError::InvalidUrl("SSE URL is empty".into()));
     }
     let parsed = Url::parse(trimmed)
-        .map_err(|e| CepError::InvalidUrl(format!("SSE URL parse error: {e}")))?;
+        .map_err(|e| CEPError::InvalidUrl(format!("SSE URL parse error: {e}")))?;
     if parsed.scheme() != "http" && parsed.scheme() != "https" {
-        return Err(CepError::InvalidUrl(
+        return Err(CEPError::InvalidUrl(
             "SSE URL must use http or https".into(),
         ));
     }

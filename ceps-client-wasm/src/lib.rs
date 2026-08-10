@@ -1,17 +1,17 @@
 //! Thin wasm-bindgen surface over `ceps-client` (CEP APIs only).
 
-use ceps_client::cep18::InstallArgs as Cep18InstallArgs;
-use ceps_client::cep78::InstallArgs as Cep78InstallArgs;
-use ceps_client::cep85::InstallArgs as Cep85InstallArgs;
-use ceps_client::cep95::InstallArgs as Cep95InstallArgs;
+use ceps_client::cep18::InstallArgs as CEP18InstallArgs;
+use ceps_client::cep78::InstallArgs as CEP78InstallArgs;
+use ceps_client::cep85::InstallArgs as CEP85InstallArgs;
+use ceps_client::cep95::InstallArgs as CEP95InstallArgs;
 use ceps_client::{
-    CallResult, Cep18Client, Cep78Client, Cep85Client, Cep95Client, EventsMode, EventsMode78,
+    CEP18Client, CEP78Client, CEP85Client, CEP95Client, CallResult, EventsMode, EventsMode78,
     TransactionParams, Verbosity,
 };
 use js_sys::Uint8Array;
 use wasm_bindgen::prelude::*;
 
-fn map_err(err: ceps_client::CepError) -> JsValue {
+fn map_err(err: ceps_client::CEPError) -> JsValue {
     JsValue::from_str(&err.to_string())
 }
 
@@ -63,14 +63,14 @@ fn bytes_from_js(wasm: &Uint8Array) -> Vec<u8> {
     wasm.to_vec()
 }
 
-/// WASM wrapper for [`Cep18Client`].
-#[wasm_bindgen(js_name = Cep18Client)]
-pub struct WasmCep18Client {
-    inner: Cep18Client,
+/// WASM wrapper for [`CEP18Client`].
+#[wasm_bindgen(js_name = CEP18Client)]
+pub struct WasmCEP18Client {
+    inner: CEP18Client,
 }
 
-#[wasm_bindgen(js_class = Cep18Client)]
-impl WasmCep18Client {
+#[wasm_bindgen(js_class = CEP18Client)]
+impl WasmCEP18Client {
     /// Create a CEP-18 client.
     #[wasm_bindgen(constructor)]
     pub fn new(
@@ -78,8 +78,8 @@ impl WasmCep18Client {
         sse_url: Option<String>,
         chain_name: Option<String>,
         verbosity: Option<u8>,
-    ) -> Result<WasmCep18Client, JsValue> {
-        let inner = Cep18Client::new(rpc_url, sse_url, chain_name, verbosity_from_u8(verbosity))
+    ) -> Result<WasmCEP18Client, JsValue> {
+        let inner = CEP18Client::new(rpc_url, sse_url, chain_name, verbosity_from_u8(verbosity))
             .map_err(map_err)?;
         Ok(Self { inner })
     }
@@ -91,7 +91,7 @@ impl WasmCep18Client {
     }
 
     /// SSE URL when set.
-    #[wasm_bindgen(js_name = sseUrl)]
+    #[wasm_bindgen(js_name = SSEUrl)]
     pub fn sse_url(&self) -> Option<String> {
         self.inner.sse_url().map(str::to_string)
     }
@@ -131,7 +131,7 @@ impl WasmCep18Client {
         make_only: Option<bool>,
         initiator_addr: Option<String>,
     ) -> Result<String, JsValue> {
-        let mut args = Cep18InstallArgs::new(name, symbol, decimals, total_supply);
+        let mut args = CEP18InstallArgs::new(name, symbol, decimals, total_supply);
         if let Some(mode) = events_mode {
             let mode = EventsMode::from_u8(mode)
                 .ok_or_else(|| JsValue::from_str("invalid events_mode"))?;
@@ -171,14 +171,14 @@ impl WasmCep18Client {
     }
 }
 
-/// WASM wrapper for [`Cep78Client`].
-#[wasm_bindgen(js_name = Cep78Client)]
-pub struct WasmCep78Client {
-    inner: Cep78Client,
+/// WASM wrapper for [`CEP78Client`].
+#[wasm_bindgen(js_name = CEP78Client)]
+pub struct WasmCEP78Client {
+    inner: CEP78Client,
 }
 
-#[wasm_bindgen(js_class = Cep78Client)]
-impl WasmCep78Client {
+#[wasm_bindgen(js_class = CEP78Client)]
+impl WasmCEP78Client {
     /// Create a CEP-78 client.
     #[wasm_bindgen(constructor)]
     pub fn new(
@@ -186,8 +186,8 @@ impl WasmCep78Client {
         sse_url: Option<String>,
         chain_name: Option<String>,
         verbosity: Option<u8>,
-    ) -> Result<WasmCep78Client, JsValue> {
-        let inner = Cep78Client::new(rpc_url, sse_url, chain_name, verbosity_from_u8(verbosity))
+    ) -> Result<WasmCEP78Client, JsValue> {
+        let inner = CEP78Client::new(rpc_url, sse_url, chain_name, verbosity_from_u8(verbosity))
             .map_err(map_err)?;
         Ok(Self { inner })
     }
@@ -199,7 +199,7 @@ impl WasmCep78Client {
     }
 
     /// SSE URL when set.
-    #[wasm_bindgen(js_name = sseUrl)]
+    #[wasm_bindgen(js_name = SSEUrl)]
     pub fn sse_url(&self) -> Option<String> {
         self.inner.sse_url().map(str::to_string)
     }
@@ -233,7 +233,7 @@ impl WasmCep78Client {
         initiator_addr: Option<String>,
     ) -> Result<String, JsValue> {
         let mut args =
-            Cep78InstallArgs::new(collection_name, collection_symbol, total_token_supply);
+            CEP78InstallArgs::new(collection_name, collection_symbol, total_token_supply);
         if let Some(mode) = events_mode {
             let mode = EventsMode78::from_u8(mode)
                 .ok_or_else(|| JsValue::from_str("invalid events_mode"))?;
@@ -277,13 +277,13 @@ impl WasmCep78Client {
     }
 
     /// Parse CES events for a transaction against the bound contract.
-    #[wasm_bindgen(js_name = parseCes)]
+    #[wasm_bindgen(js_name = parseCES)]
     pub async fn parse_ces(&self, transaction_hash: String) -> Result<String, JsValue> {
         let hash = self
             .inner
             .core()
-            .require_target()
-            .map_err(map_err)?
+            .target()
+            .ok_or_else(|| JsValue::from_str("contract hash is not set"))?
             .contract_hash
             .clone();
         let key = format!("hash-{hash}");
@@ -297,14 +297,14 @@ impl WasmCep78Client {
     }
 }
 
-/// WASM wrapper for [`Cep85Client`].
-#[wasm_bindgen(js_name = Cep85Client)]
-pub struct WasmCep85Client {
-    inner: Cep85Client,
+/// WASM wrapper for [`CEP85Client`].
+#[wasm_bindgen(js_name = CEP85Client)]
+pub struct WasmCEP85Client {
+    inner: CEP85Client,
 }
 
-#[wasm_bindgen(js_class = Cep85Client)]
-impl WasmCep85Client {
+#[wasm_bindgen(js_class = CEP85Client)]
+impl WasmCEP85Client {
     /// Create a CEP-85 client.
     #[wasm_bindgen(constructor)]
     pub fn new(
@@ -312,8 +312,8 @@ impl WasmCep85Client {
         sse_url: Option<String>,
         chain_name: Option<String>,
         verbosity: Option<u8>,
-    ) -> Result<WasmCep85Client, JsValue> {
-        let inner = Cep85Client::new(rpc_url, sse_url, chain_name, verbosity_from_u8(verbosity))
+    ) -> Result<WasmCEP85Client, JsValue> {
+        let inner = CEP85Client::new(rpc_url, sse_url, chain_name, verbosity_from_u8(verbosity))
             .map_err(map_err)?;
         Ok(Self { inner })
     }
@@ -325,7 +325,7 @@ impl WasmCep85Client {
     }
 
     /// SSE URL when set.
-    #[wasm_bindgen(js_name = sseUrl)]
+    #[wasm_bindgen(js_name = SSEUrl)]
     pub fn sse_url(&self) -> Option<String> {
         self.inner.sse_url().map(str::to_string)
     }
@@ -358,7 +358,7 @@ impl WasmCep85Client {
         make_only: Option<bool>,
         initiator_addr: Option<String>,
     ) -> Result<String, JsValue> {
-        let mut args = Cep85InstallArgs::new(name, uri);
+        let mut args = CEP85InstallArgs::new(name, uri);
         if let Some(mode) = events_mode {
             let mode = EventsMode::from_u8(mode)
                 .ok_or_else(|| JsValue::from_str("invalid events_mode"))?;
@@ -395,14 +395,14 @@ impl WasmCep85Client {
     }
 }
 
-/// WASM wrapper for [`Cep95Client`].
-#[wasm_bindgen(js_name = Cep95Client)]
-pub struct WasmCep95Client {
-    inner: Cep95Client,
+/// WASM wrapper for [`CEP95Client`].
+#[wasm_bindgen(js_name = CEP95Client)]
+pub struct WasmCEP95Client {
+    inner: CEP95Client,
 }
 
-#[wasm_bindgen(js_class = Cep95Client)]
-impl WasmCep95Client {
+#[wasm_bindgen(js_class = CEP95Client)]
+impl WasmCEP95Client {
     /// Create a CEP-95 client.
     #[wasm_bindgen(constructor)]
     pub fn new(
@@ -410,8 +410,8 @@ impl WasmCep95Client {
         sse_url: Option<String>,
         chain_name: Option<String>,
         verbosity: Option<u8>,
-    ) -> Result<WasmCep95Client, JsValue> {
-        let inner = Cep95Client::new(rpc_url, sse_url, chain_name, verbosity_from_u8(verbosity))
+    ) -> Result<WasmCEP95Client, JsValue> {
+        let inner = CEP95Client::new(rpc_url, sse_url, chain_name, verbosity_from_u8(verbosity))
             .map_err(map_err)?;
         Ok(Self { inner })
     }
@@ -423,7 +423,7 @@ impl WasmCep95Client {
     }
 
     /// SSE URL when set.
-    #[wasm_bindgen(js_name = sseUrl)]
+    #[wasm_bindgen(js_name = SSEUrl)]
     pub fn sse_url(&self) -> Option<String> {
         self.inner.sse_url().map(str::to_string)
     }
@@ -440,7 +440,7 @@ impl WasmCep95Client {
             .map_err(map_err)
     }
 
-    /// Install Odra OwnedCep95 (or compatible) with package named-key name.
+    /// Install Odra OwnedCEP95 (or compatible) with package named-key name.
     #[wasm_bindgen]
     #[allow(clippy::too_many_arguments)]
     pub async fn install(
@@ -455,7 +455,7 @@ impl WasmCep95Client {
         make_only: Option<bool>,
         initiator_addr: Option<String>,
     ) -> Result<String, JsValue> {
-        let args = Cep95InstallArgs::new(name, symbol, package_hash_key_name);
+        let args = CEP95InstallArgs::new(name, symbol, package_hash_key_name);
         let tx = transaction_params(
             secret_key_pem.as_deref(),
             &payment_amount,

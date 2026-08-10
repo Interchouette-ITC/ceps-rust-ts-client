@@ -1,6 +1,6 @@
 //! Prefixed key encoding for CEP-18 (account-hash- / hash-).
 
-use crate::error::{CepError, Result};
+use crate::error::{CEPError, Result};
 use crate::types::strip_hash_prefix;
 use casper_rust_wasm_sdk::types::public_key::PublicKey;
 
@@ -13,7 +13,7 @@ use casper_rust_wasm_sdk::types::public_key::PublicKey;
 pub fn prefixed_key(input: &str) -> Result<String> {
     let trimmed = input.trim();
     if trimmed.is_empty() {
-        return Err(CepError::InvalidHash("empty key".into()));
+        return Err(CEPError::InvalidHash("empty key".into()));
     }
     if let Some(hex) = trimmed.strip_prefix("public-key-") {
         return account_hash_from_public_key_hex(hex);
@@ -32,14 +32,14 @@ pub fn prefixed_key(input: &str) -> Result<String> {
     if hex.len() == 64 && hex.chars().all(|c| c.is_ascii_hexdigit()) {
         return Ok(format!("hash-{hex}"));
     }
-    Err(CepError::InvalidHash(format!(
+    Err(CEPError::InvalidHash(format!(
         "unsupported CEP-18 key form: {input}"
     )))
 }
 
 fn account_hash_from_public_key_hex(public_key_hex: &str) -> Result<String> {
     let pk = PublicKey::new(public_key_hex)
-        .map_err(|e| CepError::InvalidHash(format!("public key: {e}")))?;
+        .map_err(|e| CEPError::InvalidHash(format!("public key: {e}")))?;
     Ok(pk.to_account_hash().to_formatted_string())
 }
 

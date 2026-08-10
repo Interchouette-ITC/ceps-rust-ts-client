@@ -1,18 +1,31 @@
 /* @ts-self-types="./ceps_client_wasm.d.ts" */
 
 /**
- * WASM wrapper for [`Cep18Client`].
+ * WASM wrapper for [`CEP18Client`].
  */
-export class Cep18Client {
+export class CEP18Client {
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
-        Cep18ClientFinalization.unregister(this);
+        CEP18ClientFinalization.unregister(this);
         return ptr;
     }
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_cep18client_free(ptr, 0);
+    }
+    /**
+     * SSE URL when set.
+     * @returns {string | undefined}
+     */
+    SSEUrl() {
+        const ret = wasm.cep18client_SSEUrl(this.__wbg_ptr);
+        let v1;
+        if (ret[0] !== 0) {
+            v1 = getStringFromWasm0(ret[0], ret[1]);
+            wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+        }
+        return v1;
     }
     /**
      * Balance of `account` (`account-hash-…` or prefixed).
@@ -99,7 +112,7 @@ export class Cep18Client {
             throw takeFromExternrefTable0(ret[1]);
         }
         this.__wbg_ptr = ret[0];
-        Cep18ClientFinalization.register(this, this.__wbg_ptr, this);
+        CEP18ClientFinalization.register(this, this.__wbg_ptr, this);
         return this;
     }
     /**
@@ -134,19 +147,6 @@ export class Cep18Client {
         }
     }
     /**
-     * SSE URL when set.
-     * @returns {string | undefined}
-     */
-    sseUrl() {
-        const ret = wasm.cep18client_sseUrl(this.__wbg_ptr);
-        let v1;
-        if (ret[0] !== 0) {
-            v1 = getStringFromWasm0(ret[0], ret[1]);
-            wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-        }
-        return v1;
-    }
-    /**
      * Token symbol.
      * @returns {Promise<string>}
      */
@@ -155,21 +155,34 @@ export class Cep18Client {
         return ret;
     }
 }
-if (Symbol.dispose) Cep18Client.prototype[Symbol.dispose] = Cep18Client.prototype.free;
+if (Symbol.dispose) CEP18Client.prototype[Symbol.dispose] = CEP18Client.prototype.free;
 
 /**
- * WASM wrapper for [`Cep78Client`].
+ * WASM wrapper for [`CEP78Client`].
  */
-export class Cep78Client {
+export class CEP78Client {
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
-        Cep78ClientFinalization.unregister(this);
+        CEP78ClientFinalization.unregister(this);
         return ptr;
     }
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_cep78client_free(ptr, 0);
+    }
+    /**
+     * SSE URL when set.
+     * @returns {string | undefined}
+     */
+    SSEUrl() {
+        const ret = wasm.cep78client_SSEUrl(this.__wbg_ptr);
+        let v1;
+        if (ret[0] !== 0) {
+            v1 = getStringFromWasm0(ret[0], ret[1]);
+            wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+        }
+        return v1;
     }
     /**
      * Balance of owner.
@@ -237,7 +250,7 @@ export class Cep78Client {
             throw takeFromExternrefTable0(ret[1]);
         }
         this.__wbg_ptr = ret[0];
-        Cep78ClientFinalization.register(this, this.__wbg_ptr, this);
+        CEP78ClientFinalization.register(this, this.__wbg_ptr, this);
         return this;
     }
     /**
@@ -253,10 +266,10 @@ export class Cep78Client {
      * @param {string} transaction_hash
      * @returns {Promise<string>}
      */
-    parseCes(transaction_hash) {
+    parseCES(transaction_hash) {
         const ptr0 = passStringToWasm0(transaction_hash, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.cep78client_parseCes(this.__wbg_ptr, ptr0, len0);
+        const ret = wasm.cep78client_parseCES(this.__wbg_ptr, ptr0, len0);
         return ret;
     }
     /**
@@ -290,35 +303,35 @@ export class Cep78Client {
             throw takeFromExternrefTable0(ret[0]);
         }
     }
+}
+if (Symbol.dispose) CEP78Client.prototype[Symbol.dispose] = CEP78Client.prototype.free;
+
+/**
+ * WASM wrapper for [`CEP85Client`].
+ */
+export class CEP85Client {
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        CEP85ClientFinalization.unregister(this);
+        return ptr;
+    }
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_cep85client_free(ptr, 0);
+    }
     /**
      * SSE URL when set.
      * @returns {string | undefined}
      */
-    sseUrl() {
-        const ret = wasm.cep78client_sseUrl(this.__wbg_ptr);
+    SSEUrl() {
+        const ret = wasm.cep85client_SSEUrl(this.__wbg_ptr);
         let v1;
         if (ret[0] !== 0) {
             v1 = getStringFromWasm0(ret[0], ret[1]);
             wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
         }
         return v1;
-    }
-}
-if (Symbol.dispose) Cep78Client.prototype[Symbol.dispose] = Cep78Client.prototype.free;
-
-/**
- * WASM wrapper for [`Cep85Client`].
- */
-export class Cep85Client {
-    __destroy_into_raw() {
-        const ptr = this.__wbg_ptr;
-        this.__wbg_ptr = 0;
-        Cep85ClientFinalization.unregister(this);
-        return ptr;
-    }
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_cep85client_free(ptr, 0);
     }
     /**
      * Balance for account + token id.
@@ -389,7 +402,7 @@ export class Cep85Client {
             throw takeFromExternrefTable0(ret[1]);
         }
         this.__wbg_ptr = ret[0];
-        Cep85ClientFinalization.register(this, this.__wbg_ptr, this);
+        CEP85ClientFinalization.register(this, this.__wbg_ptr, this);
         return this;
     }
     /**
@@ -423,35 +436,35 @@ export class Cep85Client {
             throw takeFromExternrefTable0(ret[0]);
         }
     }
+}
+if (Symbol.dispose) CEP85Client.prototype[Symbol.dispose] = CEP85Client.prototype.free;
+
+/**
+ * WASM wrapper for [`CEP95Client`].
+ */
+export class CEP95Client {
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        CEP95ClientFinalization.unregister(this);
+        return ptr;
+    }
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_cep95client_free(ptr, 0);
+    }
     /**
      * SSE URL when set.
      * @returns {string | undefined}
      */
-    sseUrl() {
-        const ret = wasm.cep85client_sseUrl(this.__wbg_ptr);
+    SSEUrl() {
+        const ret = wasm.cep95client_SSEUrl(this.__wbg_ptr);
         let v1;
         if (ret[0] !== 0) {
             v1 = getStringFromWasm0(ret[0], ret[1]);
             wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
         }
         return v1;
-    }
-}
-if (Symbol.dispose) Cep85Client.prototype[Symbol.dispose] = Cep85Client.prototype.free;
-
-/**
- * WASM wrapper for [`Cep95Client`].
- */
-export class Cep95Client {
-    __destroy_into_raw() {
-        const ptr = this.__wbg_ptr;
-        this.__wbg_ptr = 0;
-        Cep95ClientFinalization.unregister(this);
-        return ptr;
-    }
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_cep95client_free(ptr, 0);
     }
     /**
      * Balance of owner.
@@ -465,7 +478,7 @@ export class Cep95Client {
         return ret;
     }
     /**
-     * Install Odra OwnedCep95 (or compatible) with package named-key name.
+     * Install Odra OwnedCEP95 (or compatible) with package named-key name.
      * @param {string} name
      * @param {string} symbol
      * @param {string} package_hash_key_name
@@ -520,7 +533,7 @@ export class Cep95Client {
             throw takeFromExternrefTable0(ret[1]);
         }
         this.__wbg_ptr = ret[0];
-        Cep95ClientFinalization.register(this, this.__wbg_ptr, this);
+        CEP95ClientFinalization.register(this, this.__wbg_ptr, this);
         return this;
     }
     /**
@@ -566,19 +579,6 @@ export class Cep95Client {
         }
     }
     /**
-     * SSE URL when set.
-     * @returns {string | undefined}
-     */
-    sseUrl() {
-        const ret = wasm.cep95client_sseUrl(this.__wbg_ptr);
-        let v1;
-        if (ret[0] !== 0) {
-            v1 = getStringFromWasm0(ret[0], ret[1]);
-            wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
-        }
-        return v1;
-    }
-    /**
      * Collection symbol.
      * @returns {Promise<string>}
      */
@@ -587,7 +587,7 @@ export class Cep95Client {
         return ret;
     }
 }
-if (Symbol.dispose) Cep95Client.prototype[Symbol.dispose] = Cep95Client.prototype.free;
+if (Symbol.dispose) CEP95Client.prototype[Symbol.dispose] = CEP95Client.prototype.free;
 
 export class IntoUnderlyingByteSource {
     __destroy_into_raw() {
@@ -1116,16 +1116,16 @@ const __wbindgen_enum_RequestCredentials = ["omit", "same-origin", "include"];
 
 
 const __wbindgen_enum_RequestMode = ["same-origin", "no-cors", "cors", "navigate"];
-const Cep18ClientFinalization = (typeof FinalizationRegistry === 'undefined')
+const CEP18ClientFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_cep18client_free(ptr, 1));
-const Cep78ClientFinalization = (typeof FinalizationRegistry === 'undefined')
+const CEP78ClientFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_cep78client_free(ptr, 1));
-const Cep85ClientFinalization = (typeof FinalizationRegistry === 'undefined')
+const CEP85ClientFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_cep85client_free(ptr, 1));
-const Cep95ClientFinalization = (typeof FinalizationRegistry === 'undefined')
+const CEP95ClientFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_cep95client_free(ptr, 1));
 const IntoUnderlyingByteSourceFinalization = (typeof FinalizationRegistry === 'undefined')

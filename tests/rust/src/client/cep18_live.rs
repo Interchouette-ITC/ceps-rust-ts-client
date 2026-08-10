@@ -35,7 +35,7 @@ mod tests {
             .as_secs();
         let name = format!("CepsRust{nonce}");
         let args = InstallArgs::new(&name, "CRT", 9, "1000000000000")
-            .with_events_mode(EventsMode::Ces)
+            .with_events_mode(EventsMode::CES)
             .with_mint_and_burn(true);
 
         let tx = TransactionParams::new(&secret, INSTALL_PAYMENT);
@@ -44,12 +44,10 @@ mod tests {
 
         let pk = user1_public_key_hex(&secret);
         let contract_hash = client
-            .core()
             .get_account_named_key(&pk, &format!("cep18_contract_hash_{name}"))
             .await
             .expect("contract hash named key");
         let package_hash = client
-            .core()
             .get_account_named_key(&pk, &format!("cep18_contract_package_{name}"))
             .await
             .expect("package hash named key");

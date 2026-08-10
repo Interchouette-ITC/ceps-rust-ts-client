@@ -1,7 +1,7 @@
 //! Dictionary item key helpers for CEP-95 (Odra / JS storage encodings).
 
 use super::entity::prefixed_key;
-use crate::error::{CepError, Result};
+use crate::error::{CEPError, Result};
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
 use casper_rust_wasm_sdk::helpers::{
@@ -17,10 +17,10 @@ pub fn balance_dictionary_key(owner: &str) -> Result<String> {
     let prefixed = prefixed_key(owner)?;
     if prefixed.starts_with("account-hash-") {
         get_base64_key_from_account_hash(&prefixed)
-            .map_err(|e| CepError::InvalidHash(format!("balance key: {e}")))
+            .map_err(|e| CEPError::InvalidHash(format!("balance key: {e}")))
     } else {
         get_base64_key_from_key_hash(&prefixed)
-            .map_err(|e| CepError::InvalidHash(format!("balance key: {e}")))
+            .map_err(|e| CEPError::InvalidHash(format!("balance key: {e}")))
     }
 }
 
@@ -28,19 +28,19 @@ pub fn balance_dictionary_key(owner: &str) -> Result<String> {
 /// Base64(U256.to_bytes()) as used by Odra `base64_encoded_key_value_storage`.
 pub fn token_id_dictionary_key(token_id: &str) -> Result<String> {
     let id = U256::from_str(token_id.trim())
-        .map_err(|e| CepError::InvalidArgument(format!("token_id U256: {e}")))?;
+        .map_err(|e| CEPError::InvalidArgument(format!("token_id U256: {e}")))?;
     let bytes = id
         .to_bytes()
-        .map_err(|e| CepError::InvalidArgument(format!("token_id bytes: {e}")))?;
+        .map_err(|e| CEPError::InvalidArgument(format!("token_id bytes: {e}")))?;
     Ok(BASE64.encode(bytes))
 }
 
 /// Operator dictionary item key: hex(blake2b-256(owner.bytes ‖ operator.bytes)).
 pub fn operator_dictionary_key(owner: &str, operator: &str) -> Result<String> {
     let owner_key = Key::from_formatted_str(&prefixed_key(owner)?)
-        .map_err(|e| CepError::InvalidHash(format!("owner key: {e}")))?;
+        .map_err(|e| CEPError::InvalidHash(format!("owner key: {e}")))?;
     let operator_key = Key::from_formatted_str(&prefixed_key(operator)?)
-        .map_err(|e| CepError::InvalidHash(format!("operator key: {e}")))?;
+        .map_err(|e| CEPError::InvalidHash(format!("operator key: {e}")))?;
     Ok(make_dictionary_item_key(&owner_key, &operator_key))
 }
 

@@ -1,4 +1,4 @@
-//! Shared CES MCP tools (wrap CepCore / SDK CESParser).
+//! Shared CES MCP tools (wrap CEPClient / SDK CESParser).
 
 use crate::format;
 use crate::tools::params;

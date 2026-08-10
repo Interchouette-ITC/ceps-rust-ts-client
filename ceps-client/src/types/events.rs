@@ -9,7 +9,7 @@ pub enum EventsMode {
     /// No events emitted.
     NoEvents = 0,
     /// Casper Event Standard (CES).
-    Ces = 1,
+    CES = 1,
     /// Native events.
     Native = 2,
     /// Native events as raw bytes.
@@ -21,7 +21,7 @@ impl EventsMode {
     pub fn from_u8(value: u8) -> Option<Self> {
         match value {
             0 => Some(Self::NoEvents),
-            1 => Some(Self::Ces),
+            1 => Some(Self::CES),
             2 => Some(Self::Native),
             3 => Some(Self::NativeBytes),
             _ => None,
@@ -32,7 +32,7 @@ impl EventsMode {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::NoEvents => "NoEvents",
-            Self::Ces => "CES",
+            Self::CES => "CES",
             Self::Native => "Native",
             Self::NativeBytes => "NativeBytes",
         }
@@ -52,9 +52,9 @@ pub enum EventsMode78 {
     /// No events emitted.
     NoEvents = 0,
     /// CEP-47 style events.
-    Cep47 = 1,
+    CEP47 = 1,
     /// Casper Event Standard (CES).
-    Ces = 2,
+    CES = 2,
     /// Native events.
     Native = 3,
     /// Native events as raw bytes.
@@ -66,8 +66,8 @@ impl EventsMode78 {
     pub fn from_u8(value: u8) -> Option<Self> {
         match value {
             0 => Some(Self::NoEvents),
-            1 => Some(Self::Cep47),
-            2 => Some(Self::Ces),
+            1 => Some(Self::CEP47),
+            2 => Some(Self::CES),
             3 => Some(Self::Native),
             4 => Some(Self::NativeBytes),
             _ => None,
@@ -78,8 +78,8 @@ impl EventsMode78 {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::NoEvents => "NoEvents",
-            Self::Cep47 => "CEP47",
-            Self::Ces => "CES",
+            Self::CEP47 => "CEP47",
+            Self::CES => "CES",
             Self::Native => "Native",
             Self::NativeBytes => "NativeBytes",
         }
@@ -98,9 +98,9 @@ mod tests {
 
     #[test]
     fn events_mode_roundtrip() {
-        assert_eq!(EventsMode::from_u8(1), Some(EventsMode::Ces));
+        assert_eq!(EventsMode::from_u8(1), Some(EventsMode::CES));
         assert_eq!(u8::from(EventsMode::NativeBytes), 3);
-        assert_eq!(EventsMode78::from_u8(1), Some(EventsMode78::Cep47));
-        assert_eq!(EventsMode78::from_u8(2), Some(EventsMode78::Ces));
+        assert_eq!(EventsMode78::from_u8(1), Some(EventsMode78::CEP47));
+        assert_eq!(EventsMode78::from_u8(2), Some(EventsMode78::CES));
     }
 }

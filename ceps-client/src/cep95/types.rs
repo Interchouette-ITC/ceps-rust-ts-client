@@ -1,6 +1,6 @@
 //! CEP-95 install argument types (Odra session + init).
 
-/// Arguments for Odra CEP-95 / OwnedCep95 install.
+/// Arguments for Odra CEP-95 / OwnedCEP95 install.
 #[derive(Debug, Clone)]
 pub struct InstallArgs {
     /// Collection name (init).
