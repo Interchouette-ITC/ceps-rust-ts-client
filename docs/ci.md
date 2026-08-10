@@ -83,9 +83,10 @@ Configure on **`Interchouette-ITC/ceps-rust-ts-client`** (mirror on the personal
 | -------------------- | ------- |
 | `DOCKER_USERNAME`    | Docker Hub **login** user |
 | `DOCKER_PASSWORD`    | Docker Hub login password / token |
-| `DOCKER_USERNAME_ITC`| Hub **image namespace**: must be **`interchouette`** (tags `interchouette/ceps-…`). Not `interchouette-itc`. |
 | `GHCR_USERNAME`      | GHCR login |
 | `GHCR_PAT`           | GHCR PAT with package write to `interchouette-itc` (and optional `groussac`) |
+
+Hub image tags hardcode namespace **`interchouette`** (not a secret).
 
 `GITHUB_TOKEN` (Actions default) uploads release assets and moves the `dev-preview` tag. After the first GHCR push, set package visibility public (or grant org access).
 
