@@ -78,6 +78,12 @@ mod tests {
         assert_eq!(client.name().await.expect("name"), name);
         assert_eq!(client.symbol().await.expect("symbol"), "C95");
 
+        let contract_owner = client.get_owner().await.expect("get_owner");
+        assert!(
+            !contract_owner.is_empty(),
+            "get_owner should return Ownable owner after install"
+        );
+
         let owner = user1_account_hash(&secret);
         let spender = account_hash_from_secret(&spender_secret);
         let mint_tx = TransactionParams::new(&secret, CALL_PAYMENT);

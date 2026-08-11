@@ -461,6 +461,16 @@ impl CepsClientMcp {
         tools::cep18::allowances(contract_hash, package_hash, owner, spender).await
     }
 
+    #[tool(description = "CEPS18 security_badge")]
+    async fn ceps18_security_badge(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        account: String,
+    ) -> ToolOutput {
+        tools::cep18::security_badge(contract_hash, package_hash, account).await
+    }
+
     #[tool(description = "CEPS78 install")]
     async fn ceps78_install(
         &self,
@@ -1365,6 +1375,8 @@ impl CepsClientMcp {
         minter_list: Option<Vec<String>>,
         burner_list: Option<Vec<String>>,
         meta_list: Option<Vec<String>>,
+        transfer_filter_contract: Option<String>,
+        transfer_filter_method: Option<String>,
         wait: Option<bool>,
         wait_timeout_ms: Option<u64>,
         make_only: Option<bool>,
@@ -1383,6 +1395,8 @@ impl CepsClientMcp {
             minter_list,
             burner_list,
             meta_list,
+            transfer_filter_contract,
+            transfer_filter_method,
             wait,
             wait_timeout_ms,
             make_only,
@@ -1399,6 +1413,8 @@ impl CepsClientMcp {
         payment_amount: String,
         wasm_path: Option<String>,
         wasm_base64: Option<String>,
+        transfer_filter_contract: Option<String>,
+        transfer_filter_method: Option<String>,
         wait: Option<bool>,
         wait_timeout_ms: Option<u64>,
         make_only: Option<bool>,
@@ -1410,6 +1426,8 @@ impl CepsClientMcp {
             payment_amount,
             wasm_path,
             wasm_base64,
+            transfer_filter_contract,
+            transfer_filter_method,
             wait,
             wait_timeout_ms,
             make_only,
@@ -1555,6 +1573,7 @@ impl CepsClientMcp {
         to: String,
         id: String,
         amount: String,
+        data_hex: Option<String>,
         secret_key_pem: Option<String>,
         payment_amount: String,
         wait: Option<bool>,
@@ -1569,6 +1588,7 @@ impl CepsClientMcp {
             to,
             id,
             amount,
+            data_hex,
             secret_key_pem,
             payment_amount,
             wait,
@@ -1588,6 +1608,7 @@ impl CepsClientMcp {
         to: String,
         ids: Vec<String>,
         amounts: Vec<String>,
+        data_hex: Option<String>,
         secret_key_pem: Option<String>,
         payment_amount: String,
         wait: Option<bool>,
@@ -1602,6 +1623,7 @@ impl CepsClientMcp {
             to,
             ids,
             amounts,
+            data_hex,
             secret_key_pem,
             payment_amount,
             wait,
@@ -1870,6 +1892,102 @@ impl CepsClientMcp {
         id: String,
     ) -> ToolOutput {
         tools::cep85::is_non_fungible(contract_hash, package_hash, id).await
+    }
+
+    #[tool(description = "CEPS85 balance_of_batch")]
+    async fn ceps85_balance_of_batch(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        accounts: Vec<String>,
+        ids: Vec<String>,
+    ) -> ToolOutput {
+        tools::cep85::balance_of_batch(contract_hash, package_hash, accounts, ids).await
+    }
+
+    #[tool(description = "CEPS85 supply_of_batch")]
+    async fn ceps85_supply_of_batch(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        ids: Vec<String>,
+    ) -> ToolOutput {
+        tools::cep85::supply_of_batch(contract_hash, package_hash, ids).await
+    }
+
+    #[tool(description = "CEPS85 total_supply_of_batch")]
+    async fn ceps85_total_supply_of_batch(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        ids: Vec<String>,
+    ) -> ToolOutput {
+        tools::cep85::total_supply_of_batch(contract_hash, package_hash, ids).await
+    }
+
+    #[tool(description = "CEPS85 total_fungible_supply")]
+    async fn ceps85_total_fungible_supply(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        id: String,
+    ) -> ToolOutput {
+        tools::cep85::total_fungible_supply(contract_hash, package_hash, id).await
+    }
+
+    #[tool(description = "CEPS85 enable_burn")]
+    async fn ceps85_enable_burn(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep85::enable_burn(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS85 events_mode")]
+    async fn ceps85_events_mode(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep85::events_mode(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS85 number_of_minted_tokens")]
+    async fn ceps85_number_of_minted_tokens(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep85::number_of_minted_tokens(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS85 transfer_filter_contract")]
+    async fn ceps85_transfer_filter_contract(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep85::transfer_filter_contract(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS85 transfer_filter_method")]
+    async fn ceps85_transfer_filter_method(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep85::transfer_filter_method(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS85 security_badge")]
+    async fn ceps85_security_badge(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        entity: String,
+    ) -> ToolOutput {
+        tools::cep85::security_badge(contract_hash, package_hash, entity).await
     }
 
     #[tool(description = "CEPS95 Odra install")]
@@ -2218,6 +2336,42 @@ impl CepsClientMcp {
         token_id: String,
     ) -> ToolOutput {
         tools::cep95::token_metadata(contract_hash, package_hash, token_id).await
+    }
+
+    #[tool(description = "CEPS95 get_owner")]
+    async fn ceps95_get_owner(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+    ) -> ToolOutput {
+        tools::cep95::get_owner(contract_hash, package_hash).await
+    }
+
+    #[tool(description = "CEPS95 transfer_ownership")]
+    async fn ceps95_transfer_ownership(
+        &self,
+        contract_hash: String,
+        package_hash: Option<String>,
+        new_owner: String,
+        secret_key_pem: Option<String>,
+        payment_amount: String,
+        wait: Option<bool>,
+        wait_timeout_ms: Option<u64>,
+        make_only: Option<bool>,
+        initiator_addr: Option<String>,
+    ) -> ToolOutput {
+        tools::cep95::transfer_ownership(
+            contract_hash,
+            package_hash,
+            new_owner,
+            secret_key_pem,
+            payment_amount,
+            wait,
+            wait_timeout_ms,
+            make_only,
+            initiator_addr,
+        )
+        .await
     }
 }
 

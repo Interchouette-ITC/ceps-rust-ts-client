@@ -1,6 +1,6 @@
 # ceps-rust-ts-client-mcp tools
 
-Total: **112** tools (`ceps_*`). Write tools take `secret_key_pem` + `payment_amount`.
+Total: **128** tools (`ceps_*`). Write tools take `secret_key_pem` + `payment_amount`.
 
 | Tool | Group |
 | --- | --- |
@@ -13,6 +13,9 @@ Total: **112** tools (`ceps_*`). Write tools take `secret_key_pem` + `payment_am
 | `ceps_canonical_wasm_paths` | wasm |
 | `ceps_ces_parse_execution` | ces |
 | `ceps_ces_parse_transaction` | ces |
+| `ceps_ces_collect` | ces |
+| `ceps_put_transaction` | client |
+| `ceps_wait_transaction` | client |
 | `ceps18_install` | cep18 |
 | `ceps18_upgrade` | cep18 |
 | `ceps18_transfer` | cep18 |
@@ -32,6 +35,7 @@ Total: **112** tools (`ceps_*`). Write tools take `secret_key_pem` + `payment_am
 | `ceps18_is_mint_and_burn_enabled` | cep18 |
 | `ceps18_balance_of` | cep18 |
 | `ceps18_allowances` | cep18 |
+| `ceps18_security_badge` | cep18 |
 | `ceps78_install` | cep78 |
 | `ceps78_upgrade` | cep78 |
 | `ceps78_mint` | cep78 |
@@ -93,11 +97,21 @@ Total: **112** tools (`ceps_*`). Write tools take `secret_key_pem` + `payment_am
 | `ceps85_collection_name` | cep85 |
 | `ceps85_collection_uri` | cep85 |
 | `ceps85_balance_of` | cep85 |
+| `ceps85_balance_of_batch` | cep85 |
 | `ceps85_is_approved_for_all` | cep85 |
 | `ceps85_supply_of` | cep85 |
+| `ceps85_supply_of_batch` | cep85 |
 | `ceps85_total_supply_of` | cep85 |
+| `ceps85_total_supply_of_batch` | cep85 |
+| `ceps85_total_fungible_supply` | cep85 |
 | `ceps85_uri` | cep85 |
 | `ceps85_is_non_fungible` | cep85 |
+| `ceps85_enable_burn` | cep85 |
+| `ceps85_events_mode` | cep85 |
+| `ceps85_number_of_minted_tokens` | cep85 |
+| `ceps85_transfer_filter_contract` | cep85 |
+| `ceps85_transfer_filter_method` | cep85 |
+| `ceps85_security_badge` | cep85 |
 | `ceps95_install` | cep95 |
 | `ceps95_bind_odra_install` | cep95 |
 | `ceps95_mint` | cep95 |
@@ -116,6 +130,8 @@ Total: **112** tools (`ceps_*`). Write tools take `secret_key_pem` + `payment_am
 | `ceps95_get_approved` | cep95 |
 | `ceps95_is_approved_for_all` | cep95 |
 | `ceps95_token_metadata` | cep95 |
+| `ceps95_get_owner` | cep95 |
+| `ceps95_transfer_ownership` | cep95 |
 
 ## Write legend
 

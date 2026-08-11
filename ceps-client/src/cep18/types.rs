@@ -2,6 +2,39 @@
 
 use crate::types::EventsMode;
 
+/// CEP-18 security badge (u8 on-chain).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum SecurityBadge18 {
+    /// Admin.
+    Admin = 0,
+    /// Minter.
+    Minter = 1,
+    /// No rights.
+    None = 2,
+}
+
+impl SecurityBadge18 {
+    /// Parse from on-chain u8.
+    pub fn from_u8(value: u8) -> Option<Self> {
+        match value {
+            0 => Some(Self::Admin),
+            1 => Some(Self::Minter),
+            2 => Some(Self::None),
+            _ => None,
+        }
+    }
+
+    /// Stable name for logs / CLI.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Admin => "Admin",
+            Self::Minter => "Minter",
+            Self::None => "None",
+        }
+    }
+}
+
 /// Arguments for CEP-18 `install`.
 #[derive(Debug, Clone)]
 pub struct InstallArgs {
@@ -52,6 +85,18 @@ impl InstallArgs {
     /// Enable mint/burn.
     pub fn with_mint_and_burn(mut self, enable: bool) -> Self {
         self.enable_mint_and_burn = Some(enable);
+        self
+    }
+
+    /// Set admin list.
+    pub fn with_admin_list(mut self, list: Vec<String>) -> Self {
+        self.admin_list = Some(list);
+        self
+    }
+
+    /// Set minter list.
+    pub fn with_minter_list(mut self, list: Vec<String>) -> Self {
+        self.minter_list = Some(list);
         self
     }
 }

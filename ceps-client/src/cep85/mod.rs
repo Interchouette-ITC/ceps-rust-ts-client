@@ -7,18 +7,20 @@ mod types;
 
 pub use entity::prefixed_key;
 pub use error::CEP85Error;
-pub use types::{ChangeSecurityArgs, InstallArgs, UpgradeArgs};
+pub use types::{ChangeSecurityArgs, InstallArgs, SecurityBadge85, UpgradeArgs};
 
 use crate::core::CEPClient;
 use crate::core::{
-    bool_arg, json_args, key_arg, key_list_arg, string_arg, u256_arg, u256_list_arg, u8_arg,
-    JsonArg,
+    bool_arg, byte_list_arg, json_args, key_arg, key_list_arg, string_arg, u256_arg, u256_list_arg,
+    u8_arg, JsonArg,
 };
 use crate::error::{CEPError, CEPKind, Result};
 use crate::types::{CallResult, EventsMode, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
-use keys::{balance_dictionary_key, operator_dictionary_key};
+use casper_types::U256;
+use keys::{balance_dictionary_key, operator_dictionary_key, security_badge_dictionary_key};
 use serde_json::Value;
+use std::str::FromStr;
 
 /// Client for CEP-85 multi-token contracts.
 pub struct CEP85Client {
@@ -136,6 +138,11 @@ impl CEP85Client {
         if let Some(list) = &args.meta_list {
             v.push(key_list_arg("meta_list", &map_keys(list)?));
         }
+        push_transfer_filter(
+            &mut v,
+            args.transfer_filter_contract.as_deref(),
+            args.transfer_filter_method.as_deref(),
+        )?;
         self.core.install_wasm(wasm, tx, &json_args(&v)).await
     }
 
@@ -146,7 +153,12 @@ impl CEP85Client {
         wasm: &[u8],
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let v = vec![string_arg("name", &args.name), bool_arg("upgrade", true)];
+        let mut v = vec![string_arg("name", &args.name), bool_arg("upgrade", true)];
+        push_transfer_filter(
+            &mut v,
+            args.transfer_filter_contract.as_deref(),
+            args.transfer_filter_method.as_deref(),
+        )?;
         self.core.install_wasm(wasm, tx, &json_args(&v)).await
     }
 
@@ -226,41 +238,53 @@ impl CEP85Client {
             .await
     }
 
-    /// Transfer (on-chain `transfer_from`).
+    /// Transfer (on-chain `transfer_from`), optional receiver `data`.
+    ///
+    /// Omits the `data` runtime arg when `None` (contract expects `Bytes` only when set).
     pub async fn transfer(
         &self,
         from: &str,
         to: &str,
         id: &str,
         amount: &str,
+        data: Option<&[u8]>,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let v = vec![
+        let mut v = vec![
             key_arg("from", &prefixed_key(from)?),
             key_arg("to", &prefixed_key(to)?),
             u256_arg("id", id),
             u256_arg("amount", amount),
         ];
+        if let Some(bytes) = data {
+            v.push(byte_list_arg("data", bytes));
+        }
         self.core
             .call_entrypoint("transfer_from", tx, &json_args(&v))
             .await
     }
 
-    /// Batch transfer (on-chain `batch_transfer_from`).
+    /// Batch transfer (on-chain `batch_transfer_from`), optional receiver `data`.
+    ///
+    /// Omits the `data` runtime arg when `None` (contract expects `Bytes` only when set).
     pub async fn batch_transfer(
         &self,
         from: &str,
         to: &str,
         ids: &[&str],
         amounts: &[&str],
+        data: Option<&[u8]>,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let v = vec![
+        let mut v = vec![
             key_arg("from", &prefixed_key(from)?),
             key_arg("to", &prefixed_key(to)?),
             u256_list_arg("ids", ids),
             u256_list_arg("amounts", amounts),
         ];
+        if let Some(bytes) = data {
+            v.push(byte_list_arg("data", bytes));
+        }
         self.core
             .call_entrypoint("batch_transfer_from", tx, &json_args(&v))
             .await
@@ -396,24 +420,93 @@ impl CEP85Client {
     /// Balance of `account` for token `id`.
     pub async fn balance_of(&self, account: &str, id: &str) -> Result<String> {
         let item = balance_dictionary_key(account, id)?;
-        decode_u256_cl(self.core.query_dictionary("balances", &item).await?)
+        match self.core.query_dictionary("balances", &item).await {
+            Ok(raw) => decode_u256_cl(raw),
+            Err(CEPError::EmptyQuery(_)) | Err(CEPError::Sdk(_)) => Ok("0".into()),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Batch balances: parallel dict reads for each `(account, id)` pair (same length).
+    pub async fn balance_of_batch(&self, accounts: &[&str], ids: &[&str]) -> Result<Vec<String>> {
+        if accounts.len() != ids.len() {
+            return Err(CEPError::InvalidArgument(
+                "balance_of_batch: accounts and ids length mismatch".into(),
+            ));
+        }
+        let mut out = Vec::with_capacity(accounts.len());
+        for (account, id) in accounts.iter().zip(ids.iter()) {
+            out.push(self.balance_of(account, id).await?);
+        }
+        Ok(out)
     }
 
     /// Whether `operator` is approved for all of `owner`.
     pub async fn is_approved_for_all(&self, owner: &str, operator: &str) -> Result<bool> {
         let item = operator_dictionary_key(owner, operator)?;
-        let raw = self.core.query_dictionary("operators", &item).await?;
-        decode_bool_cl(raw)
+        match self.core.query_dictionary("operators", &item).await {
+            Ok(raw) => decode_bool_cl(raw),
+            Err(CEPError::EmptyQuery(_)) | Err(CEPError::Sdk(_)) => Ok(false),
+            Err(e) => Err(e),
+        }
     }
 
     /// Circulating supply for `id`.
     pub async fn supply_of(&self, id: &str) -> Result<String> {
-        decode_u256_cl(self.core.query_dictionary("supply", id).await?)
+        match self.core.query_dictionary("supply", id).await {
+            Ok(raw) => decode_u256_cl(raw),
+            Err(CEPError::EmptyQuery(_)) | Err(CEPError::Sdk(_)) => Ok("0".into()),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Batch circulating supplies.
+    pub async fn supply_of_batch(&self, ids: &[&str]) -> Result<Vec<String>> {
+        let mut out = Vec::with_capacity(ids.len());
+        for id in ids {
+            out.push(self.supply_of(id).await?);
+        }
+        Ok(out)
     }
 
     /// Total supply cap for `id`.
     pub async fn total_supply_of(&self, id: &str) -> Result<String> {
         decode_u256_cl(self.core.query_dictionary("total_supply", id).await?)
+    }
+
+    /// Batch total supply caps.
+    pub async fn total_supply_of_batch(&self, ids: &[&str]) -> Result<Vec<String>> {
+        let mut out = Vec::with_capacity(ids.len());
+        for id in ids {
+            out.push(self.total_supply_of(id).await?);
+        }
+        Ok(out)
+    }
+
+    /// Remaining mintable fungible amount for `id` (`total_supply_of - supply_of`).
+    ///
+    /// Mirrors the on-chain `total_fungible_supply` view without calling the entrypoint.
+    /// Returns `None` when the total-supply cap is unset or zero.
+    pub async fn total_fungible_supply(&self, id: &str) -> Result<Option<String>> {
+        let cap = match self.core.query_dictionary("total_supply", id).await {
+            Ok(raw) => decode_u256_cl(raw)?,
+            Err(CEPError::EmptyQuery(_)) | Err(CEPError::Sdk(_)) => return Ok(None),
+            Err(e) => return Err(e),
+        };
+        let cap_u = U256::from_str(&cap)
+            .map_err(|e| CEPError::Decode(format!("total_supply U256: {e}")))?;
+        if cap_u.is_zero() {
+            return Ok(None);
+        }
+        let circulating = self.supply_of(id).await?;
+        let circ_u = U256::from_str(&circulating)
+            .map_err(|e| CEPError::Decode(format!("supply U256: {e}")))?;
+        let remaining = if cap_u >= circ_u {
+            cap_u.checked_sub(circ_u).unwrap_or_else(U256::zero)
+        } else {
+            U256::zero()
+        };
+        Ok(Some(remaining.to_string()))
     }
 
     /// Token URI for `id` (falls back to collection URI template when unset).
@@ -435,10 +528,90 @@ impl CEP85Client {
         let cap = self.total_supply_of(id).await?;
         Ok(cap == "1")
     }
+
+    /// Whether burn is enabled.
+    pub async fn enable_burn(&self) -> Result<bool> {
+        decode_bool_cl(self.core.query_contract_key(&["enable_burn"]).await?)
+    }
+
+    /// Events mode named key.
+    pub async fn events_mode(&self) -> Result<EventsMode> {
+        let v = decode_u8_cl(self.core.query_contract_key(&["events_mode"]).await?)?;
+        EventsMode::from_u8(v).ok_or_else(|| CEPError::Decode(format!("unknown events_mode {v}")))
+    }
+
+    /// Number of minted token ids (named key).
+    pub async fn number_of_minted_tokens(&self) -> Result<u64> {
+        decode_u64_cl(
+            self.core
+                .query_contract_key(&["number_of_minted_tokens"])
+                .await?,
+        )
+    }
+
+    /// Transfer-filter contract key when set.
+    pub async fn transfer_filter_contract(&self) -> Result<Option<String>> {
+        match self
+            .core
+            .query_contract_key(&["transfer_filter_contract"])
+            .await
+        {
+            Ok(raw) => decode_optional_key_cl(raw),
+            Err(CEPError::EmptyQuery(_)) | Err(CEPError::Sdk(_)) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Transfer-filter method name when set.
+    pub async fn transfer_filter_method(&self) -> Result<Option<String>> {
+        match self
+            .core
+            .query_contract_key(&["transfer_filter_method"])
+            .await
+        {
+            Ok(raw) => decode_optional_string_cl(raw),
+            Err(CEPError::EmptyQuery(_)) | Err(CEPError::Sdk(_)) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Security badge for `entity`, if present.
+    pub async fn security_badge(&self, entity: &str) -> Result<Option<SecurityBadge85>> {
+        let item = security_badge_dictionary_key(entity)?;
+        match self.core.query_dictionary("security_badges", &item).await {
+            Ok(raw) => {
+                let v = decode_u8_cl(raw)?;
+                Ok(SecurityBadge85::from_u8(v))
+            }
+            Err(CEPError::EmptyQuery(_)) | Err(CEPError::Sdk(_)) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
 }
 
 fn map_keys(list: &[String]) -> Result<Vec<String>> {
     list.iter().map(|k| prefixed_key(k)).collect()
+}
+
+fn push_transfer_filter(
+    v: &mut Vec<JsonArg>,
+    contract: Option<&str>,
+    method: Option<&str>,
+) -> Result<()> {
+    match (contract, method) {
+        (None, None) => Ok(()),
+        (Some(c), Some(m)) if !m.is_empty() => {
+            v.push(key_arg("transfer_filter_contract", &prefixed_key(c)?));
+            v.push(string_arg("transfer_filter_method", m));
+            Ok(())
+        }
+        (Some(_), _) => Err(CEPError::MissingArgument(
+            "transfer_filter_method required when transfer_filter_contract is set".into(),
+        )),
+        (None, Some(_)) => Err(CEPError::MissingArgument(
+            "transfer_filter_contract required when transfer_filter_method is set".into(),
+        )),
+    }
 }
 
 fn decode_string_cl(value: Value) -> Result<String> {
@@ -452,6 +625,47 @@ fn decode_string_cl(value: Value) -> Result<String> {
         return Ok(s.to_string());
     }
     Err(CEPError::Decode(format!("expected string, got {value}")))
+}
+
+fn decode_optional_string_cl(value: Value) -> Result<Option<String>> {
+    let parsed = value
+        .pointer("/stored_value/CLValue/parsed")
+        .or_else(|| value.pointer("/CLValue/parsed"))
+        .cloned()
+        .unwrap_or(value);
+    match parsed {
+        Value::Null => Ok(None),
+        Value::String(s) => Ok(Some(s)),
+        other => Err(CEPError::Decode(format!(
+            "expected Option<String>, got {other}"
+        ))),
+    }
+}
+
+fn decode_optional_key_cl(value: Value) -> Result<Option<String>> {
+    let parsed = value
+        .pointer("/stored_value/CLValue/parsed")
+        .or_else(|| value.pointer("/CLValue/parsed"))
+        .cloned()
+        .unwrap_or(value);
+    match parsed {
+        Value::Null => Ok(None),
+        Value::String(s) => Ok(Some(s)),
+        Value::Object(map) => {
+            if let Some(Value::String(s)) = map.get("Some").or_else(|| map.get("some")) {
+                return Ok(Some(s.clone()));
+            }
+            if map.contains_key("None") || map.contains_key("none") {
+                return Ok(None);
+            }
+            Err(CEPError::Decode(format!(
+                "expected Option<Key> object, got {map:?}"
+            )))
+        }
+        other => Err(CEPError::Decode(format!(
+            "expected Option<Key>, got {other}"
+        ))),
+    }
 }
 
 fn decode_u256_cl(value: Value) -> Result<String> {
@@ -477,6 +691,41 @@ fn decode_bool_cl(value: Value) -> Result<bool> {
         Value::Bool(b) => Ok(b),
         Value::Number(n) => Ok(n.as_u64().unwrap_or(0) != 0),
         other => Err(CEPError::Decode(format!("expected bool, got {other}"))),
+    }
+}
+
+fn decode_u8_cl(value: Value) -> Result<u8> {
+    let parsed = value
+        .pointer("/stored_value/CLValue/parsed")
+        .or_else(|| value.pointer("/CLValue/parsed"))
+        .cloned()
+        .unwrap_or(value);
+    match parsed {
+        Value::Number(n) => n
+            .as_u64()
+            .and_then(|v| u8::try_from(v).ok())
+            .ok_or_else(|| CEPError::Decode(format!("invalid u8: {n}"))),
+        Value::String(s) => s
+            .parse()
+            .map_err(|e| CEPError::Decode(format!("invalid u8 string: {e}"))),
+        other => Err(CEPError::Decode(format!("expected u8, got {other}"))),
+    }
+}
+
+fn decode_u64_cl(value: Value) -> Result<u64> {
+    let parsed = value
+        .pointer("/stored_value/CLValue/parsed")
+        .or_else(|| value.pointer("/CLValue/parsed"))
+        .cloned()
+        .unwrap_or(value);
+    match parsed {
+        Value::Number(n) => n
+            .as_u64()
+            .ok_or_else(|| CEPError::Decode(format!("invalid u64: {n}"))),
+        Value::String(s) => s
+            .parse()
+            .map_err(|e| CEPError::Decode(format!("invalid u64 string: {e}"))),
+        other => Err(CEPError::Decode(format!("expected u64, got {other}"))),
     }
 }
 
@@ -516,6 +765,21 @@ mod tests {
         assert!(s.contains("Bag"));
         assert!(s.contains("enable_burn"));
         assert!(s.contains("events_mode"));
+    }
+
+    #[test]
+    fn transfer_filter_requires_method() {
+        let mut v = Vec::new();
+        let err = push_transfer_filter(&mut v, Some("hash-aa"), None).unwrap_err();
+        assert!(matches!(err, CEPError::MissingArgument(_)));
+    }
+
+    #[test]
+    fn total_fungible_arithmetic_edges() {
+        let cap = U256::from(10u64);
+        let circ = U256::from(3u64);
+        assert_eq!(cap.checked_sub(circ).unwrap().to_string(), "7");
+        assert!(U256::zero().is_zero());
     }
 
     #[tokio::test]
@@ -567,5 +831,11 @@ mod tests {
             "stored_value": { "CLValue": { "parsed": true } }
         });
         assert!(decode_bool_cl(v).unwrap());
+    }
+
+    #[test]
+    fn security_badge85_roundtrip() {
+        assert_eq!(SecurityBadge85::from_u8(2).unwrap().as_str(), "Burner");
+        assert!(SecurityBadge85::from_u8(9).is_none());
     }
 }

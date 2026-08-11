@@ -8,7 +8,9 @@ use ceps_client::{
     CEP18Client, CEP78Client, CEP85Client, CEP95Client, CallResult, EventsMode, EventsMode78,
     TransactionParams, Verbosity,
 };
+use gloo_utils::format::JsValueSerdeExt;
 use js_sys::Uint8Array;
+use serde::Deserialize;
 use wasm_bindgen::prelude::*;
 
 fn map_err(err: ceps_client::CEPError) -> JsValue {
@@ -61,6 +63,29 @@ fn call_result_json(result: CallResult) -> Result<String, JsValue> {
 
 fn bytes_from_js(wasm: &Uint8Array) -> Vec<u8> {
     wasm.to_vec()
+}
+
+#[derive(Debug, Deserialize)]
+struct Cep85InstallArgsJs {
+    name: String,
+    uri: String,
+    #[serde(default)]
+    events_mode: Option<u8>,
+    #[serde(default)]
+    enable_burn: Option<bool>,
+    #[serde(default)]
+    transfer_filter_contract: Option<String>,
+    #[serde(default)]
+    transfer_filter_method: Option<String>,
+    #[serde(default)]
+    secret_key_pem: Option<String>,
+    payment_amount: String,
+    #[serde(default)]
+    wait: Option<bool>,
+    #[serde(default)]
+    make_only: Option<bool>,
+    #[serde(default)]
+    initiator_addr: Option<String>,
 }
 
 /// WASM wrapper for [`CEP18Client`].
@@ -168,6 +193,17 @@ impl WasmCEP18Client {
     #[wasm_bindgen(js_name = balanceOf)]
     pub async fn balance_of(&self, account: String) -> Result<String, JsValue> {
         self.inner.balance_of(&account).await.map_err(map_err)
+    }
+
+    /// Security badge name for `account`, or `undefined` when unset.
+    #[wasm_bindgen(js_name = securityBadge)]
+    pub async fn security_badge(&self, account: String) -> Result<Option<String>, JsValue> {
+        Ok(self
+            .inner
+            .security_badge(&account)
+            .await
+            .map_err(map_err)?
+            .map(|b| b.as_str().to_string()))
     }
 
     /// Put signed Transaction JSON (`CEPClient::put_transaction`).
@@ -422,41 +458,46 @@ impl WasmCEP85Client {
             .map_err(map_err)
     }
 
-    /// Install with URI and optional CES events / burn flag.
+    /// Install from a JSON object (`name`, `uri`, `payment_amount`, optional events/burn/filter
+    /// and tx fields) plus contract WASM bytes.
     #[wasm_bindgen]
-    #[allow(clippy::too_many_arguments)]
-    pub async fn install(
-        &self,
-        name: String,
-        uri: String,
-        events_mode: Option<u8>,
-        enable_burn: Option<bool>,
-        wasm: Uint8Array,
-        secret_key_pem: Option<String>,
-        payment_amount: String,
-        wait: Option<bool>,
-        make_only: Option<bool>,
-        initiator_addr: Option<String>,
-    ) -> Result<String, JsValue> {
-        let mut args = CEP85InstallArgs::new(name, uri);
-        if let Some(mode) = events_mode {
+    pub async fn install(&self, args: JsValue, wasm: Uint8Array) -> Result<String, JsValue> {
+        let parsed: Cep85InstallArgsJs = args
+            .into_serde()
+            .map_err(|e| JsValue::from_str(&format!("install args: {e}")))?;
+        let mut install_args = CEP85InstallArgs::new(parsed.name, parsed.uri);
+        if let Some(mode) = parsed.events_mode {
             let mode = EventsMode::from_u8(mode)
                 .ok_or_else(|| JsValue::from_str("invalid events_mode"))?;
-            args = args.with_events_mode(mode);
+            install_args = install_args.with_events_mode(mode);
         }
-        if let Some(b) = enable_burn {
-            args = args.with_enable_burn(b);
+        if let Some(b) = parsed.enable_burn {
+            install_args = install_args.with_enable_burn(b);
+        }
+        match (
+            parsed.transfer_filter_contract,
+            parsed.transfer_filter_method,
+        ) {
+            (None, None) => {}
+            (Some(c), Some(m)) => {
+                install_args = install_args.with_transfer_filter(c, m);
+            }
+            _ => {
+                return Err(JsValue::from_str(
+                    "transfer_filter_contract and transfer_filter_method must both be set",
+                ));
+            }
         }
         let tx = transaction_params(
-            secret_key_pem.as_deref(),
-            &payment_amount,
-            wait.unwrap_or(true),
-            make_only.unwrap_or(false),
-            initiator_addr.as_deref(),
+            parsed.secret_key_pem.as_deref(),
+            &parsed.payment_amount,
+            parsed.wait.unwrap_or(true),
+            parsed.make_only.unwrap_or(false),
+            parsed.initiator_addr.as_deref(),
         )?;
         let put = self
             .inner
-            .install(&args, &bytes_from_js(&wasm), &tx)
+            .install(&install_args, &bytes_from_js(&wasm), &tx)
             .await
             .map_err(map_err)?;
         call_result_json(put)
@@ -472,6 +513,98 @@ impl WasmCEP85Client {
     #[wasm_bindgen(js_name = balanceOf)]
     pub async fn balance_of(&self, account: String, id: String) -> Result<String, JsValue> {
         self.inner.balance_of(&account, &id).await.map_err(map_err)
+    }
+
+    /// Batch balances as JSON string array.
+    #[wasm_bindgen(js_name = balanceOfBatch)]
+    pub async fn balance_of_batch(
+        &self,
+        accounts: Vec<String>,
+        ids: Vec<String>,
+    ) -> Result<String, JsValue> {
+        let acct_refs: Vec<&str> = accounts.iter().map(String::as_str).collect();
+        let id_refs: Vec<&str> = ids.iter().map(String::as_str).collect();
+        let bals = self
+            .inner
+            .balance_of_batch(&acct_refs, &id_refs)
+            .await
+            .map_err(map_err)?;
+        serde_json::to_string(&bals).map_err(|e| JsValue::from_str(&e.to_string()))
+    }
+
+    /// Batch circulating supplies as JSON string array.
+    #[wasm_bindgen(js_name = supplyOfBatch)]
+    pub async fn supply_of_batch(&self, ids: Vec<String>) -> Result<String, JsValue> {
+        let id_refs: Vec<&str> = ids.iter().map(String::as_str).collect();
+        let vals = self
+            .inner
+            .supply_of_batch(&id_refs)
+            .await
+            .map_err(map_err)?;
+        serde_json::to_string(&vals).map_err(|e| JsValue::from_str(&e.to_string()))
+    }
+
+    /// Batch total supply caps as JSON string array.
+    #[wasm_bindgen(js_name = totalSupplyOfBatch)]
+    pub async fn total_supply_of_batch(&self, ids: Vec<String>) -> Result<String, JsValue> {
+        let id_refs: Vec<&str> = ids.iter().map(String::as_str).collect();
+        let vals = self
+            .inner
+            .total_supply_of_batch(&id_refs)
+            .await
+            .map_err(map_err)?;
+        serde_json::to_string(&vals).map_err(|e| JsValue::from_str(&e.to_string()))
+    }
+
+    /// Remaining fungible mintable amount, or `undefined` when cap unset/zero.
+    #[wasm_bindgen(js_name = totalFungibleSupply)]
+    pub async fn total_fungible_supply(&self, id: String) -> Result<Option<String>, JsValue> {
+        self.inner.total_fungible_supply(&id).await.map_err(map_err)
+    }
+
+    /// Whether burn is enabled.
+    #[wasm_bindgen(js_name = enableBurn)]
+    pub async fn enable_burn(&self) -> Result<bool, JsValue> {
+        self.inner.enable_burn().await.map_err(map_err)
+    }
+
+    /// Events mode as `u8`.
+    #[wasm_bindgen(js_name = eventsMode)]
+    pub async fn events_mode(&self) -> Result<u8, JsValue> {
+        self.inner
+            .events_mode()
+            .await
+            .map(u8::from)
+            .map_err(map_err)
+    }
+
+    /// Number of minted token ids.
+    #[wasm_bindgen(js_name = numberOfMintedTokens)]
+    pub async fn number_of_minted_tokens(&self) -> Result<u64, JsValue> {
+        self.inner.number_of_minted_tokens().await.map_err(map_err)
+    }
+
+    /// Transfer-filter contract key when set.
+    #[wasm_bindgen(js_name = transferFilterContract)]
+    pub async fn transfer_filter_contract(&self) -> Result<Option<String>, JsValue> {
+        self.inner.transfer_filter_contract().await.map_err(map_err)
+    }
+
+    /// Transfer-filter method when set.
+    #[wasm_bindgen(js_name = transferFilterMethod)]
+    pub async fn transfer_filter_method(&self) -> Result<Option<String>, JsValue> {
+        self.inner.transfer_filter_method().await.map_err(map_err)
+    }
+
+    /// Security badge name for `entity`, or `undefined` when unset.
+    #[wasm_bindgen(js_name = securityBadge)]
+    pub async fn security_badge(&self, entity: String) -> Result<Option<String>, JsValue> {
+        Ok(self
+            .inner
+            .security_badge(&entity)
+            .await
+            .map_err(map_err)?
+            .map(|b| b.as_str().to_string()))
     }
 
     /// Put signed Transaction JSON (`CEPClient::put_transaction`).
@@ -623,6 +756,38 @@ impl WasmCEP95Client {
     #[wasm_bindgen(js_name = ownerOf)]
     pub async fn owner_of(&self, token_id: String) -> Result<String, JsValue> {
         self.inner.owner_of(&token_id).await.map_err(map_err)
+    }
+
+    /// Ownable contract owner.
+    #[wasm_bindgen(js_name = getOwner)]
+    pub async fn get_owner(&self) -> Result<String, JsValue> {
+        self.inner.get_owner().await.map_err(map_err)
+    }
+
+    /// Transfer Ownable ownership.
+    #[wasm_bindgen(js_name = transferOwnership)]
+    pub async fn transfer_ownership(
+        &self,
+        new_owner: String,
+        secret_key_pem: Option<String>,
+        payment_amount: String,
+        wait: Option<bool>,
+        make_only: Option<bool>,
+        initiator_addr: Option<String>,
+    ) -> Result<String, JsValue> {
+        let tx = transaction_params(
+            secret_key_pem.as_deref(),
+            &payment_amount,
+            wait.unwrap_or(true),
+            make_only.unwrap_or(false),
+            initiator_addr.as_deref(),
+        )?;
+        let put = self
+            .inner
+            .transfer_ownership(&new_owner, &tx)
+            .await
+            .map_err(map_err)?;
+        call_result_json(put)
     }
 
     /// Put signed Transaction JSON (`CEPClient::put_transaction`).

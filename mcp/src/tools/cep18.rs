@@ -26,6 +26,7 @@ pub const TOOL_NAMES: &[&str] = &[
     "ceps18_is_mint_and_burn_enabled",
     "ceps18_balance_of",
     "ceps18_allowances",
+    "ceps18_security_badge",
 ];
 
 macro_rules! need_client {
@@ -447,4 +448,20 @@ pub async fn allowances(
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.allowances(&owner, &spender).await)
+}
+
+pub async fn security_badge(
+    contract_hash: String,
+    package_hash: Option<String>,
+    account: String,
+) -> ToolOutput {
+    let client = need_client!(contract_hash, package_hash);
+    match client.security_badge(&account).await {
+        Ok(Some(b)) => format::json_ok(&serde_json::json!({
+            "badge": b.as_str(),
+            "value": b as u8
+        })),
+        Ok(None) => format::json_ok(&serde_json::json!({ "badge": null })),
+        Err(e) => format::err(e),
+    }
 }

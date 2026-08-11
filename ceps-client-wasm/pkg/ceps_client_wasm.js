@@ -169,6 +169,17 @@ export class CEP18Client {
         }
     }
     /**
+     * Security badge name for `account`, or `undefined` when unset.
+     * @param {string} account
+     * @returns {Promise<string | undefined>}
+     */
+    securityBadge(account) {
+        const ptr0 = passStringToWasm0(account, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep18client_securityBadge(this.__wbg_ptr, ptr0, len0);
+        return ret;
+    }
+    /**
      * Bind contract hashes (hex or prefixed).
      * @param {string} contract_hash
      * @param {string | null} [package_hash]
@@ -435,6 +446,20 @@ export class CEP85Client {
         return ret;
     }
     /**
+     * Batch balances as JSON string array.
+     * @param {string[]} accounts
+     * @param {string[]} ids
+     * @returns {Promise<string>}
+     */
+    balanceOfBatch(accounts, ids) {
+        const ptr0 = passArrayJsValueToWasm0(accounts, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passArrayJsValueToWasm0(ids, wasm.__wbindgen_malloc);
+        const len1 = WASM_VECTOR_LEN;
+        const ret = wasm.cep85client_balanceOfBatch(this.__wbg_ptr, ptr0, len0, ptr1, len1);
+        return ret;
+    }
+    /**
      * Collect SSE processed frames and decode CES for the bound contract.
      * @param {string[]} event_names
      * @param {number | null} [max_transactions]
@@ -456,31 +481,30 @@ export class CEP85Client {
         return ret;
     }
     /**
-     * Install with URI and optional CES events / burn flag.
-     * @param {string} name
-     * @param {string} uri
-     * @param {number | null | undefined} events_mode
-     * @param {boolean | null | undefined} enable_burn
+     * Whether burn is enabled.
+     * @returns {Promise<boolean>}
+     */
+    enableBurn() {
+        const ret = wasm.cep85client_enableBurn(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * Events mode as `u8`.
+     * @returns {Promise<number>}
+     */
+    eventsMode() {
+        const ret = wasm.cep85client_eventsMode(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * Install from a JSON object (`name`, `uri`, `payment_amount`, optional events/burn/filter
+     * and tx fields) plus contract WASM bytes.
+     * @param {any} args
      * @param {Uint8Array} wasm
-     * @param {string | null | undefined} secret_key_pem
-     * @param {string} payment_amount
-     * @param {boolean | null} [wait]
-     * @param {boolean | null} [make_only]
-     * @param {string | null} [initiator_addr]
      * @returns {Promise<string>}
      */
-    install(name, uri, events_mode, enable_burn, wasm, secret_key_pem, payment_amount, wait, make_only, initiator_addr) {
-        const ptr0 = passStringToWasm0(name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passStringToWasm0(uri, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len1 = WASM_VECTOR_LEN;
-        var ptr2 = isLikeNone(secret_key_pem) ? 0 : passStringToWasm0(secret_key_pem, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len2 = WASM_VECTOR_LEN;
-        const ptr3 = passStringToWasm0(payment_amount, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len3 = WASM_VECTOR_LEN;
-        var ptr4 = isLikeNone(initiator_addr) ? 0 : passStringToWasm0(initiator_addr, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len4 = WASM_VECTOR_LEN;
-        const ret = wasm.cep85client_install(this.__wbg_ptr, ptr0, len0, ptr1, len1, isLikeNone(events_mode) ? 0xFFFFFF : events_mode, isLikeNone(enable_burn) ? 0xFFFFFF : enable_burn ? 1 : 0, wasm, ptr2, len2, ptr3, len3, isLikeNone(wait) ? 0xFFFFFF : wait ? 1 : 0, isLikeNone(make_only) ? 0xFFFFFF : make_only ? 1 : 0, ptr4, len4);
+    install(args, wasm) {
+        const ret = wasm.cep85client_install(this.__wbg_ptr, args, wasm);
         return ret;
     }
     /**
@@ -504,6 +528,14 @@ export class CEP85Client {
         this.__wbg_ptr = ret[0];
         CEP85ClientFinalization.register(this, this.__wbg_ptr, this);
         return this;
+    }
+    /**
+     * Number of minted token ids.
+     * @returns {Promise<bigint>}
+     */
+    numberOfMintedTokens() {
+        const ret = wasm.cep85client_numberOfMintedTokens(this.__wbg_ptr);
+        return ret;
     }
     /**
      * Parse CES events for a transaction against the bound contract.
@@ -546,6 +578,17 @@ export class CEP85Client {
         }
     }
     /**
+     * Security badge name for `entity`, or `undefined` when unset.
+     * @param {string} entity
+     * @returns {Promise<string | undefined>}
+     */
+    securityBadge(entity) {
+        const ptr0 = passStringToWasm0(entity, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep85client_securityBadge(this.__wbg_ptr, ptr0, len0);
+        return ret;
+    }
+    /**
      * Bind contract hashes.
      * @param {string} contract_hash
      * @param {string | null} [package_hash]
@@ -559,6 +602,55 @@ export class CEP85Client {
         if (ret[1]) {
             throw takeFromExternrefTable0(ret[0]);
         }
+    }
+    /**
+     * Batch circulating supplies as JSON string array.
+     * @param {string[]} ids
+     * @returns {Promise<string>}
+     */
+    supplyOfBatch(ids) {
+        const ptr0 = passArrayJsValueToWasm0(ids, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep85client_supplyOfBatch(this.__wbg_ptr, ptr0, len0);
+        return ret;
+    }
+    /**
+     * Remaining fungible mintable amount, or `undefined` when cap unset/zero.
+     * @param {string} id
+     * @returns {Promise<string | undefined>}
+     */
+    totalFungibleSupply(id) {
+        const ptr0 = passStringToWasm0(id, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep85client_totalFungibleSupply(this.__wbg_ptr, ptr0, len0);
+        return ret;
+    }
+    /**
+     * Batch total supply caps as JSON string array.
+     * @param {string[]} ids
+     * @returns {Promise<string>}
+     */
+    totalSupplyOfBatch(ids) {
+        const ptr0 = passArrayJsValueToWasm0(ids, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.cep85client_totalSupplyOfBatch(this.__wbg_ptr, ptr0, len0);
+        return ret;
+    }
+    /**
+     * Transfer-filter contract key when set.
+     * @returns {Promise<string | undefined>}
+     */
+    transferFilterContract() {
+        const ret = wasm.cep85client_transferFilterContract(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * Transfer-filter method when set.
+     * @returns {Promise<string | undefined>}
+     */
+    transferFilterMethod() {
+        const ret = wasm.cep85client_transferFilterMethod(this.__wbg_ptr);
+        return ret;
     }
     /**
      * Wait for a transaction hash on SSE.
@@ -624,6 +716,14 @@ export class CEP95Client {
         const ptr0 = passArrayJsValueToWasm0(event_names, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.cep95client_collectCESEvents(this.__wbg_ptr, ptr0, len0, isLikeNone(max_transactions) ? Number.MAX_SAFE_INTEGER : (max_transactions) >>> 0, !isLikeNone(timeout_ms), isLikeNone(timeout_ms) ? BigInt(0) : timeout_ms);
+        return ret;
+    }
+    /**
+     * Ownable contract owner.
+     * @returns {Promise<string>}
+     */
+    getOwner() {
+        const ret = wasm.cep95client_getOwner(this.__wbg_ptr);
         return ret;
     }
     /**
@@ -757,6 +857,28 @@ export class CEP95Client {
      */
     symbol() {
         const ret = wasm.cep95client_symbol(this.__wbg_ptr);
+        return ret;
+    }
+    /**
+     * Transfer Ownable ownership.
+     * @param {string} new_owner
+     * @param {string | null | undefined} secret_key_pem
+     * @param {string} payment_amount
+     * @param {boolean | null} [wait]
+     * @param {boolean | null} [make_only]
+     * @param {string | null} [initiator_addr]
+     * @returns {Promise<string>}
+     */
+    transferOwnership(new_owner, secret_key_pem, payment_amount, wait, make_only, initiator_addr) {
+        const ptr0 = passStringToWasm0(new_owner, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        var ptr1 = isLikeNone(secret_key_pem) ? 0 : passStringToWasm0(secret_key_pem, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        const ptr2 = passStringToWasm0(payment_amount, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len2 = WASM_VECTOR_LEN;
+        var ptr3 = isLikeNone(initiator_addr) ? 0 : passStringToWasm0(initiator_addr, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len3 = WASM_VECTOR_LEN;
+        const ret = wasm.cep95client_transferOwnership(this.__wbg_ptr, ptr0, len0, ptr1, len1, ptr2, len2, isLikeNone(wait) ? 0xFFFFFF : wait ? 1 : 0, isLikeNone(make_only) ? 0xFFFFFF : make_only ? 1 : 0, ptr3, len3);
         return ret;
     }
     /**
@@ -1238,12 +1360,12 @@ function __wbg_get_imports() {
             return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
         },
         __wbindgen_cast_0000000000000001: function(arg0, arg1) {
-            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 1126, ret: Result(Unit), inner_ret: Some(Result(Unit)) }, mutable: true }) -> Externref`.
+            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 1180, ret: Result(Unit), inner_ret: Some(Result(Unit)) }, mutable: true }) -> Externref`.
             const ret = makeMutClosure(arg0, arg1, wasm_bindgen_fcdb2a1b1112ab01___convert__closures_____invoke___wasm_bindgen_fcdb2a1b1112ab01___JsValue__core_7a2330d63e03cc2c___result__Result_____wasm_bindgen_fcdb2a1b1112ab01___JsError___true_);
             return ret;
         },
         __wbindgen_cast_0000000000000002: function(arg0, arg1) {
-            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 680, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
+            // Cast intrinsic for `Closure(Closure { owned: true, function: Function { arguments: [Externref], shim_idx: 734, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
             const ret = makeMutClosure(arg0, arg1, wasm_bindgen_fcdb2a1b1112ab01___convert__closures_____invoke___wasm_bindgen_fcdb2a1b1112ab01___JsValue______true_);
             return ret;
         },
@@ -1260,6 +1382,11 @@ function __wbg_get_imports() {
         __wbindgen_cast_0000000000000005: function(arg0, arg1) {
             // Cast intrinsic for `Ref(String) -> Externref`.
             const ret = getStringFromWasm0(arg0, arg1);
+            return ret;
+        },
+        __wbindgen_cast_0000000000000006: function(arg0) {
+            // Cast intrinsic for `U64 -> Externref`.
+            const ret = BigInt.asUintN(64, arg0);
             return ret;
         },
         __wbindgen_init_externref_table: function() {

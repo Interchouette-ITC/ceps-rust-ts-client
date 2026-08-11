@@ -18,12 +18,12 @@ Or download `ceps-client-wasm-nodejs-*.tgz` / `ceps-client-wasm-web-*.tgz` from 
 
 ## Bound methods (today)
 
-| Client | Methods                                                                                      |
-| ------ | -------------------------------------------------------------------------------------------- |
-| CEP-18 | `rpcUrl`, `SSEUrl`, `chainName`, `setContractHash`, `install`, `name`, `symbol`, `balanceOf` |
-| CEP-78 | `rpcUrl`, `SSEUrl`, `setContractHash`, `install`, `collectionName`, `balanceOf`              |
-| CEP-85 | `rpcUrl`, `SSEUrl`, `setContractHash`, `install`, `collectionName`, `balanceOf`              |
-| CEP-95 | `rpcUrl`, `SSEUrl`, `setContractHash`, `install`, `name`, `symbol`, `balanceOf`, `ownerOf`   |
+| Client | Methods |
+| ------ | ------- |
+| CEP-18 | `rpcUrl`, `SSEUrl`, `chainName`, `setContractHash`, `install`, `name`, `symbol`, `balanceOf`, `securityBadge` |
+| CEP-78 | `rpcUrl`, `SSEUrl`, `setContractHash`, `install`, `collectionName`, `balanceOf`, `ownershipMode` |
+| CEP-85 | `rpcUrl`, `SSEUrl`, `setContractHash`, `install(argsJson, wasm)` (`name`/`uri`/`payment_amount` + optional events/burn/filter/tx fields), `collectionName`, `balanceOf`, `balanceOfBatch`, `supplyOfBatch`, `totalSupplyOfBatch`, `totalFungibleSupply`, `enableBurn`, `eventsMode`, `numberOfMintedTokens`, `transferFilterContract`, `transferFilterMethod`, `securityBadge` |
+| CEP-95 | `rpcUrl`, `SSEUrl`, `setContractHash`, `install`, `name`, `symbol`, `balanceOf`, `ownerOf`, `getOwner`, `transferOwnership` |
 
 Full mutate/query parity lives in Rust `ceps-client`. The pack `.d.ts` exports CEP clients only (SDK feature `js` is not enabled on the path dependency).
 

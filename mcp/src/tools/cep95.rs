@@ -23,6 +23,8 @@ pub const TOOL_NAMES: &[&str] = &[
     "ceps95_get_approved",
     "ceps95_is_approved_for_all",
     "ceps95_token_metadata",
+    "ceps95_get_owner",
+    "ceps95_transfer_ownership",
 ];
 
 macro_rules! need_client {
@@ -386,4 +388,36 @@ pub async fn token_metadata(
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.token_metadata(&token_id).await)
+}
+
+pub async fn get_owner(contract_hash: String, package_hash: Option<String>) -> ToolOutput {
+    let client = need_client!(contract_hash, package_hash);
+    params::map_query(client.get_owner().await)
+}
+
+pub async fn transfer_ownership(
+    contract_hash: String,
+    package_hash: Option<String>,
+    new_owner: String,
+    secret_key_pem: Option<String>,
+    payment_amount: String,
+    wait: Option<bool>,
+    wait_timeout_ms: Option<u64>,
+    make_only: Option<bool>,
+    initiator_addr: Option<String>,
+) -> ToolOutput {
+    let client = need_client!(contract_hash, package_hash);
+    let tx = match params::transaction_params(
+        secret_key_pem,
+        payment_amount,
+        wait,
+        wait_timeout_ms,
+        None,
+        make_only,
+        initiator_addr,
+    ) {
+        Ok(t) => t,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(client.transfer_ownership(&new_owner, &tx).await)
 }

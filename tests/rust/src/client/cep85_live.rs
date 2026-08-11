@@ -3,7 +3,8 @@
 #[cfg(test)]
 mod tests {
     use crate::helpers::{
-        nctl_available, user1_account_hash, user1_public_key_hex, user1_secret_pem, CALL_PAYMENT,
+        account_hash_from_secret, nctl_available, user1_account_hash, user1_public_key_hex,
+        user1_secret_pem, user_secret_pem, CALL_PAYMENT,
     };
     use ceps_client::cep85::InstallArgs;
     use ceps_client::{CEP85Client, EventsMode, TransactionParams, Verbosity};
@@ -41,6 +42,10 @@ mod tests {
             eprintln!("skip: no secret");
             return;
         };
+        let Some(recipient_secret) = user_secret_pem(2, "SECRET_KEY_USER_2") else {
+            eprintln!("skip: no user-2 secret");
+            return;
+        };
         let wasm_file = wasm_path();
         if !wasm_file.is_file() {
             eprintln!("skip: missing {}", wasm_file.display());
@@ -76,6 +81,7 @@ mod tests {
         assert_eq!(client.collection_name().await.expect("name"), name);
 
         let owner = user1_account_hash(&secret);
+        let recipient = account_hash_from_secret(&recipient_secret);
         let mint_tx = TransactionParams::new(&secret, CALL_PAYMENT);
         client
             .mint(&owner, "1", "10", None, &mint_tx)
@@ -85,12 +91,36 @@ mod tests {
         let bal = client.balance_of(&owner, "1").await.expect("balance");
         assert_eq!(bal, "10");
 
+        // Omit `data` (None); transfer to a different account (self-transfer reverts).
+        client
+            .transfer(&owner, &recipient, "1", "1", None, &mint_tx)
+            .await
+            .expect("transfer data None");
+        assert_eq!(
+            client
+                .balance_of(&owner, "1")
+                .await
+                .expect("balance after xfer"),
+            "9"
+        );
+        assert_eq!(
+            client
+                .balance_of(&recipient, "1")
+                .await
+                .expect("recipient balance"),
+            "1"
+        );
+
+        assert!(client.enable_burn().await.expect("enable_burn"));
+        let badge = client.security_badge(&owner).await.expect("security_badge");
+        assert!(badge.is_some(), "installer should have a security badge");
+
         let burn_tx = TransactionParams::new(&secret, CALL_PAYMENT);
         client.burn(&owner, "1", "3", &burn_tx).await.expect("burn");
         let bal_after = client
             .balance_of(&owner, "1")
             .await
             .expect("balance after burn");
-        assert_eq!(bal_after, "7");
+        assert_eq!(bal_after, "6");
     }
 }

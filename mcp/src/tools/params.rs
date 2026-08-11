@@ -286,6 +286,8 @@ pub fn cep85_install_args(
     minter_list: Option<Vec<String>>,
     burner_list: Option<Vec<String>>,
     meta_list: Option<Vec<String>>,
+    transfer_filter_contract: Option<String>,
+    transfer_filter_method: Option<String>,
 ) -> Result<CEP85InstallArgs, String> {
     let mut args = CEP85InstallArgs::new(name, uri);
     if let Some(mode) = parse_events_mode(events_mode)? {
@@ -298,11 +300,34 @@ pub fn cep85_install_args(
     args.minter_list = minter_list;
     args.burner_list = burner_list;
     args.meta_list = meta_list;
+    match (transfer_filter_contract, transfer_filter_method) {
+        (None, None) => {}
+        (Some(c), Some(m)) => {
+            args = args.with_transfer_filter(c, m);
+        }
+        _ => {
+            return Err(
+                "transfer_filter_contract and transfer_filter_method must both be set".into(),
+            );
+        }
+    }
     Ok(args)
 }
 
-pub fn cep85_upgrade_args(name: String) -> CEP85UpgradeArgs {
-    CEP85UpgradeArgs::new(name)
+pub fn cep85_upgrade_args(
+    name: String,
+    transfer_filter_contract: Option<String>,
+    transfer_filter_method: Option<String>,
+) -> Result<CEP85UpgradeArgs, String> {
+    let mut args = CEP85UpgradeArgs::new(name);
+    match (transfer_filter_contract, transfer_filter_method) {
+        (None, None) => Ok(args),
+        (Some(c), Some(m)) => {
+            args = args.with_transfer_filter(c, m);
+            Ok(args)
+        }
+        _ => Err("transfer_filter_contract and transfer_filter_method must both be set".into()),
+    }
 }
 
 pub fn cep78_install_args_basic(
