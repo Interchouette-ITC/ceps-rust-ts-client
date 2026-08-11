@@ -10,8 +10,9 @@
 | ------------ | ----------------------------------------------------- |
 | `balances`   | Base64(`Key` bytes) of the account / contract key     |
 | `allowances` | `blake2b(owner_key_bytes ‖ spender_key_bytes)` as hex |
+| `security_badges` | Same Base64(`Key` bytes) encoding as `balances` |
 
-Helpers: `balance_of`, `allowances`. SDK helpers `get_base64_key_from_account_hash` / `make_dictionary_item_key` are reused.
+Helpers: `balance_of`, `allowances`, `security_badge`. SDK helpers `get_base64_key_from_account_hash` / `make_dictionary_item_key` are reused.
 
 ## Events / CES
 

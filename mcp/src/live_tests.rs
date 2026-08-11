@@ -233,6 +233,8 @@ async fn live_ceps85_install_query() {
         None,
         None,
         None,
+        None,
+        None,
         Some(true),
         None,
         None,

@@ -55,6 +55,10 @@ export class CEP18Client {
      */
     rpcUrl(): string;
     /**
+     * Security badge name for `account`, or `undefined` when unset.
+     */
+    securityBadge(account: string): Promise<string | undefined>;
+    /**
      * Bind contract hashes (hex or prefixed).
      */
     setContractHash(contract_hash: string, package_hash?: string | null): void;
@@ -139,6 +143,10 @@ export class CEP85Client {
      */
     balanceOf(account: string, id: string): Promise<string>;
     /**
+     * Batch balances as JSON string array.
+     */
+    balanceOfBatch(accounts: string[], ids: string[]): Promise<string>;
+    /**
      * Collect SSE processed frames and decode CES for the bound contract.
      */
     collectCESEvents(event_names: string[], max_transactions?: number | null, timeout_ms?: bigint | null): Promise<string>;
@@ -147,13 +155,26 @@ export class CEP85Client {
      */
     collectionName(): Promise<string>;
     /**
-     * Install with URI and optional CES events / burn flag.
+     * Whether burn is enabled.
      */
-    install(name: string, uri: string, events_mode: number | null | undefined, enable_burn: boolean | null | undefined, wasm: Uint8Array, secret_key_pem: string | null | undefined, payment_amount: string, wait?: boolean | null, make_only?: boolean | null, initiator_addr?: string | null): Promise<string>;
+    enableBurn(): Promise<boolean>;
+    /**
+     * Events mode as `u8`.
+     */
+    eventsMode(): Promise<number>;
+    /**
+     * Install from a JSON object (`name`, `uri`, `payment_amount`, optional events/burn/filter
+     * and tx fields) plus contract WASM bytes.
+     */
+    install(args: any, wasm: Uint8Array): Promise<string>;
     /**
      * Create a CEP-85 client.
      */
     constructor(rpc_url: string, sse_url?: string | null, chain_name?: string | null, verbosity?: number | null);
+    /**
+     * Number of minted token ids.
+     */
+    numberOfMintedTokens(): Promise<bigint>;
     /**
      * Parse CES events for a transaction against the bound contract.
      */
@@ -167,9 +188,33 @@ export class CEP85Client {
      */
     rpcUrl(): string;
     /**
+     * Security badge name for `entity`, or `undefined` when unset.
+     */
+    securityBadge(entity: string): Promise<string | undefined>;
+    /**
      * Bind contract hashes.
      */
     setContractHash(contract_hash: string, package_hash?: string | null): void;
+    /**
+     * Batch circulating supplies as JSON string array.
+     */
+    supplyOfBatch(ids: string[]): Promise<string>;
+    /**
+     * Remaining fungible mintable amount, or `undefined` when cap unset/zero.
+     */
+    totalFungibleSupply(id: string): Promise<string | undefined>;
+    /**
+     * Batch total supply caps as JSON string array.
+     */
+    totalSupplyOfBatch(ids: string[]): Promise<string>;
+    /**
+     * Transfer-filter contract key when set.
+     */
+    transferFilterContract(): Promise<string | undefined>;
+    /**
+     * Transfer-filter method when set.
+     */
+    transferFilterMethod(): Promise<string | undefined>;
     /**
      * Wait for a transaction hash on SSE.
      */
@@ -194,6 +239,10 @@ export class CEP95Client {
      * Collect SSE processed frames and decode CES for the bound contract.
      */
     collectCESEvents(event_names: string[], max_transactions?: number | null, timeout_ms?: bigint | null): Promise<string>;
+    /**
+     * Ownable contract owner.
+     */
+    getOwner(): Promise<string>;
     /**
      * Install Odra OwnedCEP95 (or compatible) with package named-key name.
      */
@@ -230,6 +279,10 @@ export class CEP95Client {
      * Collection symbol.
      */
     symbol(): Promise<string>;
+    /**
+     * Transfer Ownable ownership.
+     */
+    transferOwnership(new_owner: string, secret_key_pem: string | null | undefined, payment_amount: string, wait?: boolean | null, make_only?: boolean | null, initiator_addr?: string | null): Promise<string>;
     /**
      * Wait for a transaction hash on SSE.
      */

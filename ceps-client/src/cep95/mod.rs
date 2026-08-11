@@ -16,7 +16,10 @@ use crate::error::{CEPError, CEPKind, Result};
 use crate::types::{CallResult, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use entity::prefixed_key;
-use keys::{balance_dictionary_key, operator_dictionary_key, token_id_dictionary_key};
+use keys::{
+    balance_dictionary_key, operator_dictionary_key, ownable_owner_state_key,
+    token_id_dictionary_key,
+};
 use serde_json::Value;
 
 /// Client for CEP-95 NFT contracts (Odra OwnedCEP95 tip and compatible ABIs).
@@ -228,6 +231,18 @@ impl CEP95Client {
         self.core.call_entrypoint("burn", tx, &args).await
     }
 
+    /// Transfer Ownable contract ownership (`new_owner` arg).
+    pub async fn transfer_ownership(
+        &self,
+        new_owner: &str,
+        tx: &TransactionParams,
+    ) -> Result<CallResult> {
+        let args = json_args(&[key_arg("new_owner", &prefixed_key(new_owner)?)]);
+        self.core
+            .call_entrypoint("transfer_ownership", tx, &args)
+            .await
+    }
+
     /// Collection name (named key).
     pub async fn name(&self) -> Result<String> {
         decode_string_cl(self.core.query_contract_key(&["name"]).await?)
@@ -241,6 +256,13 @@ impl CEP95Client {
     /// Total supply named key when present (spec / JS). Odra tip may omit this key.
     pub async fn total_supply(&self) -> Result<String> {
         decode_u256_cl(self.core.query_contract_key(&["total_supply"]).await?)
+    }
+
+    /// Contract Ownable owner (Odra `state` dict at Ownable owner Var path).
+    pub async fn get_owner(&self) -> Result<String> {
+        let item = ownable_owner_state_key()?;
+        let raw = self.core.query_dictionary("state", &item).await?;
+        decode_odra_option_address_cl(raw)
     }
 
     /// Balance of `owner`.
@@ -483,6 +505,55 @@ fn decode_key_cl(value: Value) -> Result<String> {
         return Ok(s.to_string());
     }
     Err(CEPError::Decode(format!("expected Key, got {value}")))
+}
+
+/// Decode Odra `Var<Option<Address>>` stored under `state` as `CLValue(Vec<u8>)`
+/// of `Option<Key>` bytesrepr, or already-parsed Option/Key JSON.
+fn decode_odra_option_address_cl(value: Value) -> Result<String> {
+    if let Ok(s) = decode_key_cl(value.clone()) {
+        return Ok(s);
+    }
+    let parsed = value
+        .pointer("/stored_value/CLValue/parsed")
+        .or_else(|| value.pointer("/CLValue/parsed"))
+        .cloned()
+        .unwrap_or(value.clone());
+    let bytes = match parsed {
+        Value::Array(items) => {
+            let mut out = Vec::with_capacity(items.len());
+            for item in items {
+                let n = item.as_u64().ok_or_else(|| {
+                    CEPError::Decode(format!("expected byte in Odra state array, got {item}"))
+                })?;
+                out.push(u8::try_from(n).map_err(|_| {
+                    CEPError::Decode(format!("byte out of range in Odra state: {n}"))
+                })?);
+            }
+            out
+        }
+        Value::String(s) => {
+            if s.starts_with("account-hash-")
+                || s.starts_with("hash-")
+                || s.starts_with("entity-")
+                || s.starts_with("uref-")
+            {
+                return Ok(s);
+            }
+            hex::decode(s.trim_start_matches("0x"))
+                .map_err(|e| CEPError::Decode(format!("Odra state hex bytes: {e}")))?
+        }
+        other => {
+            return Err(CEPError::Decode(format!(
+                "expected Odra Option<Address> bytes, got {other}"
+            )));
+        }
+    };
+    use casper_types::bytesrepr::FromBytes;
+    use casper_types::Key;
+    let (opt, _) = Option::<Key>::from_bytes(&bytes)
+        .map_err(|e| CEPError::Decode(format!("Option<Key> from Odra state: {e:?}")))?;
+    opt.map(|k| k.to_formatted_string())
+        .ok_or_else(|| CEPError::Decode("Ownable owner is unset".into()))
 }
 
 fn decode_string_map_cl(value: Value) -> Result<Vec<(String, String)>> {

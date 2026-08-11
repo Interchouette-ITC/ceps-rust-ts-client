@@ -4,6 +4,8 @@ use super::entity::prefixed_key;
 use crate::error::{CEPError, Result};
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
+use blake2::digest::{Update, VariableOutput};
+use blake2::Blake2bVar;
 use casper_rust_wasm_sdk::helpers::{
     get_base64_key_from_account_hash, get_base64_key_from_key_hash, make_dictionary_item_key,
 };
@@ -44,6 +46,38 @@ pub fn operator_dictionary_key(owner: &str, operator: &str) -> Result<String> {
     Ok(make_dictionary_item_key(&owner_key, &operator_key))
 }
 
+/// Odra `state` dictionary item key for a small-index Var path (all indices <= 15).
+///
+/// OwnedCEP95 stores Ownable owner at path `[ownable=0, owner=0]` → index bytes
+/// `[0,0,0,0]`, then blake2b-256 hex (ASCII) under dict `state`.
+pub fn odra_state_var_key(path: &[u8]) -> Result<String> {
+    if path.is_empty() {
+        return Err(CEPError::InvalidArgument("odra state path empty".into()));
+    }
+    if path.iter().any(|&idx| idx > 15) {
+        return Err(CEPError::InvalidArgument(
+            "odra state path requires indices <= 15 for small encoding".into(),
+        ));
+    }
+    let index: u32 = path
+        .iter()
+        .fold(0u32, |acc, &idx| (acc << 4) + u32::from(idx));
+    let index_bytes = index.to_be_bytes();
+    let mut hasher = Blake2bVar::new(32)
+        .map_err(|_| CEPError::InvalidArgument("blake2b-256 hasher init failed".into()))?;
+    hasher.update(&index_bytes);
+    let mut hash = [0u8; 32];
+    hasher
+        .finalize_variable(&mut hash)
+        .map_err(|_| CEPError::InvalidArgument("blake2b-256 finalize failed".into()))?;
+    Ok(hex::encode(hash))
+}
+
+/// Ownable owner Var key for tip `OwnedCep95` (`ownable` field 0, `owner` field 0).
+pub fn ownable_owner_state_key() -> Result<String> {
+    odra_state_var_key(&[0, 0])
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -72,5 +106,13 @@ mod tests {
         let key = operator_dictionary_key(owner, operator).unwrap();
         assert_eq!(key.len(), 64);
         assert!(key.chars().all(|c| c.is_ascii_hexdigit()));
+    }
+
+    #[test]
+    fn ownable_owner_state_key_stable_64_hex() {
+        let key = ownable_owner_state_key().unwrap();
+        assert_eq!(key.len(), 64);
+        assert!(key.chars().all(|c| c.is_ascii_hexdigit()));
+        assert_eq!(key, ownable_owner_state_key().unwrap());
     }
 }

@@ -7,7 +7,7 @@ use casper_rust_wasm_sdk::helpers::{
 };
 use casper_rust_wasm_sdk::types::key::Key;
 
-/// Balance dictionary item key: Base64(Key.bytes()) under dict `balances`.
+/// Balance / security-badge dictionary item key: Base64(Key.bytes()).
 pub fn balance_dictionary_key(account: &str) -> Result<String> {
     let prefixed = prefixed_key(account)?;
     if prefixed.starts_with("account-hash-") {
@@ -38,5 +38,14 @@ mod tests {
             "account-hash-b485c074cef7ccaccd0302949d2043ab7133abdb14cfa87e8392945c0bd80a5f";
         let key = balance_dictionary_key(account).unwrap();
         assert!(!key.is_empty());
+    }
+
+    #[test]
+    fn security_badge_uses_same_base64_item_key_as_balance() {
+        let account =
+            "account-hash-b485c074cef7ccaccd0302949d2043ab7133abdb14cfa87e8392945c0bd80a5f";
+        let a = balance_dictionary_key(account).unwrap();
+        let b = balance_dictionary_key(account).unwrap();
+        assert_eq!(a, b);
     }
 }

@@ -23,11 +23,21 @@ pub const TOOL_NAMES: &[&str] = &[
     "ceps85_collection_name",
     "ceps85_collection_uri",
     "ceps85_balance_of",
+    "ceps85_balance_of_batch",
     "ceps85_is_approved_for_all",
     "ceps85_supply_of",
+    "ceps85_supply_of_batch",
     "ceps85_total_supply_of",
+    "ceps85_total_supply_of_batch",
+    "ceps85_total_fungible_supply",
     "ceps85_uri",
     "ceps85_is_non_fungible",
+    "ceps85_enable_burn",
+    "ceps85_events_mode",
+    "ceps85_number_of_minted_tokens",
+    "ceps85_transfer_filter_contract",
+    "ceps85_transfer_filter_method",
+    "ceps85_security_badge",
 ];
 
 macro_rules! need_client {
@@ -56,6 +66,8 @@ pub async fn install(
     minter_list: Option<Vec<String>>,
     burner_list: Option<Vec<String>>,
     meta_list: Option<Vec<String>>,
+    transfer_filter_contract: Option<String>,
+    transfer_filter_method: Option<String>,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
     make_only: Option<bool>,
@@ -70,6 +82,8 @@ pub async fn install(
         minter_list,
         burner_list,
         meta_list,
+        transfer_filter_contract,
+        transfer_filter_method,
     ) {
         Ok(a) => a,
         Err(e) => return format::err(e),
@@ -103,12 +117,18 @@ pub async fn upgrade(
     payment_amount: String,
     wasm_path: Option<String>,
     wasm_base64: Option<String>,
+    transfer_filter_contract: Option<String>,
+    transfer_filter_method: Option<String>,
     wait: Option<bool>,
     wait_timeout_ms: Option<u64>,
     make_only: Option<bool>,
     initiator_addr: Option<String>,
 ) -> ToolOutput {
-    let args = params::cep85_upgrade_args(name);
+    let args =
+        match params::cep85_upgrade_args(name, transfer_filter_contract, transfer_filter_method) {
+            Ok(a) => a,
+            Err(e) => return format::err(e),
+        };
     let wasm = match params::load_wasm(wasm_base64, wasm_path) {
         Ok(w) => w,
         Err(e) => return format::err(e),
@@ -269,6 +289,7 @@ pub async fn transfer(
     to: String,
     id: String,
     amount: String,
+    data_hex: Option<String>,
     secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
@@ -289,7 +310,15 @@ pub async fn transfer(
         Ok(t) => t,
         Err(e) => return format::err(e),
     };
-    params::map_call(client.transfer(&from, &to, &id, &amount, &tx).await)
+    let data = match decode_optional_hex(data_hex) {
+        Ok(d) => d,
+        Err(e) => return format::err(e),
+    };
+    params::map_call(
+        client
+            .transfer(&from, &to, &id, &amount, data.as_deref(), &tx)
+            .await,
+    )
 }
 
 pub async fn batch_transfer(
@@ -299,6 +328,7 @@ pub async fn batch_transfer(
     to: String,
     ids: Vec<String>,
     amounts: Vec<String>,
+    data_hex: Option<String>,
     secret_key_pem: Option<String>,
     payment_amount: String,
     wait: Option<bool>,
@@ -319,11 +349,15 @@ pub async fn batch_transfer(
         Ok(t) => t,
         Err(e) => return format::err(e),
     };
+    let data = match decode_optional_hex(data_hex) {
+        Ok(d) => d,
+        Err(e) => return format::err(e),
+    };
     let id_refs = refs(&ids);
     let amt_refs = refs(&amounts);
     params::map_call(
         client
-            .batch_transfer(&from, &to, &id_refs, &amt_refs, &tx)
+            .batch_transfer(&from, &to, &id_refs, &amt_refs, data.as_deref(), &tx)
             .await,
     )
 }
@@ -580,4 +614,112 @@ pub async fn is_non_fungible(
 ) -> ToolOutput {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.is_non_fungible(&id).await)
+}
+
+pub async fn balance_of_batch(
+    contract_hash: String,
+    package_hash: Option<String>,
+    accounts: Vec<String>,
+    ids: Vec<String>,
+) -> ToolOutput {
+    let client = need_client!(contract_hash, package_hash);
+    let acct_refs = refs(&accounts);
+    let id_refs = refs(&ids);
+    params::map_query(client.balance_of_batch(&acct_refs, &id_refs).await)
+}
+
+pub async fn supply_of_batch(
+    contract_hash: String,
+    package_hash: Option<String>,
+    ids: Vec<String>,
+) -> ToolOutput {
+    let client = need_client!(contract_hash, package_hash);
+    let id_refs = refs(&ids);
+    params::map_query(client.supply_of_batch(&id_refs).await)
+}
+
+pub async fn total_supply_of_batch(
+    contract_hash: String,
+    package_hash: Option<String>,
+    ids: Vec<String>,
+) -> ToolOutput {
+    let client = need_client!(contract_hash, package_hash);
+    let id_refs = refs(&ids);
+    params::map_query(client.total_supply_of_batch(&id_refs).await)
+}
+
+pub async fn total_fungible_supply(
+    contract_hash: String,
+    package_hash: Option<String>,
+    id: String,
+) -> ToolOutput {
+    let client = need_client!(contract_hash, package_hash);
+    params::map_query(client.total_fungible_supply(&id).await)
+}
+
+pub async fn enable_burn(contract_hash: String, package_hash: Option<String>) -> ToolOutput {
+    let client = need_client!(contract_hash, package_hash);
+    params::map_query(client.enable_burn().await)
+}
+
+pub async fn events_mode(contract_hash: String, package_hash: Option<String>) -> ToolOutput {
+    let client = need_client!(contract_hash, package_hash);
+    match client.events_mode().await {
+        Ok(m) => {
+            format::json_ok(&serde_json::json!({ "events_mode": m.as_str(), "value": u8::from(m) }))
+        }
+        Err(e) => format::err(e),
+    }
+}
+
+pub async fn number_of_minted_tokens(
+    contract_hash: String,
+    package_hash: Option<String>,
+) -> ToolOutput {
+    let client = need_client!(contract_hash, package_hash);
+    params::map_query(client.number_of_minted_tokens().await)
+}
+
+pub async fn transfer_filter_contract(
+    contract_hash: String,
+    package_hash: Option<String>,
+) -> ToolOutput {
+    let client = need_client!(contract_hash, package_hash);
+    params::map_query(client.transfer_filter_contract().await)
+}
+
+pub async fn transfer_filter_method(
+    contract_hash: String,
+    package_hash: Option<String>,
+) -> ToolOutput {
+    let client = need_client!(contract_hash, package_hash);
+    params::map_query(client.transfer_filter_method().await)
+}
+
+pub async fn security_badge(
+    contract_hash: String,
+    package_hash: Option<String>,
+    entity: String,
+) -> ToolOutput {
+    let client = need_client!(contract_hash, package_hash);
+    match client.security_badge(&entity).await {
+        Ok(Some(b)) => format::json_ok(&serde_json::json!({
+            "badge": b.as_str(),
+            "value": b as u8
+        })),
+        Ok(None) => format::json_ok(&serde_json::json!({ "badge": null })),
+        Err(e) => format::err(e),
+    }
+}
+
+fn decode_optional_hex(data_hex: Option<String>) -> Result<Option<Vec<u8>>, String> {
+    match data_hex {
+        None => Ok(None),
+        Some(s) if s.is_empty() => Ok(None),
+        Some(s) => {
+            let bytes =
+                hex::decode(s.trim_start_matches("0x")).map_err(|e| format!("data_hex: {e}"))?;
+            Ok(Some(bytes))
+        }
+    }
 }

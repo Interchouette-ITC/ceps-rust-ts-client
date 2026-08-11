@@ -8,3 +8,5 @@
 | `change_events_mode` | `change_events_mode` | `EventsMode` as U8 |
 
 `is_mint_and_burn_enabled()` reads named key `enable_mint_burn`.
+
+`security_badge(account)` reads dict `security_badges` (same Base64(Key) item key as balances) and returns `Admin` / `Minter` / `None` when present.

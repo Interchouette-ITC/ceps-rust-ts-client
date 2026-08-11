@@ -274,6 +274,15 @@ enum CEP18Commands {
         #[arg(long)]
         account: String,
     },
+    /// Query security badge for an account.
+    SecurityBadge {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        account: String,
+    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -468,6 +477,10 @@ enum CEP85Commands {
         events_mode: Option<u8>,
         #[arg(long, default_value_t = false)]
         enable_burn: bool,
+        #[arg(long)]
+        transfer_filter_contract: Option<String>,
+        #[arg(long)]
+        transfer_filter_method: Option<String>,
     },
     /// Mint one token id.
     Mint {
@@ -527,6 +540,9 @@ enum CEP85Commands {
         id: String,
         #[arg(long)]
         amount: String,
+        /// Optional transfer data as hex (optional `0x` prefix).
+        #[arg(long)]
+        data_hex: Option<String>,
         #[arg(long)]
         secret_key: Option<PathBuf>,
         #[arg(long, default_value = "5000000000")]
@@ -572,6 +588,88 @@ enum CEP85Commands {
         account: String,
         #[arg(long)]
         id: String,
+    },
+    /// Batch balances (`--accounts` and `--ids` comma-separated, same length).
+    BalanceOfBatch {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        accounts: String,
+        #[arg(long)]
+        ids: String,
+    },
+    /// Batch circulating supplies (`--ids` comma-separated).
+    SupplyOfBatch {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        ids: String,
+    },
+    /// Batch total supply caps (`--ids` comma-separated).
+    TotalSupplyOfBatch {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        ids: String,
+    },
+    /// Remaining fungible mintable amount for an id.
+    TotalFungibleSupply {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        id: String,
+    },
+    /// Whether burn is enabled.
+    EnableBurn {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+    },
+    /// Events mode.
+    EventsMode {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+    },
+    /// Number of minted token ids.
+    NumberOfMintedTokens {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+    },
+    /// Transfer-filter contract key when set.
+    TransferFilterContract {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+    },
+    /// Transfer-filter method when set.
+    TransferFilterMethod {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+    },
+    /// Security badge for an entity.
+    SecurityBadge {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        entity: String,
     },
 }
 
@@ -778,6 +876,30 @@ enum CEP95Commands {
         owner: String,
         #[arg(long)]
         operator: String,
+    },
+    /// Contract Ownable owner.
+    GetOwner {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+    },
+    /// Transfer Ownable ownership.
+    TransferOwnership {
+        #[arg(long)]
+        contract_hash: String,
+        #[arg(long)]
+        package_hash: Option<String>,
+        #[arg(long)]
+        new_owner: String,
+        #[arg(long)]
+        secret_key: Option<PathBuf>,
+        #[arg(long, default_value = "5000000000")]
+        payment: String,
+        #[arg(long, default_value_t = false)]
+        make_only: bool,
+        #[arg(long)]
+        initiator_addr: Option<String>,
     },
 }
 
@@ -1239,6 +1361,35 @@ async fn run_cep18(
                 println!("{bal}");
             }
         }
+        CEP18Commands::SecurityBadge {
+            contract_hash,
+            package_hash,
+            account,
+        } => {
+            let mut client =
+                CEP18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let badge = client
+                .security_badge(&account)
+                .await
+                .context("security_badge")?;
+            if json {
+                match badge {
+                    Some(b) => println!(
+                        "{}",
+                        serde_json::json!({ "badge": b.as_str(), "value": b as u8 })
+                    ),
+                    None => println!("{}", serde_json::json!({ "badge": null })),
+                }
+            } else {
+                match badge {
+                    Some(b) => println!("{}", b.as_str()),
+                    None => println!(),
+                }
+            }
+        }
     }
     Ok(())
 }
@@ -1485,6 +1636,8 @@ async fn run_cep85(
             initiator_addr,
             events_mode,
             enable_burn,
+            transfer_filter_contract,
+            transfer_filter_method,
         } => {
             let bytes = fs::read(&wasm).with_context(|| format!("read wasm {}", wasm.display()))?;
             let client =
@@ -1495,6 +1648,13 @@ async fn run_cep85(
             }
             if enable_burn {
                 args = args.with_enable_burn(true);
+            }
+            match (transfer_filter_contract, transfer_filter_method) {
+                (None, None) => {}
+                (Some(c), Some(m)) => {
+                    args = args.with_transfer_filter(c, m);
+                }
+                _ => bail!("transfer_filter_contract and transfer_filter_method must both be set"),
             }
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let put = client
@@ -1573,19 +1733,21 @@ async fn run_cep85(
             to,
             id,
             amount,
+            data_hex,
             secret_key,
             payment,
             make_only,
             initiator_addr,
         } => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
+            let data = decode_optional_hex(data_hex.as_deref())?;
             let mut client =
                 CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
             client
                 .set_contract_hash(&contract_hash, package_hash.as_deref())
                 .context("set contract")?;
             let put = client
-                .transfer(&from, &to, &id, &amount, &tx)
+                .transfer(&from, &to, &id, &amount, data.as_deref(), &tx)
                 .await
                 .context("transfer")?;
             print_call_result(&put, json)?;
@@ -1650,6 +1812,228 @@ async fn run_cep85(
                 );
             } else {
                 println!("{bal}");
+            }
+        }
+        CEP85Commands::BalanceOfBatch {
+            contract_hash,
+            package_hash,
+            accounts,
+            ids,
+        } => {
+            let mut client =
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let accounts_v = split_csv(&accounts);
+            let ids_v = split_csv(&ids);
+            let acct_refs: Vec<&str> = accounts_v.iter().map(String::as_str).collect();
+            let id_refs: Vec<&str> = ids_v.iter().map(String::as_str).collect();
+            let bals = client
+                .balance_of_batch(&acct_refs, &id_refs)
+                .await
+                .context("balance_of_batch")?;
+            if json {
+                println!("{}", serde_json::json!({ "balances": bals }));
+            } else {
+                println!("{}", bals.join(","));
+            }
+        }
+        CEP85Commands::SupplyOfBatch {
+            contract_hash,
+            package_hash,
+            ids,
+        } => {
+            let mut client =
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let ids_v = split_csv(&ids);
+            let id_refs: Vec<&str> = ids_v.iter().map(String::as_str).collect();
+            let supplies = client
+                .supply_of_batch(&id_refs)
+                .await
+                .context("supply_of_batch")?;
+            if json {
+                println!("{}", serde_json::json!({ "supplies": supplies }));
+            } else {
+                println!("{}", supplies.join(","));
+            }
+        }
+        CEP85Commands::TotalSupplyOfBatch {
+            contract_hash,
+            package_hash,
+            ids,
+        } => {
+            let mut client =
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let ids_v = split_csv(&ids);
+            let id_refs: Vec<&str> = ids_v.iter().map(String::as_str).collect();
+            let caps = client
+                .total_supply_of_batch(&id_refs)
+                .await
+                .context("total_supply_of_batch")?;
+            if json {
+                println!("{}", serde_json::json!({ "total_supplies": caps }));
+            } else {
+                println!("{}", caps.join(","));
+            }
+        }
+        CEP85Commands::TotalFungibleSupply {
+            contract_hash,
+            package_hash,
+            id,
+        } => {
+            let mut client =
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let rem = client
+                .total_fungible_supply(&id)
+                .await
+                .context("total_fungible_supply")?;
+            if json {
+                println!(
+                    "{}",
+                    serde_json::json!({ "id": id, "total_fungible_supply": rem })
+                );
+            } else {
+                match rem {
+                    Some(v) => println!("{v}"),
+                    None => println!(),
+                }
+            }
+        }
+        CEP85Commands::EnableBurn {
+            contract_hash,
+            package_hash,
+        } => {
+            let mut client =
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let ok = client.enable_burn().await.context("enable_burn")?;
+            if json {
+                println!("{}", serde_json::json!({ "enable_burn": ok }));
+            } else {
+                println!("{ok}");
+            }
+        }
+        CEP85Commands::EventsMode {
+            contract_hash,
+            package_hash,
+        } => {
+            let mut client =
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let mode = client.events_mode().await.context("events_mode")?;
+            if json {
+                println!(
+                    "{}",
+                    serde_json::json!({ "events_mode": mode.as_str(), "value": u8::from(mode) })
+                );
+            } else {
+                println!("{}", mode.as_str());
+            }
+        }
+        CEP85Commands::NumberOfMintedTokens {
+            contract_hash,
+            package_hash,
+        } => {
+            let mut client =
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let n = client
+                .number_of_minted_tokens()
+                .await
+                .context("number_of_minted_tokens")?;
+            if json {
+                println!("{}", serde_json::json!({ "number_of_minted_tokens": n }));
+            } else {
+                println!("{n}");
+            }
+        }
+        CEP85Commands::TransferFilterContract {
+            contract_hash,
+            package_hash,
+        } => {
+            let mut client =
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let v = client
+                .transfer_filter_contract()
+                .await
+                .context("transfer_filter_contract")?;
+            if json {
+                println!("{}", serde_json::json!({ "transfer_filter_contract": v }));
+            } else {
+                match v {
+                    Some(s) => println!("{s}"),
+                    None => println!(),
+                }
+            }
+        }
+        CEP85Commands::TransferFilterMethod {
+            contract_hash,
+            package_hash,
+        } => {
+            let mut client =
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let v = client
+                .transfer_filter_method()
+                .await
+                .context("transfer_filter_method")?;
+            if json {
+                println!("{}", serde_json::json!({ "transfer_filter_method": v }));
+            } else {
+                match v {
+                    Some(s) => println!("{s}"),
+                    None => println!(),
+                }
+            }
+        }
+        CEP85Commands::SecurityBadge {
+            contract_hash,
+            package_hash,
+            entity,
+        } => {
+            let mut client =
+                CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let badge = client
+                .security_badge(&entity)
+                .await
+                .context("security_badge")?;
+            if json {
+                match badge {
+                    Some(b) => println!(
+                        "{}",
+                        serde_json::json!({ "badge": b.as_str(), "value": b as u8 })
+                    ),
+                    None => println!("{}", serde_json::json!({ "badge": null })),
+                }
+            } else {
+                match badge {
+                    Some(b) => println!("{}", b.as_str()),
+                    None => println!(),
+                }
             }
         }
     }
@@ -1976,8 +2360,80 @@ async fn run_cep95(
                 println!("{ok}");
             }
         }
+        CEP95Commands::GetOwner {
+            contract_hash,
+            package_hash,
+        } => {
+            let mut client =
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let owner = client.get_owner().await.context("get_owner")?;
+            if json {
+                println!("{}", serde_json::json!({ "owner": owner }));
+            } else {
+                println!("{owner}");
+            }
+        }
+        CEP95Commands::TransferOwnership {
+            contract_hash,
+            package_hash,
+            new_owner,
+            secret_key,
+            payment,
+            make_only,
+            initiator_addr,
+        } => {
+            let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
+            let mut client =
+                CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
+            client
+                .set_contract_hash(&contract_hash, package_hash.as_deref())
+                .context("set contract")?;
+            let put = client
+                .transfer_ownership(&new_owner, &tx)
+                .await
+                .context("transfer_ownership")?;
+            print_call_result(&put, json)?;
+        }
     }
     Ok(())
+}
+
+fn split_csv(s: &str) -> Vec<String> {
+    s.split(',')
+        .map(str::trim)
+        .filter(|p| !p.is_empty())
+        .map(str::to_string)
+        .collect()
+}
+
+fn decode_optional_hex(data_hex: Option<&str>) -> Result<Option<Vec<u8>>> {
+    match data_hex {
+        None => Ok(None),
+        Some(s) if s.trim().is_empty() => Ok(None),
+        Some(s) => {
+            let s = s.trim().trim_start_matches("0x");
+            if s.len() % 2 != 0 {
+                bail!("data_hex must have even length");
+            }
+            let mut out = Vec::with_capacity(s.len() / 2);
+            let bytes = s.as_bytes();
+            let mut i = 0;
+            while i < bytes.len() {
+                let hi = (bytes[i] as char)
+                    .to_digit(16)
+                    .ok_or_else(|| anyhow::anyhow!("data_hex: invalid hex"))?;
+                let lo = (bytes[i + 1] as char)
+                    .to_digit(16)
+                    .ok_or_else(|| anyhow::anyhow!("data_hex: invalid hex"))?;
+                out.push(((hi << 4) | lo) as u8);
+                i += 2;
+            }
+            Ok(Some(out))
+        }
+    }
 }
 
 fn format_rpc(rpc: &str) -> String {

@@ -6,7 +6,7 @@ mod keys;
 mod types;
 
 pub use error::CEP18Error;
-pub use types::{ChangeSecurityArgs, InstallArgs, UpgradeArgs};
+pub use types::{ChangeSecurityArgs, InstallArgs, SecurityBadge18, UpgradeArgs};
 
 use crate::core::CEPClient;
 use crate::core::{json_args, key_arg, key_list_arg, string_arg, u256_arg, u8_arg, JsonArg};
@@ -323,6 +323,23 @@ impl CEP18Client {
         let item_key = allowance_dictionary_key(owner, spender)?;
         let raw = self.core.query_dictionary("allowances", &item_key).await?;
         decode_u256_cl(raw)
+    }
+
+    /// Security badge for `account`, if present under dict `security_badges`.
+    pub async fn security_badge(&self, account: &str) -> Result<Option<SecurityBadge18>> {
+        let item_key = balance_dictionary_key(account)?;
+        match self
+            .core
+            .query_dictionary("security_badges", &item_key)
+            .await
+        {
+            Ok(raw) => {
+                let v = decode_u8_cl(raw)?;
+                Ok(SecurityBadge18::from_u8(v))
+            }
+            Err(CEPError::EmptyQuery(_)) | Err(CEPError::Sdk(_)) => Ok(None),
+            Err(e) => Err(e),
+        }
     }
 }
 

@@ -85,6 +85,22 @@ mod tests {
         let bal = client.balance_of(&owner, "1").await.expect("balance");
         assert_eq!(bal, "10");
 
+        client
+            .transfer(&owner, &owner, "1", "1", None, &mint_tx)
+            .await
+            .expect("transfer data None");
+        assert_eq!(
+            client
+                .balance_of(&owner, "1")
+                .await
+                .expect("balance after xfer"),
+            "10"
+        );
+
+        assert!(client.enable_burn().await.expect("enable_burn"));
+        let badge = client.security_badge(&owner).await.expect("security_badge");
+        assert!(badge.is_some(), "installer should have a security badge");
+
         let burn_tx = TransactionParams::new(&secret, CALL_PAYMENT);
         client.burn(&owner, "1", "3", &burn_tx).await.expect("burn");
         let bal_after = client
