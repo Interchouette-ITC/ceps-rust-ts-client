@@ -90,7 +90,12 @@ pub fn u256_list_arg(name: &str, values: &[&str]) -> JsonArg {
     json_arg(name, json!({"List": "U256"}), json!(values))
 }
 
-/// `Option (List (U8))` - null or byte array.
+/// `List (U8)` / `Bytes` from a byte slice.
+pub fn byte_list_arg(name: &str, bytes: &[u8]) -> JsonArg {
+    json_arg(name, json!({"List": "U8"}), json!(bytes))
+}
+
+/// `Option (List (U8))` - null or byte array (Odra-style optional bytes).
 pub fn option_byte_list_arg(name: &str, bytes: Option<&[u8]>) -> JsonArg {
     let value = match bytes {
         Some(b) if !b.is_empty() => json!(b),
@@ -145,6 +150,7 @@ mod tests {
             string_pair_list_arg("metadata", &[]),
             option_byte_list_arg("data", None),
             u256_list_arg("ids", &["1", "2"]),
+            byte_list_arg("payload", &[1, 2, 3]),
         ]);
         let v: Value = serde_json::from_str(&s).unwrap();
         assert_eq!(
@@ -153,9 +159,11 @@ mod tests {
         );
         assert_eq!(v[1]["type"], json!({"Option": {"List": "U8"}}));
         assert_eq!(v[2]["type"], json!({"List": "U256"}));
+        assert_eq!(v[3]["type"], json!({"List": "U8"}));
         // Round-trip through casper_types::CLType.
         let _: casper_types::CLType = serde_json::from_value(v[0]["type"].clone()).unwrap();
         let _: casper_types::CLType = serde_json::from_value(v[1]["type"].clone()).unwrap();
         let _: casper_types::CLType = serde_json::from_value(v[2]["type"].clone()).unwrap();
+        let _: casper_types::CLType = serde_json::from_value(v[3]["type"].clone()).unwrap();
     }
 }

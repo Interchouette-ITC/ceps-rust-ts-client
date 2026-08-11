@@ -48,8 +48,9 @@ pub fn operator_dictionary_key(owner: &str, operator: &str) -> Result<String> {
 
 /// Odra `state` dictionary item key for a small-index Var path (all indices <= 15).
 ///
-/// OwnedCEP95 stores Ownable owner at path `[ownable=0, owner=0]` → index bytes
-/// `[0,0,0,0]`, then blake2b-256 hex (ASCII) under dict `state`.
+/// Odra module field indices are 1-based. Tip `OwnedCep95` stores Ownable owner at
+/// path `[ownable=1, owner=1]` → packed index `0x11`, then blake2b-256 hex (ASCII)
+/// under dict `state`.
 pub fn odra_state_var_key(path: &[u8]) -> Result<String> {
     if path.is_empty() {
         return Err(CEPError::InvalidArgument("odra state path empty".into()));
@@ -73,9 +74,9 @@ pub fn odra_state_var_key(path: &[u8]) -> Result<String> {
     Ok(hex::encode(hash))
 }
 
-/// Ownable owner Var key for tip `OwnedCep95` (`ownable` field 0, `owner` field 0).
+/// Ownable owner Var key for tip `OwnedCep95` (`ownable` field 1, `owner` field 1).
 pub fn ownable_owner_state_key() -> Result<String> {
-    odra_state_var_key(&[0, 0])
+    odra_state_var_key(&[1, 1])
 }
 
 #[cfg(test)]
@@ -114,5 +115,8 @@ mod tests {
         assert_eq!(key.len(), 64);
         assert!(key.chars().all(|c| c.is_ascii_hexdigit()));
         assert_eq!(key, ownable_owner_state_key().unwrap());
+        // Path [1,1] → packed 0x11; must not collide with legacy wrong [0,0] key.
+        assert_ne!(key, odra_state_var_key(&[0, 0]).unwrap());
+        assert_eq!(key, odra_state_var_key(&[1, 1]).unwrap());
     }
 }

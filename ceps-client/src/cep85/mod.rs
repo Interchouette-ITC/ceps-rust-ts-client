@@ -11,8 +11,8 @@ pub use types::{ChangeSecurityArgs, InstallArgs, SecurityBadge85, UpgradeArgs};
 
 use crate::core::CEPClient;
 use crate::core::{
-    bool_arg, json_args, key_arg, key_list_arg, option_byte_list_arg, string_arg, u256_arg,
-    u256_list_arg, u8_arg, JsonArg,
+    bool_arg, byte_list_arg, json_args, key_arg, key_list_arg, string_arg, u256_arg, u256_list_arg,
+    u8_arg, JsonArg,
 };
 use crate::error::{CEPError, CEPKind, Result};
 use crate::types::{CallResult, EventsMode, TransactionParams};
@@ -239,6 +239,8 @@ impl CEP85Client {
     }
 
     /// Transfer (on-chain `transfer_from`), optional receiver `data`.
+    ///
+    /// Omits the `data` runtime arg when `None` (contract expects `Bytes` only when set).
     pub async fn transfer(
         &self,
         from: &str,
@@ -248,19 +250,23 @@ impl CEP85Client {
         data: Option<&[u8]>,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let v = vec![
+        let mut v = vec![
             key_arg("from", &prefixed_key(from)?),
             key_arg("to", &prefixed_key(to)?),
             u256_arg("id", id),
             u256_arg("amount", amount),
-            option_byte_list_arg("data", data),
         ];
+        if let Some(bytes) = data {
+            v.push(byte_list_arg("data", bytes));
+        }
         self.core
             .call_entrypoint("transfer_from", tx, &json_args(&v))
             .await
     }
 
     /// Batch transfer (on-chain `batch_transfer_from`), optional receiver `data`.
+    ///
+    /// Omits the `data` runtime arg when `None` (contract expects `Bytes` only when set).
     pub async fn batch_transfer(
         &self,
         from: &str,
@@ -270,13 +276,15 @@ impl CEP85Client {
         data: Option<&[u8]>,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let v = vec![
+        let mut v = vec![
             key_arg("from", &prefixed_key(from)?),
             key_arg("to", &prefixed_key(to)?),
             u256_list_arg("ids", ids),
             u256_list_arg("amounts", amounts),
-            option_byte_list_arg("data", data),
         ];
+        if let Some(bytes) = data {
+            v.push(byte_list_arg("data", bytes));
+        }
         self.core
             .call_entrypoint("batch_transfer_from", tx, &json_args(&v))
             .await
