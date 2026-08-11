@@ -99,27 +99,32 @@ jobs:
 
       - name: Wait for NCTL
         run: |
-          echo "Waiting for RPC on 11101..."
-          for i in {1..60}; do
-            if nc -z localhost 11101; then
-              echo "RPC up; waiting for keys..."
+          echo "Waiting for RPC on :11101..."
+          for i in $(seq 1 90); do
+            if curl -sS -m 2 -X POST http://127.0.0.1:11101/rpc \
+              -H 'content-type: application/json' \
+              -d '{"jsonrpc":"2.0","id":1,"method":"info_get_status","params":[]}' \
+              | grep -q api_version; then
+              echo "rpc up"
+              # RPC answers before genesis; puts fail with "blockchain is empty" until then.
+              echo "Wait 45s for nctl to boot genesis / create keys"
               sleep 45
-              break
+              exit 0
             fi
-            sleep 2
+            sleep 5
           done
-          nc -z localhost 11101 || { echo "RPC did not start"; exit 1; }
+          echo "rpc timeout"; exit 1
 
-          echo "Waiting for SSE..."
-          for i in {1..60}; do
-            if curl --silent --max-time 2 http://127.0.0.1:18101/events | grep -q "ApiVersion"; then
-              echo "SSE up"
-              break
+      - name: Wait for SSE
+        run: |
+          echo "Waiting for SSE on :18101/events..."
+          for i in $(seq 1 30); do
+            if curl -sS -m 2 http://127.0.0.1:18101/events | grep -q ApiVersion; then
+              echo "sse up"; exit 0
             fi
-            sleep 2
+            sleep 1
           done
-          curl --silent --max-time 2 http://127.0.0.1:18101/events | grep -q "ApiVersion" \
-            || { echo "SSE did not start"; exit 1; }
+          echo "sse timeout"; exit 1
 
       - name: Export NCTL user secrets
         run: |
