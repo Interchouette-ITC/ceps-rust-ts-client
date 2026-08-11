@@ -23,6 +23,8 @@ pub mod core;
 pub mod error;
 #[cfg(feature = "client")]
 pub mod types;
+#[cfg(all(feature = "client", not(target_arch = "wasm32")))]
+pub mod wasm;
 
 #[cfg(feature = "client")]
 pub use casper_rust_wasm_sdk::types::verbosity::Verbosity;

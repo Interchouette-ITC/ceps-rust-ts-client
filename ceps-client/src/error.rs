@@ -61,6 +61,15 @@ pub enum CEPError {
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
 
+    /// Demo contract WASM was not found under the configured root.
+    #[error("wasm {name} not found (tried {})", tried.join(", "))]
+    WasmNotFound {
+        /// Requested name or relative path (for example `cep18`).
+        name: String,
+        /// Candidate paths that were checked.
+        tried: Vec<String>,
+    },
+
     /// Catch-all for unexpected failures.
     #[error("{0}")]
     Other(String),

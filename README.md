@@ -265,7 +265,7 @@ Install from JS takes contract bytes as `Uint8Array` and returns JSON `{ transac
 
 This client is **not** a contract repo. You pass on-chain `.wasm` into `install`.
 
-**In-tree:** the last staged demo tip builds ship under `tests/wasm/{cep18,cep78,cep85}/` (same idea as committing `pkg` / `pkg-nodejs`). Use those bytes directly, or refresh with `make wasm-from-ceps`.
+**In-tree:** the last staged demo tip builds ship under `tests/wasm/{cep18,cep78,cep85,cep95}/` (same idea as committing `pkg` / `pkg-nodejs`). Load with `ceps_client::wasm::load("cep18")` under `CEPS_WASM_ROOT` (default `tests/wasm`), or refresh with `make wasm-from-ceps`.
 
 **Or** download the release bundle (no tip checkout / no contract build):
 
