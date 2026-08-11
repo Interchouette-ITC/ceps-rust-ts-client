@@ -6,7 +6,6 @@ description = "Native CEP-18 / CEP-78 / CEP-85 / CEP-95 client library for Caspe
 readme.workspace = true
 homepage.workspace = true
 repository.workspace = true
-authors.workspace = true
 license-file.workspace = true
 
 [lib]

@@ -6,7 +6,6 @@ description = "MCP server for ceps-rust-ts-client (stdio + Streamable HTTP): CEP
 readme = "README.md"
 homepage.workspace = true
 repository.workspace = true
-authors.workspace = true
 license-file.workspace = true
 
 [[bin]]
