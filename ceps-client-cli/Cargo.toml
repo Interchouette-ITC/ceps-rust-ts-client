@@ -6,7 +6,6 @@ description = "ceps-client-cli: clap CLI for the unified Casper CEP client."
 readme.workspace = true
 homepage.workspace = true
 repository.workspace = true
-authors.workspace = true
 license-file.workspace = true
 
 [[bin]]

@@ -1,9 +1,6 @@
 {
   "name": "ceps-client-wasm",
   "type": "module",
-  "collaborators": [
-    "3099551+gRoussac@users.noreply.github.com"
-  ],
   "description": "wasm-bindgen CEP client for Node and browsers (same API as ceps-client; replaces per-CEP client-js).",
   "version": "1.0.0",
   "license": "SEE LICENSE IN ../LICENSE",

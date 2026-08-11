@@ -317,11 +317,42 @@ export class IntoUnderlyingSource {
     pull(controller: ReadableStreamDefaultController): Promise<any>;
 }
 
+/**
+ * CEP-18 schema JSON.
+ */
+export function cep18SchemaJson(): string;
+
+/**
+ * CEP-78 schema JSON.
+ */
+export function cep78SchemaJson(): string;
+
+/**
+ * CEP-85 schema JSON.
+ */
+export function cep85SchemaJson(): string;
+
+/**
+ * CEP-95 schema JSON.
+ */
+export function cep95SchemaJson(): string;
+
+/**
+ * JSON schema for a CEP id (`cep18`, `cep78`, `cep85`, `cep95`).
+ */
+export function schemaJson(cep: string): string;
+
+/**
+ * Supported CEP id strings.
+ */
+export function supportedCeps(): any;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly __wbg_cep18client_free: (a: number, b: number) => void;
+    readonly cep18SchemaJson: () => [number, number];
     readonly cep18client_SSEUrl: (a: number) => [number, number];
     readonly cep18client_balanceOf: (a: number, b: number, c: number) => any;
     readonly cep18client_chainName: (a: number) => [number, number];
@@ -336,6 +367,7 @@ export interface InitOutput {
     readonly cep18client_setContractHash: (a: number, b: number, c: number, d: number, e: number) => [number, number];
     readonly cep18client_symbol: (a: number) => any;
     readonly cep18client_waitTransaction: (a: number, b: number, c: number, d: number, e: bigint) => any;
+    readonly cep78SchemaJson: () => [number, number];
     readonly cep78client_balanceOf: (a: number, b: number, c: number) => any;
     readonly cep78client_collectCESEvents: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
     readonly cep78client_collectionName: (a: number) => any;
@@ -345,6 +377,7 @@ export interface InitOutput {
     readonly cep78client_parseCES: (a: number, b: number, c: number) => any;
     readonly cep78client_putTransaction: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
     readonly cep78client_waitTransaction: (a: number, b: number, c: number, d: number, e: bigint) => any;
+    readonly cep85SchemaJson: () => [number, number];
     readonly cep85client_balanceOf: (a: number, b: number, c: number, d: number, e: number) => any;
     readonly cep85client_balanceOfBatch: (a: number, b: number, c: number, d: number, e: number) => any;
     readonly cep85client_collectCESEvents: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
@@ -363,6 +396,7 @@ export interface InitOutput {
     readonly cep85client_transferFilterContract: (a: number) => any;
     readonly cep85client_transferFilterMethod: (a: number) => any;
     readonly cep85client_waitTransaction: (a: number, b: number, c: number, d: number, e: bigint) => any;
+    readonly cep95SchemaJson: () => [number, number];
     readonly cep95client_balanceOf: (a: number, b: number, c: number) => any;
     readonly cep95client_collectCESEvents: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
     readonly cep95client_getOwner: (a: number) => any;
@@ -375,6 +409,8 @@ export interface InitOutput {
     readonly cep95client_symbol: (a: number) => any;
     readonly cep95client_transferOwnership: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => any;
     readonly cep95client_waitTransaction: (a: number, b: number, c: number, d: number, e: bigint) => any;
+    readonly schemaJson: (a: number, b: number) => [number, number, number, number];
+    readonly supportedCeps: () => [number, number, number];
     readonly cep78client_SSEUrl: (a: number) => [number, number];
     readonly cep85client_SSEUrl: (a: number) => [number, number];
     readonly cep95client_SSEUrl: (a: number) => [number, number];

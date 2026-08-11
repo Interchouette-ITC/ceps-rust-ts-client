@@ -1013,6 +1013,118 @@ class IntoUnderlyingSource {
 }
 if (Symbol.dispose) IntoUnderlyingSource.prototype[Symbol.dispose] = IntoUnderlyingSource.prototype.free;
 exports.IntoUnderlyingSource = IntoUnderlyingSource;
+
+/**
+ * CEP-18 schema JSON.
+ * @returns {string}
+ */
+function cep18SchemaJson() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.cep18SchemaJson();
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
+}
+exports.cep18SchemaJson = cep18SchemaJson;
+
+/**
+ * CEP-78 schema JSON.
+ * @returns {string}
+ */
+function cep78SchemaJson() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.cep78SchemaJson();
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
+}
+exports.cep78SchemaJson = cep78SchemaJson;
+
+/**
+ * CEP-85 schema JSON.
+ * @returns {string}
+ */
+function cep85SchemaJson() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.cep85SchemaJson();
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
+}
+exports.cep85SchemaJson = cep85SchemaJson;
+
+/**
+ * CEP-95 schema JSON.
+ * @returns {string}
+ */
+function cep95SchemaJson() {
+    let deferred1_0;
+    let deferred1_1;
+    try {
+        const ret = wasm.cep95SchemaJson();
+        deferred1_0 = ret[0];
+        deferred1_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
+    }
+}
+exports.cep95SchemaJson = cep95SchemaJson;
+
+/**
+ * JSON schema for a CEP id (`cep18`, `cep78`, `cep85`, `cep95`).
+ * @param {string} cep
+ * @returns {string}
+ */
+function schemaJson(cep) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const ptr0 = passStringToWasm0(cep, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.schemaJson(ptr0, len0);
+        var ptr2 = ret[0];
+        var len2 = ret[1];
+        if (ret[3]) {
+            ptr2 = 0; len2 = 0;
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        deferred3_0 = ptr2;
+        deferred3_1 = len2;
+        return getStringFromWasm0(ptr2, len2);
+    } finally {
+        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+}
+exports.schemaJson = schemaJson;
+
+/**
+ * Supported CEP id strings.
+ * @returns {any}
+ */
+function supportedCeps() {
+    const ret = wasm.supportedCeps();
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+exports.supportedCeps = supportedCeps;
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,
@@ -1251,6 +1363,10 @@ function __wbg_get_imports() {
             const ret = arg0.node;
             return ret;
         },
+        __wbg_parse_1cc93481b0865939: function() { return handleError(function (arg0, arg1) {
+            const ret = JSON.parse(getStringFromWasm0(arg0, arg1));
+            return ret;
+        }, arguments); },
         __wbg_process_c9cfbc1e2919260e: function(arg0) {
             const ret = arg0.process;
             return ret;
