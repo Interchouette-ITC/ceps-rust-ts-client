@@ -1,5 +1,5 @@
-# Runtime for `ceps-client-cli`. Build the binary outside the image
-# (path dep on rustSDK), place it as `docker/ceps-client-cli`, then:
+# Runtime for `ceps-client-cli`. Build the binary outside the image,
+# place it as `docker/ceps-client-cli`, then:
 #   make docker-build IMAGE_TAG=local
 ARG RUNTIME_IMAGE=debian:bookworm-slim
 

@@ -7,7 +7,7 @@ This workspace depends on [`casper-rust-wasm-sdk`](https://github.com/casper-eco
 Enabled in root [`Cargo.toml`](../Cargo.toml):
 
 ```toml
-casper-rust-wasm-sdk = { path = "../rustSDK", default-features = false, features = [
+casper-rust-wasm-sdk = { git = "https://github.com/casper-ecosystem/casper-rust-wasm-sdk", branch = "dev", default-features = false, features = [
   "transaction",
   "contract",
   "helpers",
@@ -18,17 +18,19 @@ casper-rust-wasm-sdk = { path = "../rustSDK", default-features = false, features
 
 Deliberately omit SDK feature `js` (wasm-bindgen / js-sys surface). This workspace uses the SDK as a Rust library; CEP JS packs do their own bindgen in `ceps-client-wasm`. Enabling SDK `js` would re-export SDK classes into the CEP `.wasm` / `.d.ts`.
 
-Point `path` at your SDK checkout (or set `RUSTSDK_PRODUCT` for Make wrappers). Workspace `[patch.crates-io]` keeps Casper crates aligned with that SDK line.
+Workspace `[patch.crates-io]` keeps Casper crates aligned with that SDK line.
+
+For a local SDK checkout during tip work, override with a Cargo `[patch]` pointing at your tree (do not commit that patch unless the PR is intentional).
 
 ## CI / release
 
-GitHub Actions check out [`casper-ecosystem/casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) at branch **`dev`**. Bump that ref when you upgrade the SDK (see [ci.md](ci.md)).
+Cargo fetches the git dep at branch **`dev`**. Bump that ref when you upgrade the SDK (see [ci.md](ci.md)).
 
 Release artefacts (CLI binary, `ceps-client-wasm` packs) build against that pin. The Docker image ships only the stripped `ceps-client-cli` binary.
 
 ## Upgrade checklist
 
-1. Update the local SDK checkout (or the CI `ref:`).
+1. Bump the git `branch` / `rev` in root `Cargo.toml` (and refresh `Cargo.lock`).
 2. Align `[patch.crates-io]` if Casper node/client crates moved.
 3. `make check-lint && make unit-test` (and NCTL live tests when install/query behaviour changed).
 4. Update the pin table in [ci.md](ci.md) / [contributing.md](contributing.md).

@@ -16,11 +16,10 @@ description = "Unified Rust client for Casper CEP-18, CEP-78, CEP-85, and CEP-95
 readme = "README.md"
 homepage = "https://github.com/Interchouette-ITC/ceps-rust-ts-client"
 repository = "https://github.com/Interchouette-ITC/ceps-rust-ts-client"
-authors = ["3099551+gRoussac@users.noreply.github.com"]
 license-file = "LICENSE"
 
 [workspace.dependencies]
-casper-rust-wasm-sdk = { path = "../rustSDK", default-features = false, features = [
+casper-rust-wasm-sdk = { git = "https://github.com/casper-ecosystem/casper-rust-wasm-sdk", branch = "dev", default-features = false, features = [
   "transaction",
   "contract",
   "helpers",

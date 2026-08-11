@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Rust stable (edition 2021)
-- [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) as the workspace Cargo dependency (path locally; see [sdk.md](sdk.md))
+- Network access for Cargo to fetch [`casper-rust-wasm-sdk`](https://github.com/casper-ecosystem/casper-rust-wasm-sdk) (git dep on branch `dev`; see [sdk.md](sdk.md))
 - Optional: local Casper NCTL `dev` for live install/query
 - Optional: `wasm-pack` + `wasm-opt` (Binaryen) on `PATH` for `make pack`
 
@@ -36,11 +36,11 @@ make run-cli CLI_ARGS='status'
 
 Defaults match NCTL `dev`:
 
-| Setting | Default |
-| --- | --- |
-| RPC | `http://127.0.0.1:11101` |
-| SSE | `http://127.0.0.1:18101/events` |
-| Chain | `casper-net-1` |
+| Setting | Default                         |
+| ------- | ------------------------------- |
+| RPC     | `http://127.0.0.1:11101`        |
+| SSE     | `http://127.0.0.1:18101/events` |
+| Chain   | `casper-net-1`                  |
 
 Override with `--rpc-url` / `CEPS_RPC_URL` (and SSE / chain counterparts). Full flag table: [cli.md](cli.md).
 

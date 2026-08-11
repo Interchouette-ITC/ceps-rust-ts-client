@@ -8,7 +8,6 @@ CURRENT_DIR := .
 
 # Optional overrides for adjacent checkouts
 NCTL_DOCKER_PRODUCT ?= $(ROOT)/../casper-nctl-2-docker
-RUSTSDK_PRODUCT ?= $(ROOT)/../rustSDK
 CEP18_PRODUCT ?= $(ROOT)/../cep-18
 CEP78_PRODUCT ?= $(ROOT)/../cep-78-enhanced-nft
 CEP85_PRODUCT ?= $(ROOT)/../cep-1155
