@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["ENV_WASM_ROOT"],"fn":["load","load_from","resolve","resolve_path","wasm_root"]};

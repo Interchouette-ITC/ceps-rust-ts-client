@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["EventName","Verbosity"],"mod":["cep18","cep78","cep85","cep95","core","error","schema","types"],"struct":["CESEvent","CESParseResult","CESParser","RawEvent","SSEClient"]};
+window.SIDEBAR_ITEMS = {"enum":["EventName","Verbosity"],"mod":["cep18","cep78","cep85","cep95","core","error","schema","types","wasm"],"struct":["CESEvent","CESParseResult","CESParser","RawEvent","SSEClient"]};
