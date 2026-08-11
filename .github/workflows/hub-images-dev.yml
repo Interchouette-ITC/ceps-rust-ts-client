@@ -42,13 +42,6 @@ jobs:
         with:
           path: ceps-rust-ts-client
 
-      - name: Checkout rustSDK (path dep)
-        uses: actions/checkout@v5
-        with:
-          repository: casper-ecosystem/casper-rust-wasm-sdk
-          ref: dev
-          path: rustSDK
-
       - name: Swatinem cache
         uses: Swatinem/rust-cache@v2
         with:

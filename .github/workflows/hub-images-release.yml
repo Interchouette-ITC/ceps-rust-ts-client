@@ -41,13 +41,6 @@ jobs:
           path: ceps-rust-ts-client
           ref: ${{ inputs.ref || github.event.release.tag_name || github.ref }}
 
-      - name: Checkout rustSDK (path dep)
-        uses: actions/checkout@v5
-        with:
-          repository: casper-ecosystem/casper-rust-wasm-sdk
-          ref: dev
-          path: rustSDK
-
       - name: Resolve release version
         id: ver
         working-directory: ceps-rust-ts-client

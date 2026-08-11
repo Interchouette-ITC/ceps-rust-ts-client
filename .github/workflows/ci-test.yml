@@ -33,13 +33,6 @@ jobs:
         with:
           path: ceps-rust-ts-client
 
-      - name: Checkout rustSDK (path dep)
-        uses: actions/checkout@v5
-        with:
-          repository: casper-ecosystem/casper-rust-wasm-sdk
-          ref: dev
-          path: rustSDK
-
       - name: Checkout CEP-18 tip
         uses: actions/checkout@v5
         with:
