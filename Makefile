@@ -50,7 +50,7 @@ CARGO := env -u CARGO_TARGET_DIR -u PLAYWRIGHT_BROWSERS_PATH cargo
 	build check doc doc-check clean \
 	format lint clippy check-lint \
 	test unit-test integration-test e2e-test examples ts-test wasm-bindgen-test \
-	pack web nodejs \
+	pack web nodejs web-schema nodejs-schema schema-check \
 	run-cli \
 	release-cli-bin release-mcp-bin \
 	docker-build docker-tag docker-push-hub docker-push-ghcr-personal docker-push-ghcr-itc docker-push-ghcr docker-push \
@@ -82,6 +82,7 @@ help:
 	@echo ""
 	@echo "WASM pack"
 	@echo "  pack / web / nodejs   wasm-pack release (needs wasm-opt on PATH)"
+	@echo "  web-schema / nodejs-schema   schema-only wasm packs (no CEP clients)"
 	@echo ""
 	@echo "CLI / MCP"
 	@echo "  run-cli            cargo run -p $(CLI_CRATE) -- \$$(CLI_ARGS)"
@@ -159,7 +160,37 @@ check-lint: clippy
 
 unit-test:
 	$(CARGO) test -p $(COMMON_CRATE) -- --test-threads=1 --nocapture
+	$(CARGO) test -p $(COMMON_CRATE) --no-default-features --features schema -- --test-threads=1 --nocapture
 	$(CARGO) test -p $(WASM_CRATE) --lib -- --test-threads=1 --nocapture
+
+schema-check: prepare
+	$(CARGO) check -p $(COMMON_CRATE) --no-default-features --features schema
+	$(CARGO) check -p $(COMMON_CRATE)
+	$(CARGO) check -p $(WASM_CRATE) --target wasm32-unknown-unknown --no-default-features --features schema
+	$(CARGO) check -p $(WASM_CRATE) --target wasm32-unknown-unknown
+	$(MAKE) nodejs-schema
+	@grep -q 'cep18SchemaJson\|schemaJson' "$(WASM_CRATE)/pkg-nodejs-schema/ceps_client_wasm.d.ts"
+	@! grep -q 'CEP18Client\|CEP78Client\|CEP85Client\|CEP95Client' "$(WASM_CRATE)/pkg-nodejs-schema/ceps_client_wasm.d.ts"
+
+pack: web nodejs
+
+web: prepare
+	cd $(WASM_CRATE) && wasm-pack build --target web --release --out-dir $(WEB_OUT_DIR) $(CURRENT_DIR)
+	@cp -f "$(ROOT)/README.md" "$(WASM_CRATE)/$(WEB_OUT_DIR)/README.md"
+
+nodejs: prepare
+	cd $(WASM_CRATE) && wasm-pack build --target nodejs --release --out-dir $(NODEJS_OUT_DIR) $(CURRENT_DIR)
+	@cp -f "$(ROOT)/README.md" "$(WASM_CRATE)/$(NODEJS_OUT_DIR)/README.md"
+
+web-schema: prepare
+	cd $(WASM_CRATE) && wasm-pack build --target web --release --out-dir pkg-schema \
+		-- --no-default-features --features schema
+	@cp -f "$(ROOT)/README.md" "$(WASM_CRATE)/pkg-schema/README.md"
+
+nodejs-schema: prepare
+	cd $(WASM_CRATE) && wasm-pack build --target nodejs --release --out-dir pkg-nodejs-schema \
+		-- --no-default-features --features schema
+	@cp -f "$(ROOT)/README.md" "$(WASM_CRATE)/pkg-nodejs-schema/README.md"
 
 integration-test:
 	cd tests/rust && $(CARGO) test -- --test-threads=1 --nocapture
@@ -193,16 +224,6 @@ wasm-bindgen-test: prepare
 	cd $(WASM_CRATE) && wasm-pack test --node
 
 test: unit-test integration-test
-
-pack: web nodejs
-
-web: prepare
-	cd $(WASM_CRATE) && wasm-pack build --target web --release --out-dir $(WEB_OUT_DIR) $(CURRENT_DIR)
-	@cp -f "$(ROOT)/README.md" "$(WASM_CRATE)/$(WEB_OUT_DIR)/README.md"
-
-nodejs: prepare
-	cd $(WASM_CRATE) && wasm-pack build --target nodejs --release --out-dir $(NODEJS_OUT_DIR) $(CURRENT_DIR)
-	@cp -f "$(ROOT)/README.md" "$(WASM_CRATE)/$(NODEJS_OUT_DIR)/README.md"
 
 run-cli:
 	$(CARGO) run -p $(CLI_CRATE) -- $(CLI_ARGS)
@@ -385,4 +406,4 @@ wasm-from-ceps:
 	done; \
 	echo "wasm-from-ceps: done -> $(WASM_DIR)"
 
-ci-local: check-lint unit-test mcp-test doc-check
+ci-local: check-lint unit-test mcp-test doc-check schema-check

@@ -14,13 +14,13 @@ pub use modes::{
 pub use types::{InstallArgs, SetVariablesArgs, TokenIdentifier, UpgradeArgs};
 
 use crate::core::CEPClient;
-use crate::core::{
-    bool_arg, json_args, key_arg, key_list_arg, string_arg, u64_arg, u8_arg, JsonArg,
-};
+use crate::core::{json_args, key_arg, string_arg, JsonArg};
 use crate::error::{CEPError, CEPKind, Result};
+use crate::schema::arg;
+use crate::schema::cep78_fields as sch;
 use crate::types::{CallResult, EventsMode78, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
-use serde_json::Value;
+use serde_json::{json, Value};
 
 /// Client for CEP-78 enhanced NFT contracts.
 pub struct CEP78Client {
@@ -131,21 +131,24 @@ impl CEP78Client {
         wasm: &[u8],
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let mut v = vec![string_arg("collection_name", &args.collection_name)];
+        let mut v = vec![arg(
+            &sch::ep::UPGRADE_COLLECTION_NAME,
+            Value::String(args.collection_name.clone()),
+        )];
         if let Some(supply) = args.total_token_supply {
-            v.push(u64_arg("total_token_supply", supply));
+            v.push(arg(&sch::ep::UPGRADE_TOTAL_TOKEN_SUPPLY, json!(supply)));
         }
         if let Some(mode) = args.events_mode {
-            v.push(u8_arg("events_mode", mode.into()));
+            v.push(arg(&sch::ep::UPGRADE_EVENTS_MODE, json!(u8::from(mode))));
         }
         if let Some(b) = args.acl_package_mode {
-            v.push(bool_arg("acl_package_mode", b));
+            v.push(arg(&sch::ep::UPGRADE_ACL_PACKAGE_MODE, json!(b)));
         }
         if let Some(b) = args.package_operator_mode {
-            v.push(bool_arg("package_operator_mode", b));
+            v.push(arg(&sch::ep::UPGRADE_PACKAGE_OPERATOR_MODE, json!(b)));
         }
         if let Some(b) = args.operator_burn_mode {
-            v.push(bool_arg("operator_burn_mode", b));
+            v.push(arg(&sch::ep::UPGRADE_OPERATOR_BURN_MODE, json!(b)));
         }
         self.core.install_wasm(wasm, tx, &json_args(&v)).await
     }
@@ -159,11 +162,20 @@ impl CEP78Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![
-            key_arg("token_owner", &prefixed_key(token_owner)?),
-            string_arg("token_meta_data", token_meta_data),
+            arg(
+                &sch::ep::MINT_TOKEN_OWNER,
+                Value::String(prefixed_key(token_owner)?),
+            ),
+            arg(
+                &sch::ep::MINT_TOKEN_META_DATA,
+                Value::String(token_meta_data.to_string()),
+            ),
         ];
         if let Some(hash) = token_hash {
-            v.push(string_arg("token_hash", hash));
+            v.push(arg(
+                &sch::ep::MINT_TOKEN_HASH,
+                Value::String(hash.to_string()),
+            ));
         }
         self.core.call_entrypoint("mint", tx, &json_args(&v)).await
     }
@@ -209,8 +221,14 @@ impl CEP78Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![
-            key_arg("source_key", &prefixed_key(source)?),
-            key_arg("target_key", &prefixed_key(target)?),
+            arg(
+                &sch::ep::TRANSFER_SOURCE,
+                Value::String(prefixed_key(source)?),
+            ),
+            arg(
+                &sch::ep::TRANSFER_TARGET,
+                Value::String(prefixed_key(target)?),
+            ),
         ];
         v.extend(token_args(token)?);
         self.core
@@ -244,7 +262,10 @@ impl CEP78Client {
         token_owner: &str,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let v = vec![key_arg("token_owner", &prefixed_key(token_owner)?)];
+        let v = vec![arg(
+            &sch::ep::REGISTER_OWNER_TOKEN_OWNER,
+            Value::String(prefixed_key(token_owner)?),
+        )];
         self.core
             .call_entrypoint("register_owner", tx, &json_args(&v))
             .await
@@ -257,7 +278,10 @@ impl CEP78Client {
         token: &TokenIdentifier,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let mut v = vec![key_arg("operator", &prefixed_key(operator)?)];
+        let mut v = vec![arg(
+            &sch::ep::APPROVE_OPERATOR,
+            Value::String(prefixed_key(operator)?),
+        )];
         v.extend(token_args(token)?);
         self.core
             .call_entrypoint("approve", tx, &json_args(&v))
@@ -271,7 +295,10 @@ impl CEP78Client {
         token: &TokenIdentifier,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let mut v = vec![key_arg("operator", &prefixed_key(operator)?)];
+        let mut v = vec![arg(
+            &sch::ep::APPROVE_OPERATOR,
+            Value::String(prefixed_key(operator)?),
+        )];
         v.extend(token_args(token)?);
         self.core
             .call_entrypoint("revoke", tx, &json_args(&v))
@@ -286,8 +313,11 @@ impl CEP78Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![
-            key_arg("operator", &prefixed_key(operator)?),
-            bool_arg("approve_all", approve_all),
+            arg(
+                &sch::ep::SET_APPROVAL_OPERATOR,
+                Value::String(prefixed_key(operator)?),
+            ),
+            arg(&sch::ep::SET_APPROVAL_APPROVE_ALL, json!(approve_all)),
         ];
         self.core
             .call_entrypoint("set_approval_for_all", tx, &json_args(&v))
@@ -301,7 +331,10 @@ impl CEP78Client {
         token: &TokenIdentifier,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let mut v = vec![string_arg("token_meta_data", token_meta_data)];
+        let mut v = vec![arg(
+            &sch::ep::SET_META_DATA,
+            Value::String(token_meta_data.to_string()),
+        )];
         v.extend(token_args(token)?);
         self.core
             .call_entrypoint("set_token_metadata", tx, &json_args(&v))
@@ -316,20 +349,20 @@ impl CEP78Client {
     ) -> Result<CallResult> {
         let mut v: Vec<JsonArg> = Vec::new();
         if let Some(b) = args.allow_minting {
-            v.push(bool_arg("allow_minting", b));
+            v.push(arg(&sch::ep::SV_ALLOW_MINTING, json!(b)));
         }
         if let Some(list) = &args.acl_whitelist {
             let keys: Result<Vec<_>> = list.iter().map(|k| prefixed_key(k)).collect();
-            v.push(key_list_arg("acl_whitelist", &keys?));
+            v.push(arg(&sch::ep::SV_ACL_WHITELIST, json!(keys?)));
         }
         if let Some(b) = args.acl_package_mode {
-            v.push(bool_arg("acl_package_mode", b));
+            v.push(arg(&sch::ep::SV_ACL_PACKAGE_MODE, json!(b)));
         }
         if let Some(b) = args.package_operator_mode {
-            v.push(bool_arg("package_operator_mode", b));
+            v.push(arg(&sch::ep::SV_PACKAGE_OPERATOR_MODE, json!(b)));
         }
         if let Some(b) = args.operator_burn_mode {
-            v.push(bool_arg("operator_burn_mode", b));
+            v.push(arg(&sch::ep::SV_OPERATOR_BURN_MODE, json!(b)));
         }
         if v.is_empty() {
             return Err(CEPError::MissingArgument(
@@ -621,65 +654,104 @@ impl CEP78Client {
 
 fn install_args_json(args: &InstallArgs) -> Result<String> {
     let mut v = vec![
-        string_arg("collection_name", &args.collection_name),
-        string_arg("collection_symbol", &args.collection_symbol),
-        u64_arg("total_token_supply", args.total_token_supply),
-        u8_arg("ownership_mode", args.ownership_mode.into()),
-        u8_arg("nft_metadata_kind", args.nft_metadata_kind.into()),
-        u8_arg("identifier_mode", args.identifier_mode.into()),
-        u8_arg("metadata_mutability", args.metadata_mutability.into()),
+        arg(
+            &sch::install::COLLECTION_NAME,
+            Value::String(args.collection_name.clone()),
+        ),
+        arg(
+            &sch::install::COLLECTION_SYMBOL,
+            Value::String(args.collection_symbol.clone()),
+        ),
+        arg(
+            &sch::install::TOTAL_TOKEN_SUPPLY,
+            json!(args.total_token_supply),
+        ),
+        arg(
+            &sch::install::OWNERSHIP_MODE,
+            json!(u8::from(args.ownership_mode)),
+        ),
+        arg(
+            &sch::install::NFT_METADATA_KIND,
+            json!(u8::from(args.nft_metadata_kind)),
+        ),
+        arg(
+            &sch::install::IDENTIFIER_MODE,
+            json!(u8::from(args.identifier_mode)),
+        ),
+        arg(
+            &sch::install::METADATA_MUTABILITY,
+            json!(u8::from(args.metadata_mutability)),
+        ),
     ];
     if let Some(kind) = args.nft_kind {
-        v.push(u8_arg("nft_kind", kind.into()));
+        v.push(arg(&sch::install::NFT_KIND, json!(u8::from(kind))));
     }
     if let Some(schema) = &args.json_schema {
-        v.push(string_arg("json_schema", schema));
+        v.push(arg(
+            &sch::install::JSON_SCHEMA,
+            Value::String(schema.clone()),
+        ));
     }
     if let Some(mode) = args.minting_mode {
-        v.push(u8_arg("minting_mode", mode.into()));
+        v.push(arg(&sch::install::MINTING_MODE, json!(u8::from(mode))));
     }
     if let Some(b) = args.allow_minting {
-        v.push(bool_arg("allow_minting", b));
+        v.push(arg(&sch::install::ALLOW_MINTING, json!(b)));
     }
     if let Some(b) = args.operator_burn_mode {
-        v.push(bool_arg("operator_burn_mode", b));
+        v.push(arg(&sch::install::OPERATOR_BURN_MODE, json!(b)));
     }
     if let Some(b) = args.package_operator_mode {
-        v.push(bool_arg("package_operator_mode", b));
+        v.push(arg(&sch::install::PACKAGE_OPERATOR_MODE, json!(b)));
     }
     if let Some(mode) = args.whitelist_mode {
-        v.push(u8_arg("whitelist_mode", mode.into()));
+        v.push(arg(&sch::install::WHITELIST_MODE, json!(u8::from(mode))));
     }
     if let Some(mode) = args.holder_mode {
-        v.push(u8_arg("holder_mode", mode.into()));
+        v.push(arg(&sch::install::HOLDER_MODE, json!(u8::from(mode))));
     }
     if let Some(b) = args.acl_package_mode {
-        v.push(bool_arg("acl_package_mode", b));
+        v.push(arg(&sch::install::ACL_PACKAGE_MODE, json!(b)));
     }
     if let Some(list) = &args.acl_whitelist {
         let keys: Result<Vec<_>> = list.iter().map(|k| prefixed_key(k)).collect();
-        v.push(key_list_arg("acl_whitelist", &keys?));
+        v.push(arg(&sch::install::ACL_WHITELIST, json!(keys?)));
     }
     if let Some(mode) = args.burn_mode {
-        v.push(u8_arg("burn_mode", mode.into()));
+        v.push(arg(&sch::install::BURN_MODE, json!(u8::from(mode))));
     }
     if let Some(mode) = args.owner_reverse_lookup_mode {
-        v.push(u8_arg("owner_reverse_lookup_mode", mode.into()));
+        v.push(arg(
+            &sch::install::OWNER_REVERSE_LOOKUP_MODE,
+            json!(u8::from(mode)),
+        ));
     }
     if let Some(mode) = args.named_key_convention {
-        v.push(u8_arg("named_key_convention", mode.into()));
+        v.push(arg(
+            &sch::install::NAMED_KEY_CONVENTION,
+            json!(u8::from(mode)),
+        ));
     }
     if let Some(name) = &args.access_key_name {
-        v.push(string_arg("access_key_name", name));
+        v.push(arg(
+            &sch::install::ACCESS_KEY_NAME,
+            Value::String(name.clone()),
+        ));
     }
     if let Some(name) = &args.hash_key_name {
-        v.push(string_arg("hash_key_name", name));
+        v.push(arg(
+            &sch::install::HASH_KEY_NAME,
+            Value::String(name.clone()),
+        ));
     }
     if let Some(mode) = args.events_mode {
-        v.push(u8_arg("events_mode", mode.into()));
+        v.push(arg(&sch::install::EVENTS_MODE, json!(u8::from(mode))));
     }
     if let Some(filter) = &args.transfer_filter_contract {
-        v.push(key_arg("transfer_filter_contract", &prefixed_key(filter)?));
+        v.push(arg(
+            &sch::install::TRANSFER_FILTER_CONTRACT,
+            Value::String(prefixed_key(filter)?),
+        ));
     }
     if matches!(
         args.named_key_convention,
@@ -695,8 +767,10 @@ fn install_args_json(args: &InstallArgs) -> Result<String> {
 
 fn token_args(token: &TokenIdentifier) -> Result<Vec<JsonArg>> {
     Ok(match token {
-        TokenIdentifier::Id(id) => vec![u64_arg("token_id", *id)],
-        TokenIdentifier::Hash(hash) => vec![string_arg("token_hash", hash)],
+        TokenIdentifier::Id(id) => vec![arg(&sch::ep::TOKEN_ID, json!(*id))],
+        TokenIdentifier::Hash(hash) => {
+            vec![arg(&sch::ep::TOKEN_HASH, Value::String(hash.clone()))]
+        }
     })
 }
 
@@ -824,6 +898,7 @@ mod tests {
         let s = install_args_json(&args).unwrap();
         assert!(s.contains("collection_name"));
         assert!(s.contains("events_mode"));
+        crate::schema::assert_install_json_matches_schema(crate::schema::CepId::Cep78, &s);
     }
 
     #[test]
