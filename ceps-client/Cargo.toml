@@ -13,8 +13,15 @@ license-file.workspace = true
 name = "ceps_client"
 path = "src/lib.rs"
 
+[features]
+default = ["client"]
+# Full RPC / install / call client (pulls casper-rust-wasm-sdk).
+client = ["schema", "dep:casper-rust-wasm-sdk", "dep:reqwest"]
+# Declarative install + entrypoint arg schema only (no SDK / RPC).
+schema = []
+
 [dependencies]
-casper-rust-wasm-sdk.workspace = true
+casper-rust-wasm-sdk = { workspace = true, optional = true }
 casper-types = { version = "7.1.1", default-features = false }
 thiserror.workspace = true
 serde.workspace = true
@@ -25,7 +32,7 @@ base64.workspace = true
 blake2.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"], optional = true }
 
 [dev-dependencies]
 tokio.workspace = true
@@ -34,19 +41,19 @@ casper-rust-wasm-sdk.workspace = true
 [[example]]
 name = "cep18_install"
 path = "examples/cep18_install.rs"
-required-features = []
+required-features = ["client"]
 
 [[example]]
 name = "cep85_install"
 path = "examples/cep85_install.rs"
-required-features = []
+required-features = ["client"]
 
 [[example]]
 name = "cep78_install"
 path = "examples/cep78_install.rs"
-required-features = []
+required-features = ["client"]
 
 [[example]]
 name = "cep95_install"
 path = "examples/cep95_install.rs"
-required-features = []
+required-features = ["client"]

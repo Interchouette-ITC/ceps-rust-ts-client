@@ -10,16 +10,15 @@ pub use error::CEP85Error;
 pub use types::{ChangeSecurityArgs, InstallArgs, SecurityBadge85, UpgradeArgs};
 
 use crate::core::CEPClient;
-use crate::core::{
-    bool_arg, byte_list_arg, json_args, key_arg, key_list_arg, string_arg, u256_arg, u256_list_arg,
-    u8_arg, JsonArg,
-};
+use crate::core::{json_args, JsonArg};
 use crate::error::{CEPError, CEPKind, Result};
+use crate::schema::arg;
+use crate::schema::cep85_fields as sch;
 use crate::types::{CallResult, EventsMode, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use casper_types::U256;
 use keys::{balance_dictionary_key, operator_dictionary_key, security_badge_dictionary_key};
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::str::FromStr;
 
 /// Client for CEP-85 multi-token contracts.
@@ -119,24 +118,27 @@ impl CEP85Client {
         wasm: &[u8],
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let mut v = vec![string_arg("name", &args.name), string_arg("uri", &args.uri)];
+        let mut v = vec![
+            arg(&sch::install::NAME, Value::String(args.name.clone())),
+            arg(&sch::install::URI, Value::String(args.uri.clone())),
+        ];
         if let Some(mode) = args.events_mode {
-            v.push(u8_arg("events_mode", mode.into()));
+            v.push(arg(&sch::install::EVENTS_MODE, json!(u8::from(mode))));
         }
         if let Some(enable) = args.enable_burn {
-            v.push(bool_arg("enable_burn", enable));
+            v.push(arg(&sch::install::ENABLE_BURN, json!(enable)));
         }
         if let Some(list) = &args.admin_list {
-            v.push(key_list_arg("admin_list", &map_keys(list)?));
+            v.push(arg(&sch::install::ADMIN_LIST, json!(map_keys(list)?)));
         }
         if let Some(list) = &args.minter_list {
-            v.push(key_list_arg("minter_list", &map_keys(list)?));
+            v.push(arg(&sch::install::MINTER_LIST, json!(map_keys(list)?)));
         }
         if let Some(list) = &args.burner_list {
-            v.push(key_list_arg("burner_list", &map_keys(list)?));
+            v.push(arg(&sch::install::BURNER_LIST, json!(map_keys(list)?)));
         }
         if let Some(list) = &args.meta_list {
-            v.push(key_list_arg("meta_list", &map_keys(list)?));
+            v.push(arg(&sch::install::META_LIST, json!(map_keys(list)?)));
         }
         push_transfer_filter(
             &mut v,
@@ -153,7 +155,10 @@ impl CEP85Client {
         wasm: &[u8],
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let mut v = vec![string_arg("name", &args.name), bool_arg("upgrade", true)];
+        let mut v = vec![
+            arg(&sch::ep::UPGRADE_NAME, Value::String(args.name.clone())),
+            arg(&sch::ep::UPGRADE_FLAG, json!(true)),
+        ];
         push_transfer_filter(
             &mut v,
             args.transfer_filter_contract.as_deref(),
@@ -172,12 +177,15 @@ impl CEP85Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![
-            key_arg("recipient", &prefixed_key(recipient)?),
-            u256_arg("id", id),
-            u256_arg("amount", amount),
+            arg(
+                &sch::ep::MINT_RECIPIENT,
+                Value::String(prefixed_key(recipient)?),
+            ),
+            arg(&sch::ep::MINT_ID, Value::String(id.to_string())),
+            arg(&sch::ep::MINT_AMOUNT, Value::String(amount.to_string())),
         ];
         if let Some(uri) = uri {
-            v.push(string_arg("uri", uri));
+            v.push(arg(&sch::ep::MINT_URI, Value::String(uri.to_string())));
         }
         self.core.call_entrypoint("mint", tx, &json_args(&v)).await
     }
@@ -192,12 +200,18 @@ impl CEP85Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![
-            key_arg("recipient", &prefixed_key(recipient)?),
-            u256_list_arg("ids", ids),
-            u256_list_arg("amounts", amounts),
+            arg(
+                &sch::ep::BATCH_MINT_RECIPIENT,
+                Value::String(prefixed_key(recipient)?),
+            ),
+            arg(&sch::ep::BATCH_MINT_IDS, json!(ids)),
+            arg(&sch::ep::BATCH_MINT_AMOUNTS, json!(amounts)),
         ];
         if let Some(uri) = uri {
-            v.push(string_arg("uri", uri));
+            v.push(arg(
+                &sch::ep::BATCH_MINT_URI,
+                Value::String(uri.to_string()),
+            ));
         }
         self.core
             .call_entrypoint("batch_mint", tx, &json_args(&v))
@@ -213,9 +227,9 @@ impl CEP85Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![
-            key_arg("owner", &prefixed_key(owner)?),
-            u256_arg("id", id),
-            u256_arg("amount", amount),
+            arg(&sch::ep::BURN_OWNER, Value::String(prefixed_key(owner)?)),
+            arg(&sch::ep::BURN_ID, Value::String(id.to_string())),
+            arg(&sch::ep::BURN_AMOUNT, Value::String(amount.to_string())),
         ];
         self.core.call_entrypoint("burn", tx, &json_args(&v)).await
     }
@@ -229,9 +243,12 @@ impl CEP85Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![
-            key_arg("owner", &prefixed_key(owner)?),
-            u256_list_arg("ids", ids),
-            u256_list_arg("amounts", amounts),
+            arg(
+                &sch::ep::BATCH_BURN_OWNER,
+                Value::String(prefixed_key(owner)?),
+            ),
+            arg(&sch::ep::BATCH_BURN_IDS, json!(ids)),
+            arg(&sch::ep::BATCH_BURN_AMOUNTS, json!(amounts)),
         ];
         self.core
             .call_entrypoint("batch_burn", tx, &json_args(&v))
@@ -251,13 +268,13 @@ impl CEP85Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![
-            key_arg("from", &prefixed_key(from)?),
-            key_arg("to", &prefixed_key(to)?),
-            u256_arg("id", id),
-            u256_arg("amount", amount),
+            arg(&sch::ep::TF_FROM, Value::String(prefixed_key(from)?)),
+            arg(&sch::ep::TF_TO, Value::String(prefixed_key(to)?)),
+            arg(&sch::ep::TF_ID, Value::String(id.to_string())),
+            arg(&sch::ep::TF_AMOUNT, Value::String(amount.to_string())),
         ];
         if let Some(bytes) = data {
-            v.push(byte_list_arg("data", bytes));
+            v.push(arg(&sch::ep::TF_DATA, json!(bytes)));
         }
         self.core
             .call_entrypoint("transfer_from", tx, &json_args(&v))
@@ -277,13 +294,13 @@ impl CEP85Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let mut v = vec![
-            key_arg("from", &prefixed_key(from)?),
-            key_arg("to", &prefixed_key(to)?),
-            u256_list_arg("ids", ids),
-            u256_list_arg("amounts", amounts),
+            arg(&sch::ep::BTF_FROM, Value::String(prefixed_key(from)?)),
+            arg(&sch::ep::BTF_TO, Value::String(prefixed_key(to)?)),
+            arg(&sch::ep::BTF_IDS, json!(ids)),
+            arg(&sch::ep::BTF_AMOUNTS, json!(amounts)),
         ];
         if let Some(bytes) = data {
-            v.push(byte_list_arg("data", bytes));
+            v.push(arg(&sch::ep::BTF_DATA, json!(bytes)));
         }
         self.core
             .call_entrypoint("batch_transfer_from", tx, &json_args(&v))
@@ -298,8 +315,11 @@ impl CEP85Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![
-            key_arg("operator", &prefixed_key(operator)?),
-            bool_arg("approved", approved),
+            arg(
+                &sch::ep::APPROVAL_OPERATOR,
+                Value::String(prefixed_key(operator)?),
+            ),
+            arg(&sch::ep::APPROVAL_APPROVED, json!(approved)),
         ];
         self.core
             .call_entrypoint("set_approval_for_all", tx, &json_args(&v))
@@ -313,9 +333,9 @@ impl CEP85Client {
         id: Option<&str>,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let mut v = vec![string_arg("uri", uri)];
+        let mut v = vec![arg(&sch::ep::SET_URI_URI, Value::String(uri.to_string()))];
         if let Some(id) = id {
-            v.push(u256_arg("id", id));
+            v.push(arg(&sch::ep::SET_URI_ID, Value::String(id.to_string())));
         }
         self.core
             .call_entrypoint("set_uri", tx, &json_args(&v))
@@ -329,7 +349,13 @@ impl CEP85Client {
         total_supply: &str,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let v = vec![u256_arg("id", id), u256_arg("total_supply", total_supply)];
+        let v = vec![
+            arg(&sch::ep::STS_ID, Value::String(id.to_string())),
+            arg(
+                &sch::ep::STS_TOTAL_SUPPLY,
+                Value::String(total_supply.to_string()),
+            ),
+        ];
         self.core
             .call_entrypoint("set_total_supply_of", tx, &json_args(&v))
             .await
@@ -343,8 +369,8 @@ impl CEP85Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let v = vec![
-            u256_list_arg("ids", ids),
-            u256_list_arg("total_supplies", total_supplies),
+            arg(&sch::ep::STSB_IDS, json!(ids)),
+            arg(&sch::ep::STSB_TOTAL_SUPPLIES, json!(total_supplies)),
         ];
         self.core
             .call_entrypoint("set_total_supply_of_batch", tx, &json_args(&v))
@@ -359,19 +385,19 @@ impl CEP85Client {
     ) -> Result<CallResult> {
         let mut v: Vec<JsonArg> = Vec::new();
         if let Some(list) = &args.admin_list {
-            v.push(key_list_arg("admin_list", &map_keys(list)?));
+            v.push(arg(&sch::ep::CS_ADMIN_LIST, json!(map_keys(list)?)));
         }
         if let Some(list) = &args.minter_list {
-            v.push(key_list_arg("minter_list", &map_keys(list)?));
+            v.push(arg(&sch::ep::CS_MINTER_LIST, json!(map_keys(list)?)));
         }
         if let Some(list) = &args.burner_list {
-            v.push(key_list_arg("burner_list", &map_keys(list)?));
+            v.push(arg(&sch::ep::CS_BURNER_LIST, json!(map_keys(list)?)));
         }
         if let Some(list) = &args.meta_list {
-            v.push(key_list_arg("meta_list", &map_keys(list)?));
+            v.push(arg(&sch::ep::CS_META_LIST, json!(map_keys(list)?)));
         }
         if let Some(list) = &args.none_list {
-            v.push(key_list_arg("none_list", &map_keys(list)?));
+            v.push(arg(&sch::ep::CS_NONE_LIST, json!(map_keys(list)?)));
         }
         if v.is_empty() {
             return Err(CEPError::MissingArgument(
@@ -392,10 +418,10 @@ impl CEP85Client {
     ) -> Result<CallResult> {
         let mut v = Vec::new();
         if let Some(b) = enable_burn {
-            v.push(bool_arg("enable_burn", b));
+            v.push(arg(&sch::ep::SM_ENABLE_BURN, json!(b)));
         }
         if let Some(m) = events_mode {
-            v.push(u8_arg("events_mode", m.into()));
+            v.push(arg(&sch::ep::SM_EVENTS_MODE, json!(u8::from(m))));
         }
         if v.is_empty() {
             return Err(CEPError::MissingArgument(
@@ -601,8 +627,14 @@ fn push_transfer_filter(
     match (contract, method) {
         (None, None) => Ok(()),
         (Some(c), Some(m)) if !m.is_empty() => {
-            v.push(key_arg("transfer_filter_contract", &prefixed_key(c)?));
-            v.push(string_arg("transfer_filter_method", m));
+            v.push(arg(
+                &sch::install::TRANSFER_FILTER_CONTRACT,
+                Value::String(prefixed_key(c)?),
+            ));
+            v.push(arg(
+                &sch::install::TRANSFER_FILTER_METHOD,
+                Value::String(m.to_string()),
+            ));
             Ok(())
         }
         (Some(_), _) => Err(CEPError::MissingArgument(
@@ -754,17 +786,21 @@ mod tests {
         let args = InstallArgs::new("Bag", "https://x/{id}.json")
             .with_events_mode(EventsMode::CES)
             .with_enable_burn(true);
-        let mut v = vec![string_arg("name", &args.name), string_arg("uri", &args.uri)];
+        let mut v = vec![
+            arg(&sch::install::NAME, Value::String(args.name.clone())),
+            arg(&sch::install::URI, Value::String(args.uri.clone())),
+        ];
         if let Some(mode) = args.events_mode {
-            v.push(u8_arg("events_mode", mode.into()));
+            v.push(arg(&sch::install::EVENTS_MODE, json!(u8::from(mode))));
         }
         if let Some(enable) = args.enable_burn {
-            v.push(bool_arg("enable_burn", enable));
+            v.push(arg(&sch::install::ENABLE_BURN, json!(enable)));
         }
         let s = json_args(&v);
         assert!(s.contains("Bag"));
         assert!(s.contains("enable_burn"));
         assert!(s.contains("events_mode"));
+        crate::schema::assert_install_json_matches_schema(crate::schema::CepId::Cep85, &s);
     }
 
     #[test]

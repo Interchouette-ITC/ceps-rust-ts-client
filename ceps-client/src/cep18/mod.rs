@@ -9,13 +9,15 @@ pub use error::CEP18Error;
 pub use types::{ChangeSecurityArgs, InstallArgs, SecurityBadge18, UpgradeArgs};
 
 use crate::core::CEPClient;
-use crate::core::{json_args, key_arg, key_list_arg, string_arg, u256_arg, u8_arg, JsonArg};
+use crate::core::{json_args, JsonArg};
 use crate::error::{CEPError, CEPKind, Result};
+use crate::schema::arg;
+use crate::schema::cep18_fields as sch;
 use crate::types::{CallResult, EventsMode, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use entity::prefixed_key;
 use keys::{allowance_dictionary_key, balance_dictionary_key};
-use serde_json::Value;
+use serde_json::{json, Value};
 
 /// Client for CEP-18 fungible token contracts.
 pub struct CEP18Client {
@@ -125,9 +127,12 @@ impl CEP18Client {
         wasm: &[u8],
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let mut json_args_vec = vec![string_arg("name", &args.name)];
+        let mut json_args_vec = vec![arg(
+            &sch::ep::UPGRADE_NAME,
+            Value::String(args.name.clone()),
+        )];
         if let Some(mode) = args.events_mode {
-            json_args_vec.push(u8_arg("events_mode", mode.into()));
+            json_args_vec.push(arg(&sch::ep::UPGRADE_EVENTS_MODE, json!(u8::from(mode))));
         }
         let args_json = json_args(&json_args_vec);
         self.core.install_wasm(wasm, tx, &args_json).await
@@ -141,8 +146,11 @@ impl CEP18Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
-            key_arg("recipient", &prefixed_key(recipient)?),
-            u256_arg("amount", amount),
+            arg(
+                &sch::ep::TRANSFER_RECIPIENT,
+                Value::String(prefixed_key(recipient)?),
+            ),
+            arg(&sch::ep::TRANSFER_AMOUNT, Value::String(amount.to_string())),
         ]);
         self.core.call_entrypoint("transfer", tx, &args).await
     }
@@ -156,9 +164,18 @@ impl CEP18Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
-            key_arg("owner", &prefixed_key(owner)?),
-            key_arg("recipient", &prefixed_key(recipient)?),
-            u256_arg("amount", amount),
+            arg(
+                &sch::ep::TRANSFER_FROM_OWNER,
+                Value::String(prefixed_key(owner)?),
+            ),
+            arg(
+                &sch::ep::TRANSFER_FROM_RECIPIENT,
+                Value::String(prefixed_key(recipient)?),
+            ),
+            arg(
+                &sch::ep::TRANSFER_FROM_AMOUNT,
+                Value::String(amount.to_string()),
+            ),
         ]);
         self.core.call_entrypoint("transfer_from", tx, &args).await
     }
@@ -171,8 +188,11 @@ impl CEP18Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
-            key_arg("spender", &prefixed_key(spender)?),
-            u256_arg("amount", amount),
+            arg(
+                &sch::ep::APPROVE_SPENDER,
+                Value::String(prefixed_key(spender)?),
+            ),
+            arg(&sch::ep::APPROVE_AMOUNT, Value::String(amount.to_string())),
         ]);
         self.core.call_entrypoint("approve", tx, &args).await
     }
@@ -185,8 +205,11 @@ impl CEP18Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
-            key_arg("spender", &prefixed_key(spender)?),
-            u256_arg("amount", amount),
+            arg(
+                &sch::ep::APPROVE_SPENDER,
+                Value::String(prefixed_key(spender)?),
+            ),
+            arg(&sch::ep::APPROVE_AMOUNT, Value::String(amount.to_string())),
         ]);
         self.core
             .call_entrypoint("increase_allowance", tx, &args)
@@ -201,8 +224,11 @@ impl CEP18Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
-            key_arg("spender", &prefixed_key(spender)?),
-            u256_arg("amount", amount),
+            arg(
+                &sch::ep::APPROVE_SPENDER,
+                Value::String(prefixed_key(spender)?),
+            ),
+            arg(&sch::ep::APPROVE_AMOUNT, Value::String(amount.to_string())),
         ]);
         self.core
             .call_entrypoint("decrease_allowance", tx, &args)
@@ -217,8 +243,14 @@ impl CEP18Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
-            key_arg("owner", &prefixed_key(owner)?),
-            u256_arg("amount", amount),
+            arg(
+                &sch::ep::MINT_BURN_OWNER,
+                Value::String(prefixed_key(owner)?),
+            ),
+            arg(
+                &sch::ep::MINT_BURN_AMOUNT,
+                Value::String(amount.to_string()),
+            ),
         ]);
         self.core.call_entrypoint("mint", tx, &args).await
     }
@@ -231,8 +263,14 @@ impl CEP18Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
-            key_arg("owner", &prefixed_key(owner)?),
-            u256_arg("amount", amount),
+            arg(
+                &sch::ep::MINT_BURN_OWNER,
+                Value::String(prefixed_key(owner)?),
+            ),
+            arg(
+                &sch::ep::MINT_BURN_AMOUNT,
+                Value::String(amount.to_string()),
+            ),
         ]);
         self.core.call_entrypoint("burn", tx, &args).await
     }
@@ -246,15 +284,15 @@ impl CEP18Client {
         let mut json_args_vec: Vec<JsonArg> = Vec::new();
         if let Some(list) = &args.admin_list {
             let keys = map_keys(list)?;
-            json_args_vec.push(key_list_arg("admin_list", &keys));
+            json_args_vec.push(arg(&sch::ep::CS_ADMIN_LIST, json!(keys)));
         }
         if let Some(list) = &args.minter_list {
             let keys = map_keys(list)?;
-            json_args_vec.push(key_list_arg("minter_list", &keys));
+            json_args_vec.push(arg(&sch::ep::CS_MINTER_LIST, json!(keys)));
         }
         if let Some(list) = &args.none_list {
             let keys = map_keys(list)?;
-            json_args_vec.push(key_list_arg("none_list", &keys));
+            json_args_vec.push(arg(&sch::ep::CS_NONE_LIST, json!(keys)));
         }
         if json_args_vec.is_empty() {
             return Err(CEPError::MissingArgument(
@@ -273,7 +311,10 @@ impl CEP18Client {
         events_mode: EventsMode,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let args = json_args(&[u8_arg("events_mode", events_mode.into())]);
+        let args = json_args(&[arg(
+            &sch::ep::CHANGE_EVENTS_MODE_EVENTS,
+            json!(u8::from(events_mode)),
+        )]);
         self.core
             .call_entrypoint("change_events_mode", tx, &args)
             .await
@@ -345,22 +386,28 @@ impl CEP18Client {
 
 fn install_args_json(args: &InstallArgs) -> Result<String> {
     let mut v = vec![
-        string_arg("name", &args.name),
-        string_arg("symbol", &args.symbol),
-        u8_arg("decimals", args.decimals),
-        u256_arg("total_supply", &args.total_supply),
+        arg(&sch::install::NAME, Value::String(args.name.clone())),
+        arg(&sch::install::SYMBOL, Value::String(args.symbol.clone())),
+        arg(&sch::install::DECIMALS, json!(args.decimals)),
+        arg(
+            &sch::install::TOTAL_SUPPLY,
+            Value::String(args.total_supply.clone()),
+        ),
     ];
     if let Some(mode) = args.events_mode {
-        v.push(u8_arg("events_mode", mode.into()));
+        v.push(arg(&sch::install::EVENTS_MODE, json!(u8::from(mode))));
     }
     if let Some(enable) = args.enable_mint_and_burn {
-        v.push(u8_arg("enable_mint_burn", u8::from(enable)));
+        v.push(arg(
+            &sch::install::ENABLE_MINT_BURN,
+            json!(u8::from(enable)),
+        ));
     }
     if let Some(list) = &args.admin_list {
-        v.push(key_list_arg("admin_list", &map_keys(list)?));
+        v.push(arg(&sch::install::ADMIN_LIST, json!(map_keys(list)?)));
     }
     if let Some(list) = &args.minter_list {
-        v.push(key_list_arg("minter_list", &map_keys(list)?));
+        v.push(arg(&sch::install::MINTER_LIST, json!(map_keys(list)?)));
     }
     Ok(json_args(&v))
 }
@@ -445,6 +492,7 @@ mod tests {
         assert!(s.contains("Tok"));
         assert!(s.contains("events_mode"));
         assert!(s.contains("enable_mint_burn"));
+        crate::schema::assert_install_json_matches_schema(crate::schema::CepId::Cep18, &s);
     }
 
     #[test]

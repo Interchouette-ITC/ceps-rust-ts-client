@@ -14,8 +14,15 @@ crate-type = ["cdylib", "rlib"]
 name = "ceps_client_wasm"
 path = "src/lib.rs"
 
+[features]
+default = ["client"]
+# Full CEP client bindgen (RPC / install / call).
+client = ["ceps-client/client", "schema"]
+# Declarative arg schema only (no CEP*Client classes).
+schema = ["ceps-client/schema"]
+
 [dependencies]
-ceps-client = { path = "../ceps-client" }
+ceps-client = { path = "../ceps-client", default-features = false }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 js-sys = "0.3"

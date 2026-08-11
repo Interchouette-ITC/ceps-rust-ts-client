@@ -31,3 +31,6 @@ mcp/wasm/
 # Nested wasm-pack "*" gitignores stay untracked:
 ceps-client-wasm/pkg/.gitignore
 ceps-client-wasm/pkg-nodejs/.gitignore
+# Schema-only packs are build artifacts (make nodejs-schema / web-schema):
+ceps-client-wasm/pkg-schema/
+ceps-client-wasm/pkg-nodejs-schema/

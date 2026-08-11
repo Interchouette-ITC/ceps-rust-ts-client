@@ -8,11 +8,11 @@ mod types;
 pub use error::CEP95Error;
 pub use types::InstallArgs;
 
+use crate::core::json_args;
 use crate::core::CEPClient;
-use crate::core::{
-    bool_arg, json_args, key_arg, option_byte_list_arg, string_arg, string_pair_list_arg, u256_arg,
-};
 use crate::error::{CEPError, CEPKind, Result};
+use crate::schema::arg;
+use crate::schema::cep95_fields as sch;
 use crate::types::{CallResult, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use entity::prefixed_key;
@@ -20,7 +20,7 @@ use keys::{
     balance_dictionary_key, operator_dictionary_key, ownable_owner_state_key,
     token_id_dictionary_key,
 };
-use serde_json::Value;
+use serde_json::{json, Value};
 
 /// Client for CEP-95 NFT contracts (Odra OwnedCEP95 tip and compatible ABIs).
 pub struct CEP95Client {
@@ -130,9 +130,9 @@ impl CEP95Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
-            key_arg("from", &prefixed_key(from)?),
-            key_arg("to", &prefixed_key(to)?),
-            u256_arg("token_id", token_id),
+            arg(&sch::ep::TF_FROM, Value::String(prefixed_key(from)?)),
+            arg(&sch::ep::TF_TO, Value::String(prefixed_key(to)?)),
+            arg(&sch::ep::TF_TOKEN_ID, Value::String(token_id.to_string())),
         ]);
         self.core.call_entrypoint("transfer_from", tx, &args).await
     }
@@ -146,12 +146,15 @@ impl CEP95Client {
         data: Option<&[u8]>,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let data_arg = option_byte_list_arg("data", data);
+        let data_value = match data {
+            Some(b) if !b.is_empty() => json!(b),
+            _ => Value::Null,
+        };
         let args = json_args(&[
-            key_arg("from", &prefixed_key(from)?),
-            key_arg("to", &prefixed_key(to)?),
-            u256_arg("token_id", token_id),
-            data_arg,
+            arg(&sch::ep::STF_FROM, Value::String(prefixed_key(from)?)),
+            arg(&sch::ep::STF_TO, Value::String(prefixed_key(to)?)),
+            arg(&sch::ep::STF_TOKEN_ID, Value::String(token_id.to_string())),
+            arg(&sch::ep::STF_DATA, data_value),
         ]);
         self.core
             .call_entrypoint("safe_transfer_from", tx, &args)
@@ -166,8 +169,14 @@ impl CEP95Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let args = json_args(&[
-            key_arg("spender", &prefixed_key(spender)?),
-            u256_arg("token_id", token_id),
+            arg(
+                &sch::ep::APPROVE_SPENDER,
+                Value::String(prefixed_key(spender)?),
+            ),
+            arg(
+                &sch::ep::APPROVE_TOKEN_ID,
+                Value::String(token_id.to_string()),
+            ),
         ]);
         self.core.call_entrypoint("approve", tx, &args).await
     }
@@ -178,7 +187,10 @@ impl CEP95Client {
         token_id: &str,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let args = json_args(&[u256_arg("token_id", token_id)]);
+        let args = json_args(&[arg(
+            &sch::ep::REVOKE_TOKEN_ID,
+            Value::String(token_id.to_string()),
+        )]);
         self.core
             .call_entrypoint("revoke_approval", tx, &args)
             .await
@@ -190,7 +202,10 @@ impl CEP95Client {
         operator: &str,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let args = json_args(&[key_arg("operator", &prefixed_key(operator)?)]);
+        let args = json_args(&[arg(
+            &sch::ep::OPERATOR,
+            Value::String(prefixed_key(operator)?),
+        )]);
         self.core
             .call_entrypoint("approve_for_all", tx, &args)
             .await
@@ -202,7 +217,10 @@ impl CEP95Client {
         operator: &str,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let args = json_args(&[key_arg("operator", &prefixed_key(operator)?)]);
+        let args = json_args(&[arg(
+            &sch::ep::OPERATOR,
+            Value::String(prefixed_key(operator)?),
+        )]);
         self.core
             .call_entrypoint("revoke_approval_for_all", tx, &args)
             .await
@@ -217,17 +235,21 @@ impl CEP95Client {
         tx: &TransactionParams,
     ) -> Result<CallResult> {
         let pairs: &[(String, String)] = metadata.unwrap_or(&[]);
+        let values: Vec<Value> = pairs.iter().map(|(k, v)| json!([k, v])).collect();
         let args = json_args(&[
-            key_arg("to", &prefixed_key(to)?),
-            u256_arg("token_id", token_id),
-            string_pair_list_arg("metadata", pairs),
+            arg(&sch::ep::MINT_TO, Value::String(prefixed_key(to)?)),
+            arg(&sch::ep::MINT_TOKEN_ID, Value::String(token_id.to_string())),
+            arg(&sch::ep::MINT_METADATA, json!(values)),
         ]);
         self.core.call_entrypoint("mint", tx, &args).await
     }
 
     /// Burn a token (token-owner gated on OwnedCEP95).
     pub async fn burn(&self, token_id: &str, tx: &TransactionParams) -> Result<CallResult> {
-        let args = json_args(&[u256_arg("token_id", token_id)]);
+        let args = json_args(&[arg(
+            &sch::ep::BURN_TOKEN_ID,
+            Value::String(token_id.to_string()),
+        )]);
         self.core.call_entrypoint("burn", tx, &args).await
     }
 
@@ -237,7 +259,10 @@ impl CEP95Client {
         new_owner: &str,
         tx: &TransactionParams,
     ) -> Result<CallResult> {
-        let args = json_args(&[key_arg("new_owner", &prefixed_key(new_owner)?)]);
+        let args = json_args(&[arg(
+            &sch::ep::NEW_OWNER,
+            Value::String(prefixed_key(new_owner)?),
+        )]);
         self.core
             .call_entrypoint("transfer_ownership", tx, &args)
             .await
@@ -335,15 +360,18 @@ impl CEP95Client {
 
 fn install_args_json(args: &InstallArgs) -> String {
     json_args(&[
-        string_arg(
-            "odra_cfg_package_hash_key_name",
-            &args.package_hash_key_name,
+        arg(
+            &sch::install::PACKAGE_HASH_KEY_NAME,
+            Value::String(args.package_hash_key_name.clone()),
         ),
-        bool_arg("odra_cfg_allow_key_override", args.allow_key_override),
-        bool_arg("odra_cfg_is_upgradable", args.is_upgradable),
-        bool_arg("odra_cfg_is_upgrade", args.is_upgrade),
-        string_arg("name", &args.name),
-        string_arg("symbol", &args.symbol),
+        arg(
+            &sch::install::ALLOW_KEY_OVERRIDE,
+            json!(args.allow_key_override),
+        ),
+        arg(&sch::install::IS_UPGRADABLE, json!(args.is_upgradable)),
+        arg(&sch::install::IS_UPGRADE, json!(args.is_upgrade)),
+        arg(&sch::install::NAME, Value::String(args.name.clone())),
+        arg(&sch::install::SYMBOL, Value::String(args.symbol.clone())),
     ])
 }
 
@@ -615,5 +643,6 @@ mod tests {
         assert!(s.contains("cep95_demo"));
         assert!(s.contains("\"name\":\"name\""));
         assert!(s.contains("\"name\":\"symbol\""));
+        crate::schema::assert_install_json_matches_schema(crate::schema::CepId::Cep95, &s);
     }
 }
