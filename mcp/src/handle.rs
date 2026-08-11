@@ -14,7 +14,7 @@ pub const ENV_CHAIN_NAME: &str = "CEPS_CHAIN_NAME";
 /// Env: verbosity (`low` | `medium` | `high` | `0` | `1` | `2`).
 pub const ENV_VERBOSITY: &str = "CEPS_VERBOSITY";
 /// Env: root for demo contract WASMs (defaults to `tests/wasm` under cwd).
-pub const ENV_WASM_ROOT: &str = "CEPS_WASM_ROOT";
+pub use ceps_client::wasm::ENV_WASM_ROOT;
 
 #[derive(Debug, Clone)]
 pub struct Endpoints {
@@ -91,16 +91,7 @@ pub fn parse_verbosity(raw: &str) -> Verbosity {
 
 /// Resolve demo WASM root directory.
 pub fn wasm_root() -> std::path::PathBuf {
-    if let Ok(p) = std::env::var(ENV_WASM_ROOT) {
-        return std::path::PathBuf::from(p);
-    }
-    for candidate in ["/opt/ceps/tests/wasm", "tests/wasm", "./tests/wasm"] {
-        let p = std::path::PathBuf::from(candidate);
-        if p.is_dir() {
-            return p;
-        }
-    }
-    std::path::PathBuf::from("tests/wasm")
+    ceps_client::wasm::wasm_root()
 }
 
 #[cfg(test)]

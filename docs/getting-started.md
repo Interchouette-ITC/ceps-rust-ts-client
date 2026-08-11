@@ -57,9 +57,10 @@ let client = CEP18Client::new(
 )?;
 ```
 
-Install / transfer flows: stage demo tip WASMs with `make wasm-from-ceps` (see [contributing.md](contributing.md)), then follow [cep18/](cep18/), [cep78/](cep78/), or [cep85/](cep85/). Examples:
+Install / transfer flows: stage demo tip WASMs with `make wasm-from-ceps` (see [contributing.md](contributing.md)), then `ceps_client::wasm::load("cep18")` (respects `CEPS_WASM_ROOT`). Follow [cep18/](cep18/), [cep78/](cep78/), or [cep85/](cep85/). Examples:
 
 ```bash
+CEPS_WASM_ROOT=tests/wasm \
 SECRET_KEY_USER_1="$(cat path/to/user-1/secret_key.pem)" \
   cargo run -p ceps-client --example cep18_install
 ```

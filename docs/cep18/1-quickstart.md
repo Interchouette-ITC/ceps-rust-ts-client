@@ -21,7 +21,8 @@ let mut client = CEP18Client::new(
 )?;
 
 let secret = fs::read_to_string("secret_key.pem")?;
-let wasm = fs::read("tests/wasm/cep18/cep18.wasm")?;
+let wasm = ceps_client::wasm::load("cep18")?;
+
 let args = InstallArgs::new("MyToken", "MTK", 9, "1000000000")
     .with_events_mode(EventsMode::CES)
     .with_mint_and_burn(true);

@@ -1,9 +1,13 @@
 //! Install an Odra OwnedCEP95 on NCTL, mint one token, print owner.
 //!
 //! ```bash
+//! CEPS_WASM_ROOT=tests/wasm \
 //! SECRET_KEY_USER_1="$(cat ../casper-nctl-2-docker/assets/users/user-1/secret_key.pem)" \
 //!   cargo run -p ceps-client --example cep95_install
 //! ```
+//!
+//! `ceps_client::wasm::load` reads under `CEPS_WASM_ROOT` (default `tests/wasm`
+//! when that directory exists relative to the process cwd).
 
 use ceps_client::cep95::InstallArgs;
 use ceps_client::{CEP95Client, TransactionParams, Verbosity};
@@ -19,9 +23,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .join("../../casper-nctl-2-docker/assets/users/user-1/secret_key.pem");
         fs::read_to_string(p).expect("read user-1 secret or set SECRET_KEY_USER_1")
     });
-    let wasm_path =
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../tests/wasm/cep95/cep95.wasm");
-    let wasm = fs::read(&wasm_path)?;
+    let wasm = match env::var("CEPS_WASM_ROOT") {
+        Ok(root) if !root.trim().is_empty() => {
+            ceps_client::wasm::load_from(PathBuf::from(root).as_path(), "cep95")?
+        }
+        _ => {
+            let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../tests/wasm");
+            ceps_client::wasm::load_from(&root, "cep95")?
+        }
+    };
 
     let mut client = CEP95Client::new(
         "http://127.0.0.1:11101",

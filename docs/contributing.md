@@ -25,6 +25,8 @@ make wasm-from-ceps   # → tests/wasm/{cep18,cep78,cep85,cep95}/
 
 Override roots with `CEP18_PRODUCT`, `CEP78_PRODUCT`, `CEP85_PRODUCT`, `CEP95_PRODUCT`. Prefer each tip’s `tests/wasm/` over stale `target/` builds.
 
+Load bytes in Rust with `ceps_client::wasm::load("cep18")` (or `load_from`) under `CEPS_WASM_ROOT` (defaults to `tests/wasm` when that directory exists). Short names resolve to `{root}/cep18/cep18.wasm`.
+
 ## Remotes (this client)
 
 | Remote   | Repo                                                                                                            |

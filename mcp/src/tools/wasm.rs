@@ -21,7 +21,7 @@ pub fn list_contract_wasms() -> ToolOutput {
         ));
     }
     let mut files = Vec::new();
-    for cep in ["cep18", "cep78", "cep85"] {
+    for cep in ["cep18", "cep78", "cep85", "cep95"] {
         let dir = root.join(cep);
         if !dir.is_dir() {
             continue;
@@ -57,10 +57,9 @@ pub fn read_contract_wasm(path: String) -> ToolOutput {
     if rel.is_absolute() || rel.components().any(|c| matches!(c, Component::ParentDir)) {
         return format::err("path must be relative under CEPS_WASM_ROOT without '..'");
     }
-    let full = root.join(rel);
-    let bytes = match std::fs::read(&full) {
+    let bytes = match ceps_client::wasm::load_from(&root, &path) {
         Ok(b) => b,
-        Err(e) => return format::err(format!("read {}: {e}", full.display())),
+        Err(e) => return format::err(e.to_string()),
     };
     let b64 = base64::engine::general_purpose::STANDARD.encode(&bytes);
     format::json_ok(&serde_json::json!({
@@ -89,6 +88,9 @@ pub fn canonical_wasm_paths() -> ToolOutput {
         "cep85": {
             "install": "cep85/cep85.wasm",
             "test_contract": "cep85/cep85_test_contract.wasm",
+        },
+        "cep95": {
+            "install": "cep95/cep95.wasm",
         },
         "note": "Paths are relative to CEPS_WASM_ROOT (default tests/wasm).",
     }))
