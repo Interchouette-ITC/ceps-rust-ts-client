@@ -2,6 +2,7 @@
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
 export const __wbg_cep18client_free: (a: number, b: number) => void;
+export const cep18SchemaJson: () => [number, number];
 export const cep18client_SSEUrl: (a: number) => [number, number];
 export const cep18client_balanceOf: (a: number, b: number, c: number) => any;
 export const cep18client_chainName: (a: number) => [number, number];
@@ -16,6 +17,7 @@ export const cep18client_securityBadge: (a: number, b: number, c: number) => any
 export const cep18client_setContractHash: (a: number, b: number, c: number, d: number, e: number) => [number, number];
 export const cep18client_symbol: (a: number) => any;
 export const cep18client_waitTransaction: (a: number, b: number, c: number, d: number, e: bigint) => any;
+export const cep78SchemaJson: () => [number, number];
 export const cep78client_balanceOf: (a: number, b: number, c: number) => any;
 export const cep78client_collectCESEvents: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
 export const cep78client_collectionName: (a: number) => any;
@@ -25,6 +27,7 @@ export const cep78client_ownershipMode: (a: number) => any;
 export const cep78client_parseCES: (a: number, b: number, c: number) => any;
 export const cep78client_putTransaction: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
 export const cep78client_waitTransaction: (a: number, b: number, c: number, d: number, e: bigint) => any;
+export const cep85SchemaJson: () => [number, number];
 export const cep85client_balanceOf: (a: number, b: number, c: number, d: number, e: number) => any;
 export const cep85client_balanceOfBatch: (a: number, b: number, c: number, d: number, e: number) => any;
 export const cep85client_collectCESEvents: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
@@ -43,6 +46,7 @@ export const cep85client_totalSupplyOfBatch: (a: number, b: number, c: number) =
 export const cep85client_transferFilterContract: (a: number) => any;
 export const cep85client_transferFilterMethod: (a: number) => any;
 export const cep85client_waitTransaction: (a: number, b: number, c: number, d: number, e: bigint) => any;
+export const cep95SchemaJson: () => [number, number];
 export const cep95client_balanceOf: (a: number, b: number, c: number) => any;
 export const cep95client_collectCESEvents: (a: number, b: number, c: number, d: number, e: number, f: bigint) => any;
 export const cep95client_getOwner: (a: number) => any;
@@ -55,6 +59,8 @@ export const cep95client_putTransaction: (a: number, b: number, c: number, d: nu
 export const cep95client_symbol: (a: number) => any;
 export const cep95client_transferOwnership: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number) => any;
 export const cep95client_waitTransaction: (a: number, b: number, c: number, d: number, e: bigint) => any;
+export const schemaJson: (a: number, b: number) => [number, number, number, number];
+export const supportedCeps: () => [number, number, number];
 export const cep78client_SSEUrl: (a: number) => [number, number];
 export const cep85client_SSEUrl: (a: number) => [number, number];
 export const cep95client_SSEUrl: (a: number) => [number, number];
