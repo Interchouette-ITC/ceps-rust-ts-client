@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["CepId"],"fn":["arg","cep18_schema_json","cep78_schema_json","cep85_schema_json","cep95_schema_json","schema","schema_json","schema_value","supported_ceps"],"mod":["cep18","cep78","cep85","cep95"],"struct":["ArgField","CepSchema"]};

@@ -27,6 +27,26 @@ Or download `ceps-client-wasm-nodejs-*.tgz` / `ceps-client-wasm-web-*.tgz` from 
 
 Full mutate/query parity lives in Rust `ceps-client`. The pack `.d.ts` exports CEP clients only (SDK feature `js` is not enabled on the path dependency).
 
+## Schema feature (arg metadata)
+
+For install / entrypoint defaults when there is no on-chain entrypoint metadata, enable the Cargo feature `schema` (pulled in with the default `client` feature, or alone for a lean pack).
+
+```bash
+make nodejs-schema   # → ceps-client-wasm/pkg-nodejs-schema
+make web-schema      # → ceps-client-wasm/pkg-schema
+make schema-check    # feature matrix + lean .d.ts assert
+```
+
+Schema-only packs export `schemaJson("cep18")`, `supportedCeps()`, and `cep18SchemaJson()` … `cep95SchemaJson()` — not `CEP18Client` / RPC helpers.
+
+```js
+import { cep18SchemaJson, schemaJson } from "ceps-client-wasm";
+
+const schema = JSON.parse(cep18SchemaJson());
+// or: JSON.parse(schemaJson("cep18"))
+console.log(schema.install, schema.entrypoints.transfer);
+```
+
 ## Node example
 
 ```js
