@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["CEP85Error"],"fn":["prefixed_key"],"struct":["CEP85Client","ChangeSecurityArgs","InstallArgs","UpgradeArgs"]};
+window.SIDEBAR_ITEMS = {"enum":["CEP85Error","SecurityBadge85"],"fn":["prefixed_key"],"struct":["CEP85Client","ChangeSecurityArgs","InstallArgs","UpgradeArgs"]};

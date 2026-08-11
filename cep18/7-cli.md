@@ -9,7 +9,7 @@ ceps-client-cli [--rpc-url …] [--sse-url …] [--chain-name …] [--json] cep1
 | `info` | Prints bound RPC / SSE / chain endpoints |
 | `install` | Install WASM (`--wasm`, `--secret-key` or `--make-only`) |
 | `transfer` / `transfer-from` / `approve` / `mint` / `burn` | Mutates (`--make-only` supported) |
-| `name` / `balance` | Queries |
+| `name` / `balance` / `security-badge` | Queries |
 
 Example make-only transfer:
 
