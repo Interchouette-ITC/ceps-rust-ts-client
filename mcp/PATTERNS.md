@@ -15,17 +15,18 @@ mcp/
   src/
     main.rs           # clap: --http / CEPS_MCP_ADDR
     lib.rs
-    server.rs         # #[mcp_server] + #[tool]
+    server.rs         # #[tool_router] + #[tool]
+    tool_args.rs      # schemars Parameters structs
     handle.rs         # process-wide endpoints + wasm root
     format.rs
     tools/            # meta, wasm, cep18, cep78, cep85, params
 ```
 
-`mcpkit` stays out of `ceps-client` / `ceps-client-wasm`.
+`rmcp` stays out of `ceps-client` / `ceps-client-wasm`.
 
 ## Transports
 
-- Default: stdio (`StdioTransport`)
+- Default: stdio (`rmcp` `transport::stdio`)
 - HTTP: `--http` / `CEPS_MCP_HTTP=1`, listen `CEPS_MCP_ADDR` (default `0.0.0.0:6790`)
 - Cursor HTTP clients use mcp-remote against `http://127.0.0.1:6790/mcp`
 

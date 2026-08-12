@@ -15,7 +15,7 @@ use ceps_client::cep85::{
 };
 use ceps_client::cep95::{CEP95Client, InstallArgs as CEP95InstallArgs};
 use ceps_client::{EventsMode, EventsMode78, Result as CEPResult, TransactionParams};
-use mcpkit::prelude::ToolOutput;
+use rmcp::model::CallToolResult;
 use std::path::{Component, Path, PathBuf};
 
 /// Build `TransactionParams` from MCP args.
@@ -136,14 +136,14 @@ pub fn call_result_json(r: &ceps_client::CallResult) -> serde_json::Value {
     })
 }
 
-pub fn map_call(result: CEPResult<ceps_client::CallResult>) -> ToolOutput {
+pub fn map_call(result: CEPResult<ceps_client::CallResult>) -> CallToolResult {
     match result {
         Ok(r) => format::json_ok(&call_result_json(&r)),
         Err(e) => format::err(e),
     }
 }
 
-pub fn map_query<T: serde::Serialize>(result: CEPResult<T>) -> ToolOutput {
+pub fn map_query<T: serde::Serialize>(result: CEPResult<T>) -> CallToolResult {
     format::from_result(result)
 }
 
@@ -245,24 +245,22 @@ pub fn cep95_install_args(
 }
 
 pub fn cep18_install_args(
-    name: String,
-    symbol: String,
-    decimals: u8,
-    total_supply: String,
-    events_mode: Option<u8>,
-    enable_mint_and_burn: Option<bool>,
-    admin_list: Option<Vec<String>>,
-    minter_list: Option<Vec<String>>,
+    a: &crate::tool_args::Ceps18InstallArgs,
 ) -> Result<CEP18InstallArgs, String> {
-    let mut args = CEP18InstallArgs::new(name, symbol, decimals, total_supply);
-    if let Some(mode) = parse_events_mode(events_mode)? {
+    let mut args = CEP18InstallArgs::new(
+        a.name.clone(),
+        a.symbol.clone(),
+        a.decimals,
+        a.total_supply.clone(),
+    );
+    if let Some(mode) = parse_events_mode(a.events_mode)? {
         args = args.with_events_mode(mode);
     }
-    if let Some(v) = enable_mint_and_burn {
+    if let Some(v) = a.enable_mint_and_burn {
         args = args.with_mint_and_burn(v);
     }
-    args.admin_list = admin_list;
-    args.minter_list = minter_list;
+    args.admin_list = a.admin_list.clone();
+    args.minter_list = a.minter_list.clone();
     Ok(args)
 }
 
@@ -278,29 +276,23 @@ pub fn cep18_upgrade_args(
 }
 
 pub fn cep85_install_args(
-    name: String,
-    uri: String,
-    events_mode: Option<u8>,
-    enable_burn: Option<bool>,
-    admin_list: Option<Vec<String>>,
-    minter_list: Option<Vec<String>>,
-    burner_list: Option<Vec<String>>,
-    meta_list: Option<Vec<String>>,
-    transfer_filter_contract: Option<String>,
-    transfer_filter_method: Option<String>,
+    a: &crate::tool_args::Ceps85InstallArgs,
 ) -> Result<CEP85InstallArgs, String> {
-    let mut args = CEP85InstallArgs::new(name, uri);
-    if let Some(mode) = parse_events_mode(events_mode)? {
+    let mut args = CEP85InstallArgs::new(a.name.clone(), a.uri.clone());
+    if let Some(mode) = parse_events_mode(a.events_mode)? {
         args = args.with_events_mode(mode);
     }
-    if let Some(v) = enable_burn {
+    if let Some(v) = a.enable_burn {
         args = args.with_enable_burn(v);
     }
-    args.admin_list = admin_list;
-    args.minter_list = minter_list;
-    args.burner_list = burner_list;
-    args.meta_list = meta_list;
-    match (transfer_filter_contract, transfer_filter_method) {
+    args.admin_list = a.admin_list.clone();
+    args.minter_list = a.minter_list.clone();
+    args.burner_list = a.burner_list.clone();
+    args.meta_list = a.meta_list.clone();
+    match (
+        a.transfer_filter_contract.clone(),
+        a.transfer_filter_method.clone(),
+    ) {
         (None, None) => {}
         (Some(c), Some(m)) => {
             args = args.with_transfer_filter(c, m);

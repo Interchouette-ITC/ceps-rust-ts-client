@@ -3,7 +3,7 @@
 use crate::format;
 use crate::handle;
 use base64::Engine;
-use mcpkit::prelude::ToolOutput;
+use rmcp::model::CallToolResult;
 use std::path::{Component, Path};
 
 pub const TOOL_NAMES: &[&str] = &[
@@ -12,7 +12,7 @@ pub const TOOL_NAMES: &[&str] = &[
     "ceps_canonical_wasm_paths",
 ];
 
-pub fn list_contract_wasms() -> ToolOutput {
+pub fn list_contract_wasms() -> CallToolResult {
     let root = handle::wasm_root();
     if !root.is_dir() {
         return format::err(format!(
@@ -51,7 +51,7 @@ pub fn list_contract_wasms() -> ToolOutput {
     }))
 }
 
-pub fn read_contract_wasm(path: String) -> ToolOutput {
+pub fn read_contract_wasm(path: String) -> CallToolResult {
     let root = handle::wasm_root();
     let rel = Path::new(&path);
     if rel.is_absolute() || rel.components().any(|c| matches!(c, Component::ParentDir)) {
@@ -69,7 +69,7 @@ pub fn read_contract_wasm(path: String) -> ToolOutput {
     }))
 }
 
-pub fn canonical_wasm_paths() -> ToolOutput {
+pub fn canonical_wasm_paths() -> CallToolResult {
     format::json_ok(&serde_json::json!({
         "cep18": {
             "install": "cep18/cep18.wasm",

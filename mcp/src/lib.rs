@@ -1,10 +1,9 @@
 //! MCP sidecar library for `ceps-rust-ts-client`.
 
-#![allow(clippy::too_many_arguments)]
-
 pub mod format;
 pub mod handle;
 pub mod server;
+pub mod tool_args;
 pub mod tools;
 
 #[cfg(test)]

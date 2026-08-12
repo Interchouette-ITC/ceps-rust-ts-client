@@ -3,7 +3,7 @@
 use crate::format;
 use crate::tools::params;
 use ceps_client::cep85::ChangeSecurityArgs;
-use mcpkit::prelude::ToolOutput;
+use rmcp::model::CallToolResult;
 
 pub const TOOL_NAMES: &[&str] = &[
     "ceps85_install",
@@ -53,53 +53,23 @@ fn refs(v: &[String]) -> Vec<&str> {
     v.iter().map(String::as_str).collect()
 }
 
-pub async fn install(
-    name: String,
-    uri: String,
-    secret_key_pem: Option<String>,
-    payment_amount: String,
-    wasm_path: Option<String>,
-    wasm_base64: Option<String>,
-    events_mode: Option<u8>,
-    enable_burn: Option<bool>,
-    admin_list: Option<Vec<String>>,
-    minter_list: Option<Vec<String>>,
-    burner_list: Option<Vec<String>>,
-    meta_list: Option<Vec<String>>,
-    transfer_filter_contract: Option<String>,
-    transfer_filter_method: Option<String>,
-    wait: Option<bool>,
-    wait_timeout_ms: Option<u64>,
-    make_only: Option<bool>,
-    initiator_addr: Option<String>,
-) -> ToolOutput {
-    let args = match params::cep85_install_args(
-        name,
-        uri,
-        events_mode,
-        enable_burn,
-        admin_list,
-        minter_list,
-        burner_list,
-        meta_list,
-        transfer_filter_contract,
-        transfer_filter_method,
-    ) {
+pub async fn install(a: crate::tool_args::Ceps85InstallArgs) -> CallToolResult {
+    let args = match params::cep85_install_args(&a) {
         Ok(a) => a,
         Err(e) => return format::err(e),
     };
-    let wasm = match params::load_wasm(wasm_base64, wasm_path) {
+    let wasm = match params::load_wasm(a.wasm_base64, a.wasm_path) {
         Ok(w) => w,
         Err(e) => return format::err(e),
     };
     let tx = match params::transaction_params(
-        secret_key_pem,
-        payment_amount,
-        wait,
-        wait_timeout_ms,
+        a.secret_key_pem,
+        a.payment_amount,
+        a.wait,
+        a.wait_timeout_ms,
         None,
-        make_only,
-        initiator_addr,
+        a.make_only,
+        a.initiator_addr,
     ) {
         Ok(t) => t,
         Err(e) => return format::err(e),
@@ -111,36 +81,27 @@ pub async fn install(
     params::map_call(client.install(&args, &wasm, &tx).await)
 }
 
-pub async fn upgrade(
-    name: String,
-    secret_key_pem: Option<String>,
-    payment_amount: String,
-    wasm_path: Option<String>,
-    wasm_base64: Option<String>,
-    transfer_filter_contract: Option<String>,
-    transfer_filter_method: Option<String>,
-    wait: Option<bool>,
-    wait_timeout_ms: Option<u64>,
-    make_only: Option<bool>,
-    initiator_addr: Option<String>,
-) -> ToolOutput {
-    let args =
-        match params::cep85_upgrade_args(name, transfer_filter_contract, transfer_filter_method) {
-            Ok(a) => a,
-            Err(e) => return format::err(e),
-        };
-    let wasm = match params::load_wasm(wasm_base64, wasm_path) {
+pub async fn upgrade(a: crate::tool_args::Ceps85UpgradeArgs) -> CallToolResult {
+    let args = match params::cep85_upgrade_args(
+        a.name,
+        a.transfer_filter_contract,
+        a.transfer_filter_method,
+    ) {
+        Ok(a) => a,
+        Err(e) => return format::err(e),
+    };
+    let wasm = match params::load_wasm(a.wasm_base64, a.wasm_path) {
         Ok(w) => w,
         Err(e) => return format::err(e),
     };
     let tx = match params::transaction_params(
-        secret_key_pem,
-        payment_amount,
-        wait,
-        wait_timeout_ms,
+        a.secret_key_pem,
+        a.payment_amount,
+        a.wait,
+        a.wait_timeout_ms,
         None,
-        make_only,
-        initiator_addr,
+        a.make_only,
+        a.initiator_addr,
     ) {
         Ok(t) => t,
         Err(e) => return format::err(e),
@@ -152,327 +113,219 @@ pub async fn upgrade(
     params::map_call(client.upgrade(&args, &wasm, &tx).await)
 }
 
-pub async fn mint(
-    contract_hash: String,
-    package_hash: Option<String>,
-    recipient: String,
-    id: String,
-    amount: String,
-    uri: Option<String>,
-    secret_key_pem: Option<String>,
-    payment_amount: String,
-    wait: Option<bool>,
-    wait_timeout_ms: Option<u64>,
-    make_only: Option<bool>,
-    initiator_addr: Option<String>,
-) -> ToolOutput {
-    let client = need_client!(contract_hash, package_hash);
+pub async fn mint(a: crate::tool_args::Ceps85MintArgs) -> CallToolResult {
+    let client = need_client!(a.contract_hash, a.package_hash);
     let tx = match params::transaction_params(
-        secret_key_pem,
-        payment_amount,
-        wait,
-        wait_timeout_ms,
+        a.secret_key_pem,
+        a.payment_amount,
+        a.wait,
+        a.wait_timeout_ms,
         None,
-        make_only,
-        initiator_addr,
+        a.make_only,
+        a.initiator_addr,
     ) {
         Ok(t) => t,
         Err(e) => return format::err(e),
     };
     params::map_call(
         client
-            .mint(&recipient, &id, &amount, uri.as_deref(), &tx)
+            .mint(&a.recipient, &a.id, &a.amount, a.uri.as_deref(), &tx)
             .await,
     )
 }
 
-pub async fn batch_mint(
-    contract_hash: String,
-    package_hash: Option<String>,
-    recipient: String,
-    ids: Vec<String>,
-    amounts: Vec<String>,
-    uri: Option<String>,
-    secret_key_pem: Option<String>,
-    payment_amount: String,
-    wait: Option<bool>,
-    wait_timeout_ms: Option<u64>,
-    make_only: Option<bool>,
-    initiator_addr: Option<String>,
-) -> ToolOutput {
-    let client = need_client!(contract_hash, package_hash);
+pub async fn batch_mint(a: crate::tool_args::Ceps85BatchMintArgs) -> CallToolResult {
+    let client = need_client!(a.contract_hash, a.package_hash);
     let tx = match params::transaction_params(
-        secret_key_pem,
-        payment_amount,
-        wait,
-        wait_timeout_ms,
+        a.secret_key_pem,
+        a.payment_amount,
+        a.wait,
+        a.wait_timeout_ms,
         None,
-        make_only,
-        initiator_addr,
+        a.make_only,
+        a.initiator_addr,
     ) {
         Ok(t) => t,
         Err(e) => return format::err(e),
     };
-    let id_refs = refs(&ids);
-    let amt_refs = refs(&amounts);
+    let id_refs = refs(&a.ids);
+    let amt_refs = refs(&a.amounts);
     params::map_call(
         client
-            .batch_mint(&recipient, &id_refs, &amt_refs, uri.as_deref(), &tx)
+            .batch_mint(&a.recipient, &id_refs, &amt_refs, a.uri.as_deref(), &tx)
             .await,
     )
 }
 
-pub async fn burn(
-    contract_hash: String,
-    package_hash: Option<String>,
-    owner: String,
-    id: String,
-    amount: String,
-    secret_key_pem: Option<String>,
-    payment_amount: String,
-    wait: Option<bool>,
-    wait_timeout_ms: Option<u64>,
-    make_only: Option<bool>,
-    initiator_addr: Option<String>,
-) -> ToolOutput {
-    let client = need_client!(contract_hash, package_hash);
+pub async fn burn(a: crate::tool_args::Ceps85BurnArgs) -> CallToolResult {
+    let client = need_client!(a.contract_hash, a.package_hash);
     let tx = match params::transaction_params(
-        secret_key_pem,
-        payment_amount,
-        wait,
-        wait_timeout_ms,
+        a.secret_key_pem,
+        a.payment_amount,
+        a.wait,
+        a.wait_timeout_ms,
         None,
-        make_only,
-        initiator_addr,
+        a.make_only,
+        a.initiator_addr,
     ) {
         Ok(t) => t,
         Err(e) => return format::err(e),
     };
-    params::map_call(client.burn(&owner, &id, &amount, &tx).await)
+    params::map_call(client.burn(&a.owner, &a.id, &a.amount, &tx).await)
 }
 
-pub async fn batch_burn(
-    contract_hash: String,
-    package_hash: Option<String>,
-    owner: String,
-    ids: Vec<String>,
-    amounts: Vec<String>,
-    secret_key_pem: Option<String>,
-    payment_amount: String,
-    wait: Option<bool>,
-    wait_timeout_ms: Option<u64>,
-    make_only: Option<bool>,
-    initiator_addr: Option<String>,
-) -> ToolOutput {
-    let client = need_client!(contract_hash, package_hash);
+pub async fn batch_burn(a: crate::tool_args::Ceps85BatchBurnArgs) -> CallToolResult {
+    let client = need_client!(a.contract_hash, a.package_hash);
     let tx = match params::transaction_params(
-        secret_key_pem,
-        payment_amount,
-        wait,
-        wait_timeout_ms,
+        a.secret_key_pem,
+        a.payment_amount,
+        a.wait,
+        a.wait_timeout_ms,
         None,
-        make_only,
-        initiator_addr,
+        a.make_only,
+        a.initiator_addr,
     ) {
         Ok(t) => t,
         Err(e) => return format::err(e),
     };
-    let id_refs = refs(&ids);
-    let amt_refs = refs(&amounts);
-    params::map_call(client.batch_burn(&owner, &id_refs, &amt_refs, &tx).await)
+    let id_refs = refs(&a.ids);
+    let amt_refs = refs(&a.amounts);
+    params::map_call(client.batch_burn(&a.owner, &id_refs, &amt_refs, &tx).await)
 }
 
-pub async fn transfer(
-    contract_hash: String,
-    package_hash: Option<String>,
-    from: String,
-    to: String,
-    id: String,
-    amount: String,
-    data_hex: Option<String>,
-    secret_key_pem: Option<String>,
-    payment_amount: String,
-    wait: Option<bool>,
-    wait_timeout_ms: Option<u64>,
-    make_only: Option<bool>,
-    initiator_addr: Option<String>,
-) -> ToolOutput {
-    let client = need_client!(contract_hash, package_hash);
+pub async fn transfer(a: crate::tool_args::Ceps85TransferArgs) -> CallToolResult {
+    let client = need_client!(a.contract_hash, a.package_hash);
     let tx = match params::transaction_params(
-        secret_key_pem,
-        payment_amount,
-        wait,
-        wait_timeout_ms,
+        a.secret_key_pem,
+        a.payment_amount,
+        a.wait,
+        a.wait_timeout_ms,
         None,
-        make_only,
-        initiator_addr,
+        a.make_only,
+        a.initiator_addr,
     ) {
         Ok(t) => t,
         Err(e) => return format::err(e),
     };
-    let data = match decode_optional_hex(data_hex) {
+    let data = match decode_optional_hex(a.data_hex) {
         Ok(d) => d,
         Err(e) => return format::err(e),
     };
     params::map_call(
         client
-            .transfer(&from, &to, &id, &amount, data.as_deref(), &tx)
+            .transfer(&a.from, &a.to, &a.id, &a.amount, data.as_deref(), &tx)
             .await,
     )
 }
 
-pub async fn batch_transfer(
-    contract_hash: String,
-    package_hash: Option<String>,
-    from: String,
-    to: String,
-    ids: Vec<String>,
-    amounts: Vec<String>,
-    data_hex: Option<String>,
-    secret_key_pem: Option<String>,
-    payment_amount: String,
-    wait: Option<bool>,
-    wait_timeout_ms: Option<u64>,
-    make_only: Option<bool>,
-    initiator_addr: Option<String>,
-) -> ToolOutput {
-    let client = need_client!(contract_hash, package_hash);
+pub async fn batch_transfer(a: crate::tool_args::Ceps85BatchTransferArgs) -> CallToolResult {
+    let client = need_client!(a.contract_hash, a.package_hash);
     let tx = match params::transaction_params(
-        secret_key_pem,
-        payment_amount,
-        wait,
-        wait_timeout_ms,
+        a.secret_key_pem,
+        a.payment_amount,
+        a.wait,
+        a.wait_timeout_ms,
         None,
-        make_only,
-        initiator_addr,
+        a.make_only,
+        a.initiator_addr,
     ) {
         Ok(t) => t,
         Err(e) => return format::err(e),
     };
-    let data = match decode_optional_hex(data_hex) {
+    let data = match decode_optional_hex(a.data_hex) {
         Ok(d) => d,
         Err(e) => return format::err(e),
     };
-    let id_refs = refs(&ids);
-    let amt_refs = refs(&amounts);
+    let id_refs = refs(&a.ids);
+    let amt_refs = refs(&a.amounts);
     params::map_call(
         client
-            .batch_transfer(&from, &to, &id_refs, &amt_refs, data.as_deref(), &tx)
+            .batch_transfer(&a.from, &a.to, &id_refs, &amt_refs, data.as_deref(), &tx)
             .await,
     )
 }
 
 pub async fn set_approval_for_all(
-    contract_hash: String,
-    package_hash: Option<String>,
-    operator: String,
-    approved: bool,
-    secret_key_pem: Option<String>,
-    payment_amount: String,
-    wait: Option<bool>,
-    wait_timeout_ms: Option<u64>,
-    make_only: Option<bool>,
-    initiator_addr: Option<String>,
-) -> ToolOutput {
-    let client = need_client!(contract_hash, package_hash);
+    a: crate::tool_args::Ceps85SetApprovalForAllArgs,
+) -> CallToolResult {
+    let client = need_client!(a.contract_hash, a.package_hash);
     let tx = match params::transaction_params(
-        secret_key_pem,
-        payment_amount,
-        wait,
-        wait_timeout_ms,
+        a.secret_key_pem,
+        a.payment_amount,
+        a.wait,
+        a.wait_timeout_ms,
         None,
-        make_only,
-        initiator_addr,
+        a.make_only,
+        a.initiator_addr,
     ) {
         Ok(t) => t,
         Err(e) => return format::err(e),
     };
-    params::map_call(client.set_approval_for_all(&operator, approved, &tx).await)
+    params::map_call(
+        client
+            .set_approval_for_all(&a.operator, a.approved, &tx)
+            .await,
+    )
 }
 
-pub async fn set_uri(
-    contract_hash: String,
-    package_hash: Option<String>,
-    uri: String,
-    id: Option<String>,
-    secret_key_pem: Option<String>,
-    payment_amount: String,
-    wait: Option<bool>,
-    wait_timeout_ms: Option<u64>,
-    make_only: Option<bool>,
-    initiator_addr: Option<String>,
-) -> ToolOutput {
-    let client = need_client!(contract_hash, package_hash);
+pub async fn set_uri(a: crate::tool_args::Ceps85SetUriArgs) -> CallToolResult {
+    let client = need_client!(a.contract_hash, a.package_hash);
     let tx = match params::transaction_params(
-        secret_key_pem,
-        payment_amount,
-        wait,
-        wait_timeout_ms,
+        a.secret_key_pem,
+        a.payment_amount,
+        a.wait,
+        a.wait_timeout_ms,
         None,
-        make_only,
-        initiator_addr,
+        a.make_only,
+        a.initiator_addr,
     ) {
         Ok(t) => t,
         Err(e) => return format::err(e),
     };
-    params::map_call(client.set_uri(&uri, id.as_deref(), &tx).await)
+    params::map_call(client.set_uri(&a.uri, a.id.as_deref(), &tx).await)
 }
 
 pub async fn set_total_supply_of(
-    contract_hash: String,
-    package_hash: Option<String>,
-    id: String,
-    total_supply: String,
-    secret_key_pem: Option<String>,
-    payment_amount: String,
-    wait: Option<bool>,
-    wait_timeout_ms: Option<u64>,
-    make_only: Option<bool>,
-    initiator_addr: Option<String>,
-) -> ToolOutput {
-    let client = need_client!(contract_hash, package_hash);
+    a: crate::tool_args::Ceps85SetTotalSupplyOfArgs,
+) -> CallToolResult {
+    let client = need_client!(a.contract_hash, a.package_hash);
     let tx = match params::transaction_params(
-        secret_key_pem,
-        payment_amount,
-        wait,
-        wait_timeout_ms,
+        a.secret_key_pem,
+        a.payment_amount,
+        a.wait,
+        a.wait_timeout_ms,
         None,
-        make_only,
-        initiator_addr,
+        a.make_only,
+        a.initiator_addr,
     ) {
         Ok(t) => t,
         Err(e) => return format::err(e),
     };
-    params::map_call(client.set_total_supply_of(&id, &total_supply, &tx).await)
+    params::map_call(
+        client
+            .set_total_supply_of(&a.id, &a.total_supply, &tx)
+            .await,
+    )
 }
 
 pub async fn set_total_supply_of_batch(
-    contract_hash: String,
-    package_hash: Option<String>,
-    ids: Vec<String>,
-    total_supplies: Vec<String>,
-    secret_key_pem: Option<String>,
-    payment_amount: String,
-    wait: Option<bool>,
-    wait_timeout_ms: Option<u64>,
-    make_only: Option<bool>,
-    initiator_addr: Option<String>,
-) -> ToolOutput {
-    let client = need_client!(contract_hash, package_hash);
+    a: crate::tool_args::Ceps85SetTotalSupplyOfBatchArgs,
+) -> CallToolResult {
+    let client = need_client!(a.contract_hash, a.package_hash);
     let tx = match params::transaction_params(
-        secret_key_pem,
-        payment_amount,
-        wait,
-        wait_timeout_ms,
+        a.secret_key_pem,
+        a.payment_amount,
+        a.wait,
+        a.wait_timeout_ms,
         None,
-        make_only,
-        initiator_addr,
+        a.make_only,
+        a.initiator_addr,
     ) {
         Ok(t) => t,
         Err(e) => return format::err(e),
     };
-    let id_refs = refs(&ids);
-    let supply_refs = refs(&total_supplies);
+    let id_refs = refs(&a.ids);
+    let supply_refs = refs(&a.total_supplies);
     params::map_call(
         client
             .set_total_supply_of_batch(&id_refs, &supply_refs, &tx)
@@ -480,82 +333,60 @@ pub async fn set_total_supply_of_batch(
     )
 }
 
-pub async fn change_security(
-    contract_hash: String,
-    package_hash: Option<String>,
-    secret_key_pem: Option<String>,
-    payment_amount: String,
-    admin_list: Option<Vec<String>>,
-    minter_list: Option<Vec<String>>,
-    burner_list: Option<Vec<String>>,
-    meta_list: Option<Vec<String>>,
-    none_list: Option<Vec<String>>,
-    wait: Option<bool>,
-    wait_timeout_ms: Option<u64>,
-    make_only: Option<bool>,
-    initiator_addr: Option<String>,
-) -> ToolOutput {
-    let client = need_client!(contract_hash, package_hash);
+pub async fn change_security(a: crate::tool_args::Ceps85ChangeSecurityArgs) -> CallToolResult {
+    let client = need_client!(a.contract_hash, a.package_hash);
     let tx = match params::transaction_params(
-        secret_key_pem,
-        payment_amount,
-        wait,
-        wait_timeout_ms,
+        a.secret_key_pem,
+        a.payment_amount,
+        a.wait,
+        a.wait_timeout_ms,
         None,
-        make_only,
-        initiator_addr,
+        a.make_only,
+        a.initiator_addr,
     ) {
         Ok(t) => t,
         Err(e) => return format::err(e),
     };
     let args = ChangeSecurityArgs {
-        admin_list,
-        minter_list,
-        burner_list,
-        meta_list,
-        none_list,
+        admin_list: a.admin_list,
+        minter_list: a.minter_list,
+        burner_list: a.burner_list,
+        meta_list: a.meta_list,
+        none_list: a.none_list,
     };
     params::map_call(client.change_security(&args, &tx).await)
 }
 
-pub async fn set_modalities(
-    contract_hash: String,
-    package_hash: Option<String>,
-    secret_key_pem: Option<String>,
-    payment_amount: String,
-    enable_burn: Option<bool>,
-    events_mode: Option<u8>,
-    wait: Option<bool>,
-    wait_timeout_ms: Option<u64>,
-    make_only: Option<bool>,
-    initiator_addr: Option<String>,
-) -> ToolOutput {
-    let mode = match params::parse_events_mode(events_mode) {
+pub async fn set_modalities(a: crate::tool_args::Ceps85SetModalitiesArgs) -> CallToolResult {
+    let mode = match params::parse_events_mode(a.events_mode) {
         Ok(m) => m,
         Err(e) => return format::err(e),
     };
-    let client = need_client!(contract_hash, package_hash);
+    let client = need_client!(a.contract_hash, a.package_hash);
     let tx = match params::transaction_params(
-        secret_key_pem,
-        payment_amount,
-        wait,
-        wait_timeout_ms,
+        a.secret_key_pem,
+        a.payment_amount,
+        a.wait,
+        a.wait_timeout_ms,
         None,
-        make_only,
-        initiator_addr,
+        a.make_only,
+        a.initiator_addr,
     ) {
         Ok(t) => t,
         Err(e) => return format::err(e),
     };
-    params::map_call(client.set_modalities(enable_burn, mode, &tx).await)
+    params::map_call(client.set_modalities(a.enable_burn, mode, &tx).await)
 }
 
-pub async fn collection_name(contract_hash: String, package_hash: Option<String>) -> ToolOutput {
+pub async fn collection_name(
+    contract_hash: String,
+    package_hash: Option<String>,
+) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.collection_name().await)
 }
 
-pub async fn collection_uri(contract_hash: String, package_hash: Option<String>) -> ToolOutput {
+pub async fn collection_uri(contract_hash: String, package_hash: Option<String>) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.collection_uri().await)
 }
@@ -565,7 +396,7 @@ pub async fn balance_of(
     package_hash: Option<String>,
     account: String,
     id: String,
-) -> ToolOutput {
+) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.balance_of(&account, &id).await)
 }
@@ -575,7 +406,7 @@ pub async fn is_approved_for_all(
     package_hash: Option<String>,
     owner: String,
     operator: String,
-) -> ToolOutput {
+) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.is_approved_for_all(&owner, &operator).await)
 }
@@ -584,7 +415,7 @@ pub async fn supply_of(
     contract_hash: String,
     package_hash: Option<String>,
     id: String,
-) -> ToolOutput {
+) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.supply_of(&id).await)
 }
@@ -593,7 +424,7 @@ pub async fn total_supply_of(
     contract_hash: String,
     package_hash: Option<String>,
     id: String,
-) -> ToolOutput {
+) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.total_supply_of(&id).await)
 }
@@ -602,7 +433,7 @@ pub async fn uri(
     contract_hash: String,
     package_hash: Option<String>,
     id: Option<String>,
-) -> ToolOutput {
+) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.uri(id.as_deref()).await)
 }
@@ -611,7 +442,7 @@ pub async fn is_non_fungible(
     contract_hash: String,
     package_hash: Option<String>,
     id: String,
-) -> ToolOutput {
+) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.is_non_fungible(&id).await)
 }
@@ -621,7 +452,7 @@ pub async fn balance_of_batch(
     package_hash: Option<String>,
     accounts: Vec<String>,
     ids: Vec<String>,
-) -> ToolOutput {
+) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     let acct_refs = refs(&accounts);
     let id_refs = refs(&ids);
@@ -632,7 +463,7 @@ pub async fn supply_of_batch(
     contract_hash: String,
     package_hash: Option<String>,
     ids: Vec<String>,
-) -> ToolOutput {
+) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     let id_refs = refs(&ids);
     params::map_query(client.supply_of_batch(&id_refs).await)
@@ -642,7 +473,7 @@ pub async fn total_supply_of_batch(
     contract_hash: String,
     package_hash: Option<String>,
     ids: Vec<String>,
-) -> ToolOutput {
+) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     let id_refs = refs(&ids);
     params::map_query(client.total_supply_of_batch(&id_refs).await)
@@ -652,17 +483,17 @@ pub async fn total_fungible_supply(
     contract_hash: String,
     package_hash: Option<String>,
     id: String,
-) -> ToolOutput {
+) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.total_fungible_supply(&id).await)
 }
 
-pub async fn enable_burn(contract_hash: String, package_hash: Option<String>) -> ToolOutput {
+pub async fn enable_burn(contract_hash: String, package_hash: Option<String>) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.enable_burn().await)
 }
 
-pub async fn events_mode(contract_hash: String, package_hash: Option<String>) -> ToolOutput {
+pub async fn events_mode(contract_hash: String, package_hash: Option<String>) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     match client.events_mode().await {
         Ok(m) => {
@@ -675,7 +506,7 @@ pub async fn events_mode(contract_hash: String, package_hash: Option<String>) ->
 pub async fn number_of_minted_tokens(
     contract_hash: String,
     package_hash: Option<String>,
-) -> ToolOutput {
+) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.number_of_minted_tokens().await)
 }
@@ -683,7 +514,7 @@ pub async fn number_of_minted_tokens(
 pub async fn transfer_filter_contract(
     contract_hash: String,
     package_hash: Option<String>,
-) -> ToolOutput {
+) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.transfer_filter_contract().await)
 }
@@ -691,7 +522,7 @@ pub async fn transfer_filter_contract(
 pub async fn transfer_filter_method(
     contract_hash: String,
     package_hash: Option<String>,
-) -> ToolOutput {
+) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     params::map_query(client.transfer_filter_method().await)
 }
@@ -700,7 +531,7 @@ pub async fn security_badge(
     contract_hash: String,
     package_hash: Option<String>,
     entity: String,
-) -> ToolOutput {
+) -> CallToolResult {
     let client = need_client!(contract_hash, package_hash);
     match client.security_badge(&entity).await {
         Ok(Some(b)) => format::json_ok(&serde_json::json!({
