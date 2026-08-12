@@ -3,7 +3,7 @@
 use crate::format;
 use crate::handle;
 use ceps_client::CEPClient;
-use mcpkit::prelude::ToolOutput;
+use rmcp::model::CallToolResult;
 
 pub const TOOL_NAMES: &[&str] = &[
     "ceps_ces_parse_execution",
@@ -11,7 +11,10 @@ pub const TOOL_NAMES: &[&str] = &[
     "ceps_ces_collect",
 ];
 
-pub async fn parse_execution(contract_hash: String, execution_result_json: String) -> ToolOutput {
+pub async fn parse_execution(
+    contract_hash: String,
+    execution_result_json: String,
+) -> CallToolResult {
     let client = match shared_client() {
         Ok(c) => c,
         Err(e) => return format::err(e),
@@ -30,7 +33,7 @@ pub async fn parse_execution(contract_hash: String, execution_result_json: Strin
     }
 }
 
-pub async fn parse_transaction(contract_hash: String, transaction_hash: String) -> ToolOutput {
+pub async fn parse_transaction(contract_hash: String, transaction_hash: String) -> CallToolResult {
     let client = match shared_client() {
         Ok(c) => c,
         Err(e) => return format::err(e),
@@ -48,24 +51,18 @@ pub async fn parse_transaction(contract_hash: String, transaction_hash: String) 
     }
 }
 
-pub async fn collect(
-    contract_hash: String,
-    package_hash: Option<String>,
-    event_names: Option<Vec<String>>,
-    max_transactions: Option<u64>,
-    timeout_ms: Option<u64>,
-) -> ToolOutput {
+pub async fn collect(a: crate::tool_args::CepsCesCollectArgs) -> CallToolResult {
     let mut client = match shared_client() {
         Ok(c) => c,
         Err(e) => return format::err(e),
     };
-    if let Err(e) = client.set_contract_hash(&contract_hash, package_hash.as_deref()) {
+    if let Err(e) = client.set_contract_hash(&a.contract_hash, a.package_hash.as_deref()) {
         return format::err(e);
     }
-    let names_owned = event_names.unwrap_or_default();
+    let names_owned = a.event_names.unwrap_or_default();
     let names: Vec<&str> = names_owned.iter().map(String::as_str).collect();
-    let max_tx = usize::try_from(max_transactions.unwrap_or(8)).unwrap_or(8);
-    let timeout = timeout_ms.unwrap_or(120_000);
+    let max_tx = usize::try_from(a.max_transactions.unwrap_or(8)).unwrap_or(8);
+    let timeout = a.timeout_ms.unwrap_or(120_000);
     match client.collect_ces_events(&names, max_tx, timeout).await {
         Ok(rows) => match serde_json::to_value(&rows) {
             Ok(v) => format::json_ok(&v),

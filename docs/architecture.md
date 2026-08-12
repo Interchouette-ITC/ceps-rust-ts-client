@@ -6,7 +6,7 @@ casper-rust-wasm-sdk          (RPC, tx, install, query, wait, CES)
    ceps-client                (CEPClient + CEP18/78/85/95 facades, CEP enums, error maps, CES helpers)
       ^        ^        ^
    ceps-client-cli  ceps-client-wasm  ceps-rust-ts-client-mcp
-      (clap)         (wasm-bindgen)    (mcpkit stdio/HTTP)
+      (clap)         (wasm-bindgen)    (rmcp stdio/HTTP)
 ```
 
 ## Ownership

@@ -3,7 +3,7 @@
 use crate::format;
 use crate::handle;
 use crate::tools;
-use mcpkit::prelude::ToolOutput;
+use rmcp::model::CallToolResult;
 
 pub const TOOL_NAMES: &[&str] = &[
     "ceps_help",
@@ -56,7 +56,7 @@ Tools ({count}): {names}
     )
 }
 
-pub fn get_endpoints() -> ToolOutput {
+pub fn get_endpoints() -> CallToolResult {
     let snap = handle::snapshot();
     format::json_ok(&serde_json::json!({
         "rpc_url": snap.rpc_url,
@@ -79,7 +79,7 @@ pub fn set_endpoints(
     sse_url: Option<String>,
     chain_name: Option<String>,
     verbosity: Option<String>,
-) -> ToolOutput {
+) -> CallToolResult {
     match handle::update(rpc_url, sse_url, chain_name, verbosity) {
         Ok(snap) => format::json_ok(&serde_json::json!({
             "rpc_url": snap.rpc_url,
@@ -91,7 +91,7 @@ pub fn set_endpoints(
     }
 }
 
-pub fn list_tools() -> ToolOutput {
+pub fn list_tools() -> CallToolResult {
     format::json_ok(&serde_json::json!({
         "groups": tools::tool_groups(),
         "tools": tools::registered_tool_names(),

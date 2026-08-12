@@ -28,7 +28,7 @@ wasm-bindgen-futures = "0.4"
 js-sys = "0.3"
 serde.workspace = true
 serde_json.workspace = true
-gloo-utils = { version = "0.2", default-features = false, features = ["serde"] }
+gloo-utils = { version = "0.3", default-features = false, features = ["serde"] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"

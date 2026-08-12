@@ -19,17 +19,23 @@ path = "src/lib.rs"
 
 [dependencies]
 anyhow.workspace = true
+axum.workspace = true
 base64.workspace = true
 ceps-client = { path = "../ceps-client" }
 clap.workspace = true
 hex.workspace = true
-mcpkit = "0.7"
-mcpkit-axum = "0.7"
+rmcp = { workspace = true, features = [
+  "server",
+  "macros",
+  "transport-io",
+  "transport-streamable-http-server",
+] }
+schemars.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
-tokio.workspace = true
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "net"] }
+tracing.workspace = true
+tracing-subscriber.workspace = true
 
 [dev-dependencies]
 casper-rust-wasm-sdk.workspace = true

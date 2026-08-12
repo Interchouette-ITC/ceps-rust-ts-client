@@ -5,8 +5,7 @@
 use crate::tools::{cep18, cep78, cep85, cep95};
 use casper_rust_wasm_sdk::helpers::public_key_from_secret_key;
 use ceps_client::{CEP18Client, CEP78Client, CEP85Client, CEP95Client, Verbosity};
-use mcpkit::prelude::ToolOutput;
-use mcpkit::types::CallToolResult;
+use rmcp::model::CallToolResult;
 use std::env;
 use std::fs;
 use std::net::TcpStream;
@@ -54,13 +53,11 @@ fn ensure_wasm_root() {
     env::set_var("CEPS_WASM_ROOT", root);
 }
 
-fn tool_text(out: ToolOutput) -> String {
-    let result: CallToolResult = out.into();
-    assert!(!result.is_error(), "tool error: {result:?}");
-    result
-        .content
+fn tool_text(out: CallToolResult) -> String {
+    assert_eq!(out.is_error, Some(false), "tool error: {out:?}");
+    out.content
         .iter()
-        .filter_map(|c| c.as_text().map(str::to_owned))
+        .filter_map(|c| c.as_text().map(|t| t.text.clone()))
         .collect::<Vec<_>>()
         .join("\n")
 }
@@ -100,24 +97,24 @@ async fn live_ceps18_install_query() {
         .as_secs();
     let name = format!("Mcp18{nonce}");
 
-    let install = cep18::install(
-        name.clone(),
-        "M18".into(),
-        9,
-        "1000000000000".into(),
-        Some(secret.clone()),
-        INSTALL_PAYMENT_18.into(),
-        Some("cep18/cep18.wasm".into()),
-        None,
-        Some(1),
-        Some(true),
-        None,
-        None,
-        Some(true),
-        None,
-        None,
-        None,
-    )
+    let install = cep18::install(crate::tool_args::Ceps18InstallArgs {
+        name: name.clone(),
+        symbol: "M18".into(),
+        decimals: 9,
+        total_supply: "1000000000000".into(),
+        secret_key_pem: Some(secret.clone()),
+        payment_amount: INSTALL_PAYMENT_18.into(),
+        wasm_path: Some("cep18/cep18.wasm".into()),
+        wasm_base64: None,
+        events_mode: Some(1),
+        enable_mint_and_burn: Some(true),
+        admin_list: None,
+        minter_list: None,
+        wait: Some(true),
+        wait_timeout_ms: None,
+        make_only: None,
+        initiator_addr: None,
+    })
     .await;
     let install_text = tool_text(install);
     assert_tx_hash(&install_text);
@@ -162,20 +159,20 @@ async fn live_ceps78_install_query() {
         .as_secs();
     let name = format!("Mcp78{nonce}");
 
-    let install = cep78::install(
-        name.clone(),
-        "M78".into(),
-        100,
-        Some(secret.clone()),
-        INSTALL_PAYMENT_78.into(),
-        Some("cep78/cep78.wasm".into()),
-        None,
-        Some(2),
-        Some(true),
-        None,
-        None,
-        None,
-    )
+    let install = cep78::install(crate::tool_args::Ceps78InstallArgs {
+        collection_name: name.clone(),
+        collection_symbol: "M78".into(),
+        total_token_supply: 100,
+        secret_key_pem: Some(secret.clone()),
+        payment_amount: INSTALL_PAYMENT_78.into(),
+        wasm_path: Some("cep78/cep78.wasm".into()),
+        wasm_base64: None,
+        events_mode: Some(2),
+        wait: Some(true),
+        wait_timeout_ms: None,
+        make_only: None,
+        initiator_addr: None,
+    })
     .await;
     let install_text = tool_text(install);
     assert_tx_hash(&install_text);
@@ -220,26 +217,26 @@ async fn live_ceps85_install_query() {
         .as_secs();
     let name = format!("Mcp85{nonce}");
 
-    let install = cep85::install(
-        name.clone(),
-        "https://example.com/metadata/{id}.json".into(),
-        Some(secret.clone()),
-        INSTALL_PAYMENT_85.into(),
-        Some("cep85/cep85.wasm".into()),
-        None,
-        Some(1),
-        Some(true),
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        Some(true),
-        None,
-        None,
-        None,
-    )
+    let install = cep85::install(crate::tool_args::Ceps85InstallArgs {
+        name: name.clone(),
+        uri: "https://example.com/metadata/{id}.json".into(),
+        secret_key_pem: Some(secret.clone()),
+        payment_amount: INSTALL_PAYMENT_85.into(),
+        wasm_path: Some("cep85/cep85.wasm".into()),
+        wasm_base64: None,
+        events_mode: Some(1),
+        enable_burn: Some(true),
+        admin_list: None,
+        minter_list: None,
+        burner_list: None,
+        meta_list: None,
+        transfer_filter_contract: None,
+        transfer_filter_method: None,
+        wait: Some(true),
+        wait_timeout_ms: None,
+        make_only: None,
+        initiator_addr: None,
+    })
     .await;
     let install_text = tool_text(install);
     assert_tx_hash(&install_text);
@@ -285,22 +282,22 @@ async fn live_ceps95_install_query() {
     let name = format!("Mcp95{nonce}");
     let package_key = format!("cep95_pkg_{nonce}");
 
-    let install = cep95::install(
-        name.clone(),
-        "M95".into(),
-        package_key.clone(),
-        Some(secret.clone()),
-        INSTALL_PAYMENT_95.into(),
-        Some("cep95/cep95.wasm".into()),
-        None,
-        None,
-        None,
-        None,
-        Some(true),
-        None,
-        None,
-        None,
-    )
+    let install = cep95::install(crate::tool_args::Ceps95InstallArgs {
+        name: name.clone(),
+        symbol: "M95".into(),
+        package_hash_key_name: package_key.clone(),
+        secret_key_pem: Some(secret.clone()),
+        payment_amount: INSTALL_PAYMENT_95.into(),
+        wasm_path: Some("cep95/cep95.wasm".into()),
+        wasm_base64: None,
+        allow_key_override: None,
+        is_upgradable: None,
+        is_upgrade: None,
+        wait: Some(true),
+        wait_timeout_ms: None,
+        make_only: None,
+        initiator_addr: None,
+    })
     .await;
     let install_text = tool_text(install);
     assert_tx_hash(&install_text);
