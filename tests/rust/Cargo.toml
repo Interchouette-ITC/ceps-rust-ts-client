@@ -2,6 +2,7 @@
 name = "integration-tests"
 version.workspace = true
 edition.workspace = true
+authors.workspace = true
 
 [lib]
 name = "integration_tests"
