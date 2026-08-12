@@ -40,8 +40,7 @@ MCP_DOCKERFILE := $(ROOT)/mcp/Dockerfile
 COMPOSE_MCP := $(ROOT)/docker/docker-compose.mcp.yml
 CEPS_MCP_IMAGE ?= interchouette/ceps-rust-ts-client-mcp:dev
 
-# Clear Cursor sandbox cargo/playwright redirects for every recipe.
-CARGO := env -u CARGO_TARGET_DIR -u PLAYWRIGHT_BROWSERS_PATH cargo
+CARGO := cargo
 
 .DEFAULT_GOAL := help
 
