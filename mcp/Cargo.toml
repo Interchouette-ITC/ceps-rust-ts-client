@@ -2,6 +2,7 @@
 name = "ceps-rust-ts-client-mcp"
 version.workspace = true
 edition.workspace = true
+authors.workspace = true
 description = "MCP server for ceps-rust-ts-client (stdio + Streamable HTTP): CEP-18/78/85/95 + contract WASM helpers"
 readme = "README.md"
 homepage.workspace = true

@@ -2,6 +2,7 @@
 name = "ceps-client-cli"
 version.workspace = true
 edition.workspace = true
+authors.workspace = true
 description = "ceps-client-cli: clap CLI for the unified Casper CEP client."
 readme.workspace = true
 homepage.workspace = true

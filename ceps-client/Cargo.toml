@@ -2,6 +2,7 @@
 name = "ceps-client"
 version.workspace = true
 edition.workspace = true
+authors.workspace = true
 description = "Native CEP-18 / CEP-78 / CEP-85 / CEP-95 client library for Casper."
 readme.workspace = true
 homepage.workspace = true

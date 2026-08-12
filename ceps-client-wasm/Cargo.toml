@@ -2,6 +2,7 @@
 name = "ceps-client-wasm"
 version.workspace = true
 edition.workspace = true
+authors.workspace = true
 description = "wasm-bindgen CEP client for Node and browsers (same API as ceps-client; replaces per-CEP client-js)."
 readme.workspace = true
 homepage.workspace = true
