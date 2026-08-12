@@ -137,9 +137,11 @@ mod tests {
                 .get_account_named_key(&pk, &key_name)
                 .await
                 .expect("session named key");
+            // Session wasm binds a URef under the named key (balance lives at that uref).
+            // Do not assert `contains('1')` on the uref hex: that is flaky.
             assert!(
-                stored.contains('1') || stored == "1",
-                "balance session named key={stored}"
+                stored.starts_with("uref-"),
+                "balance_of_session named key should be a uref, got {stored}"
             );
         }
 
