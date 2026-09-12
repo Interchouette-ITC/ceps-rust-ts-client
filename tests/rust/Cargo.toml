@@ -3,6 +3,8 @@ name = "integration-tests"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
+license-file.workspace = true
+publish = false
 
 [lib]
 name = "integration_tests"

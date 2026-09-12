@@ -34,3 +34,6 @@ ceps-client-wasm/pkg-nodejs/.gitignore
 # Schema-only packs are build artifacts (make nodejs-schema / web-schema):
 ceps-client-wasm/pkg-schema/
 ceps-client-wasm/pkg-nodejs-schema/
+
+# llvm-cov output
+/coverage/
