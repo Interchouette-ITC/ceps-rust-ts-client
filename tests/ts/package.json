@@ -8,7 +8,7 @@
     "test": "vitest run"
   },
   "devDependencies": {
-    "vitest": "^3.0.0"
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "ceps-client-wasm": "file:../../ceps-client-wasm/pkg-nodejs"
