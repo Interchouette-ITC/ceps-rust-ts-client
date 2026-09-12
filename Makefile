@@ -47,6 +47,7 @@ CARGO := cargo
 .PHONY: help prepare \
 	build check doc doc-check clean \
 	format lint clippy check-lint \
+	coverage coverage-summary coverage-html audit deny machete outdated \
 	test unit-test integration-test e2e-test examples ts-test wasm-bindgen-test \
 	pack web nodejs web-schema nodejs-schema schema-check \
 	run-cli \
@@ -155,6 +156,36 @@ clippy: prepare
 
 check-lint: clippy
 	$(CARGO) fmt -- --check
+
+COVERAGE_IGNORE := examples/|benches/|tests/
+
+coverage:
+	mkdir -p coverage
+	RUSTUP_TOOLCHAIN=stable $(CARGO) llvm-cov --workspace --locked --lcov \
+		--ignore-filename-regex '$(COVERAGE_IGNORE)' \
+		--output-path coverage/lcov.info
+
+coverage-summary:
+	RUSTUP_TOOLCHAIN=stable $(CARGO) llvm-cov --workspace --locked --summary-only \
+		--ignore-filename-regex '$(COVERAGE_IGNORE)'
+
+coverage-html:
+	mkdir -p coverage
+	RUSTUP_TOOLCHAIN=stable $(CARGO) llvm-cov --workspace --locked --html \
+		--ignore-filename-regex '$(COVERAGE_IGNORE)' \
+		--output-dir coverage/html
+
+audit:
+	$(CARGO) audit
+
+deny:
+	$(CARGO) deny check
+
+machete:
+	$(CARGO) machete
+
+outdated:
+	$(CARGO) outdated --workspace
 
 unit-test:
 	$(CARGO) test -p $(COMMON_CRATE) -- --test-threads=1 --nocapture
