@@ -316,7 +316,7 @@ dependencies = [
 [[package]]
 name = "casper-rust-wasm-sdk"
 version = "2.2.2"
-source = "git+https://github.com/casper-ecosystem/casper-rust-wasm-sdk?branch=dev#518e48fa465d9bddbc10be6c657cfd02fc0c0229"
+source = "git+https://github.com/casper-ecosystem/casper-rust-wasm-sdk?branch=dev#d68def337dcc98f7349c35e79740fc4500bca744"
 dependencies = [
  "async-trait",
  "base16",
