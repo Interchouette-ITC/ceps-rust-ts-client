@@ -119,10 +119,22 @@ doc:
 	@printf '%s\n' \
 		'<!DOCTYPE html><html><head><meta charset="utf-8">' \
 		'<meta http-equiv="refresh" content="0; url=ceps_client/index.html">' \
-		'<title>ceps-client rustdoc</title></head><body>' \
+		'<title>ceps-client rustdoc</title>' \
+		'<script>location.replace("ceps_client/index.html");</script>' \
+		'</head><body>' \
 		'<a href="ceps_client/index.html">ceps_client</a></body></html>' \
 		> docs/api-rust/index.html
-	@echo "doc: rustdoc → docs/api-rust/"
+	@touch docs/api-rust/.nojekyll
+	@printf '%s\n' \
+		'<!DOCTYPE html><html><head><meta charset="utf-8">' \
+		'<meta http-equiv="refresh" content="0; url=api-rust/ceps_client/index.html">' \
+		'<title>ceps-rust-ts-client docs</title>' \
+		'<script>location.replace("api-rust/ceps_client/index.html");</script>' \
+		'</head><body>' \
+		'<a href="api-rust/ceps_client/index.html">ceps_client rustdoc</a></body></html>' \
+		> docs/index.html
+	@touch docs/.nojekyll
+	@echo "doc: rustdoc → docs/api-rust/ (Pages root docs/index.html → api-rust)"
 
 doc-check:
 	@set -euo pipefail; \
@@ -159,21 +171,28 @@ check-lint: clippy
 
 COVERAGE_IGNORE := examples/|benches/|tests/
 
+# Live NCTL cases already run under `integration-test` / `mcp-test-live`.
+# Re-running them under llvm-cov (often in parallel) hits flaky RPC DispatchGone.
+COVERAGE_TEST_ARGS := --skip live --test-threads=1
+
 coverage:
 	mkdir -p coverage
 	RUSTUP_TOOLCHAIN=stable $(CARGO) llvm-cov --workspace --locked --lcov \
 		--ignore-filename-regex '$(COVERAGE_IGNORE)' \
-		--output-path coverage/lcov.info
+		--output-path coverage/lcov.info \
+		-- $(COVERAGE_TEST_ARGS)
 
 coverage-summary:
 	RUSTUP_TOOLCHAIN=stable $(CARGO) llvm-cov --workspace --locked --summary-only \
-		--ignore-filename-regex '$(COVERAGE_IGNORE)'
+		--ignore-filename-regex '$(COVERAGE_IGNORE)' \
+		-- $(COVERAGE_TEST_ARGS)
 
 coverage-html:
 	mkdir -p coverage
 	RUSTUP_TOOLCHAIN=stable $(CARGO) llvm-cov --workspace --locked --html \
 		--ignore-filename-regex '$(COVERAGE_IGNORE)' \
-		--output-dir coverage/html
+		--output-dir coverage/html \
+		-- $(COVERAGE_TEST_ARGS)
 
 audit:
 	$(CARGO) audit
