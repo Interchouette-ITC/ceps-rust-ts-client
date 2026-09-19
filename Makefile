@@ -119,10 +119,22 @@ doc:
 	@printf '%s\n' \
 		'<!DOCTYPE html><html><head><meta charset="utf-8">' \
 		'<meta http-equiv="refresh" content="0; url=ceps_client/index.html">' \
-		'<title>ceps-client rustdoc</title></head><body>' \
+		'<title>ceps-client rustdoc</title>' \
+		'<script>location.replace("ceps_client/index.html");</script>' \
+		'</head><body>' \
 		'<a href="ceps_client/index.html">ceps_client</a></body></html>' \
 		> docs/api-rust/index.html
-	@echo "doc: rustdoc → docs/api-rust/"
+	@touch docs/api-rust/.nojekyll
+	@printf '%s\n' \
+		'<!DOCTYPE html><html><head><meta charset="utf-8">' \
+		'<meta http-equiv="refresh" content="0; url=api-rust/ceps_client/index.html">' \
+		'<title>ceps-rust-ts-client docs</title>' \
+		'<script>location.replace("api-rust/ceps_client/index.html");</script>' \
+		'</head><body>' \
+		'<a href="api-rust/ceps_client/index.html">ceps_client rustdoc</a></body></html>' \
+		> docs/index.html
+	@touch docs/.nojekyll
+	@echo "doc: rustdoc → docs/api-rust/ (Pages root docs/index.html → api-rust)"
 
 doc-check:
 	@set -euo pipefail; \
