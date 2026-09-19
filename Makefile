@@ -171,21 +171,28 @@ check-lint: clippy
 
 COVERAGE_IGNORE := examples/|benches/|tests/
 
+# Live NCTL cases already run under `integration-test` / `mcp-test-live`.
+# Re-running them under llvm-cov (often in parallel) hits flaky RPC DispatchGone.
+COVERAGE_TEST_ARGS := --skip live --test-threads=1
+
 coverage:
 	mkdir -p coverage
 	RUSTUP_TOOLCHAIN=stable $(CARGO) llvm-cov --workspace --locked --lcov \
 		--ignore-filename-regex '$(COVERAGE_IGNORE)' \
-		--output-path coverage/lcov.info
+		--output-path coverage/lcov.info \
+		-- $(COVERAGE_TEST_ARGS)
 
 coverage-summary:
 	RUSTUP_TOOLCHAIN=stable $(CARGO) llvm-cov --workspace --locked --summary-only \
-		--ignore-filename-regex '$(COVERAGE_IGNORE)'
+		--ignore-filename-regex '$(COVERAGE_IGNORE)' \
+		-- $(COVERAGE_TEST_ARGS)
 
 coverage-html:
 	mkdir -p coverage
 	RUSTUP_TOOLCHAIN=stable $(CARGO) llvm-cov --workspace --locked --html \
 		--ignore-filename-regex '$(COVERAGE_IGNORE)' \
-		--output-dir coverage/html
+		--output-dir coverage/html \
+		-- $(COVERAGE_TEST_ARGS)
 
 audit:
 	$(CARGO) audit
