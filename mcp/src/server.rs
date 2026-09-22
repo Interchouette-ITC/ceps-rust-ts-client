@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use rmcp::{
     handler::server::wrapper::Parameters,
-    model::{CallToolResult, ServerCapabilities, ServerInfo},
+    model::{CallToolResult, ServerCapabilities, ServerConfig},
     tool, tool_handler, tool_router,
     transport::stdio,
     ErrorData as McpError, ServerHandler, ServiceExt,
@@ -1301,8 +1301,8 @@ pub async fn run_http(addr: &str) -> std::io::Result<()> {
 
 #[tool_handler]
 impl ServerHandler for CepsClientMcp {
-    fn get_info(&self) -> ServerInfo {
-        ServerInfo::new(ServerCapabilities::builder().enable_tools().build())
+    fn get_info(&self) -> ServerConfig {
+        ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
             .with_server_info(rmcp::model::Implementation::new(
                 "ceps-rust-ts-client-mcp",
                 env!("CARGO_PKG_VERSION"),

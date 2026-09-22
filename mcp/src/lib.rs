@@ -1,5 +1,7 @@
 //! MCP sidecar library for `ceps-rust-ts-client`.
 
+#![recursion_limit = "256"]
+
 pub mod format;
 pub mod handle;
 pub mod server;
