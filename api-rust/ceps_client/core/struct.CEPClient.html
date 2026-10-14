@@ -26,7 +26,7 @@ entrypoint calls, queries, and CES helpers.</p>
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.99.0/std/primitive.unit.html">()</a>&gt;</h4></section></summary><div class="docblock"><p>Bind contract (and optional package) hashes.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.put_transaction" class="method"><a class="src rightside" href="../../src/ceps_client/core/mod.rs.html#217-249">Source</a><h4 class="code-header">pub async fn <a href="#method.put_transaction" class="fn">put_transaction</a>(
     &amp;self,
-    transaction: &amp;<a class="enum" href="https://docs.rs/serde_json/1.0.151/serde_json/value/enum.Value.html" title="enum serde_json::value::Value">Value</a>,
+    transaction: &amp;<a class="enum" href="https://docs.rs/serde_json/1.0.154/serde_json/value/enum.Value.html" title="enum serde_json::value::Value">Value</a>,
     wait: <a class="primitive" href="https://doc.rust-lang.org/1.99.0/std/primitive.bool.html">bool</a>,
     wait_timeout_ms: <a class="enum" href="https://doc.rust-lang.org/1.99.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.99.0/std/primitive.u64.html">u64</a>&gt;,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="../types/struct.CallResult.html" title="struct ceps_client::types::CallResult">CallResult</a>&gt;</h4></section></summary><div class="docblock"><p>Put an already-signed Transaction JSON (for example from make-only after external signing).</p>
@@ -36,13 +36,13 @@ bound), matching the normal CEP put path.</p>
     &amp;self,
     transaction_hash: &amp;<a class="primitive" href="https://doc.rust-lang.org/1.99.0/std/primitive.str.html">str</a>,
     timeout_ms: <a class="enum" href="https://doc.rust-lang.org/1.99.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/1.99.0/std/primitive.u64.html">u64</a>&gt;,
-) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="enum" href="https://docs.rs/serde_json/1.0.151/serde_json/value/enum.Value.html" title="enum serde_json::value::Value">Value</a>&gt;</h4></section></summary><div class="docblock"><p>Wait for a transaction hash on the configured SSE endpoint.</p>
+) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="enum" href="https://docs.rs/serde_json/1.0.154/serde_json/value/enum.Value.html" title="enum serde_json::value::Value">Value</a>&gt;</h4></section></summary><div class="docblock"><p>Wait for a transaction hash on the configured SSE endpoint.</p>
 <p>Use after a put with wait disabled, or when you already have a transaction hash.
 Prefer <a href="../types/struct.TransactionParams.html#structfield.wait" title="field ceps_client::types::TransactionParams::wait"><code>TransactionParams::wait</code></a> on CEP mutate/install for the normal put path.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.parse_ces_execution" class="method"><a class="src rightside" href="../../src/ceps_client/core/mod.rs.html#342-352">Source</a><h4 class="code-header">pub async fn <a href="#method.parse_ces_execution" class="fn">parse_ces_execution</a>(
     &amp;self,
     contract_hashes: &amp;[<a class="struct" href="https://doc.rust-lang.org/1.99.0/alloc/string/struct.String.html" title="struct alloc::string::String">String</a>],
-    execution_result: &amp;<a class="enum" href="https://docs.rs/serde_json/1.0.151/serde_json/value/enum.Value.html" title="enum serde_json::value::Value">Value</a>,
+    execution_result: &amp;<a class="enum" href="https://docs.rs/serde_json/1.0.154/serde_json/value/enum.Value.html" title="enum serde_json::value::Value">Value</a>,
 ) -&gt; <a class="type" href="../error/type.Result.html" title="type ceps_client::error::Result">Result</a>&lt;<a class="struct" href="https://doc.rust-lang.org/1.99.0/alloc/vec/struct.Vec.html" title="struct alloc::vec::Vec">Vec</a>&lt;<a class="struct" href="../struct.CESParseResult.html" title="struct ceps_client::CESParseResult">CESParseResult</a>&gt;&gt;</h4></section></summary><div class="docblock"><p>Parse CES events from an execution-result JSON value using schemas for <code>contract_hashes</code>.</p>
 <p>Use when you already have execution JSON and want CES rows outside auto-attach on
 <a href="../types/struct.CallResult.html#structfield.ces_events" title="field ceps_client::types::CallResult::ces_events"><code>CallResult::ces_events</code></a>.</p>
