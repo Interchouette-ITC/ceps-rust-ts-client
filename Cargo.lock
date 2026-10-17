@@ -399,7 +399,7 @@ dependencies = [
 
 [[package]]
 name = "ceps-client"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "base64 0.23.1",
  "blake2 0.10.6",
@@ -416,7 +416,7 @@ dependencies = [
 
 [[package]]
 name = "ceps-client-cli"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "anyhow",
  "casper-rust-wasm-sdk",
@@ -428,7 +428,7 @@ dependencies = [
 
 [[package]]
 name = "ceps-client-wasm"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "ceps-client",
  "gloo-utils",
@@ -442,7 +442,7 @@ dependencies = [
 
 [[package]]
 name = "ceps-rust-ts-client-mcp"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "anyhow",
  "axum",
@@ -1503,7 +1503,7 @@ dependencies = [
 
 [[package]]
 name = "integration-tests"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "casper-rust-wasm-sdk",
  "ceps-client",
