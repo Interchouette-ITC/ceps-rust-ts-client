@@ -6,8 +6,8 @@ authors.workspace = true
 description = "Native CEP-18 / CEP-78 / CEP-85 / CEP-95 client library for Casper."
 readme.workspace = true
 homepage.workspace = true
-repository.workspace = true
 license-file.workspace = true
+metadata.workspace = true
 
 [lib]
 name = "ceps_client"

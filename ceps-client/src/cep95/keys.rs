@@ -4,8 +4,7 @@ use super::entity::prefixed_key;
 use crate::error::{CEPError, Result};
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
-use blake2::digest::{Update, VariableOutput};
-use blake2::Blake2bVar;
+use blake2::{Blake2b256, Digest};
 use casper_rust_wasm_sdk::helpers::{
     get_base64_key_from_account_hash, get_base64_key_from_key_hash, make_dictionary_item_key,
 };
@@ -64,14 +63,7 @@ pub fn odra_state_var_key(path: &[u8]) -> Result<String> {
         .iter()
         .fold(0u32, |acc, &idx| (acc << 4) + u32::from(idx));
     let index_bytes = index.to_be_bytes();
-    let mut hasher = Blake2bVar::new(32)
-        .map_err(|_| CEPError::InvalidArgument("blake2b-256 hasher init failed".into()))?;
-    hasher.update(&index_bytes);
-    let mut hash = [0u8; 32];
-    hasher
-        .finalize_variable(&mut hash)
-        .map_err(|_| CEPError::InvalidArgument("blake2b-256 finalize failed".into()))?;
-    Ok(hex::encode(hash))
+    Ok(hex::encode(Blake2b256::digest(index_bytes)))
 }
 
 /// Ownable owner Var key for tip `OwnedCep95` (`ownable` field 1, `owner` field 1).
