@@ -3,8 +3,8 @@
 #[cfg(test)]
 mod tests {
     use crate::helpers::{
-        cep18_client, nctl_available, user1_account_hash, user1_public_key_hex, user1_secret_pem,
-        wasm_path, CALL_PAYMENT, INSTALL_PAYMENT,
+        CALL_PAYMENT, INSTALL_PAYMENT, cep18_client, nctl_available, user1_account_hash,
+        user1_public_key_hex, user1_secret_pem, wasm_path,
     };
     use ceps_client::cep18::InstallArgs;
     use ceps_client::types::{EventsMode, TransactionParams};

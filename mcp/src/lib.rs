@@ -11,7 +11,7 @@ pub mod tools;
 #[cfg(test)]
 mod live_tests;
 
-pub use server::{run, run_http, DEFAULT_HTTP_LISTEN};
+pub use server::{DEFAULT_HTTP_LISTEN, run, run_http};
 
 /// Crate version.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

@@ -11,13 +11,15 @@ resolver = "2"
 
 [workspace.package]
 version = "1.0.1"
-edition = "2021"
+edition = "2024"
 authors = ["Interchouette <contact@interchouette.net>"]
-metadata = "Unified Rust client for Casper CEP-18, CEP-78, CEP-85, and CEP-95 (library, CLI, and WASM packs for Node/web)."
 readme = "README.md"
 homepage = "https://github.com/Interchouette-ITC/ceps-rust-ts-client"
 repository = "https://github.com/Interchouette-ITC/ceps-rust-ts-client"
 license-file = "LICENSE"
+
+[workspace.metadata]
+description = "Unified Rust client for Casper CEP-18, CEP-78, CEP-85, and CEP-95 (library, CLI, and WASM packs for Node/web)."
 
 [workspace.dependencies]
 casper-rust-wasm-sdk = { git = "https://github.com/casper-ecosystem/casper-rust-wasm-sdk", branch = "dev", default-features = false, features = [

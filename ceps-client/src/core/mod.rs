@@ -7,13 +7,16 @@ mod query;
 mod urls;
 
 pub use args::{
-    bool_arg, byte_list_arg, json_arg, json_args, key_arg, key_list_arg, option_byte_list_arg,
-    string_arg, string_pair_list_arg, u256_arg, u256_list_arg, u64_arg, u8_arg, JsonArg,
+    JsonArg, bool_arg, byte_list_arg, json_arg, json_args, key_arg, key_list_arg,
+    option_byte_list_arg, string_arg, string_pair_list_arg, u8_arg, u64_arg, u256_arg,
+    u256_list_arg,
 };
 pub use urls::{normalize_rpc_url, normalize_sse_url};
 
 use crate::error::{CEPError, CEPKind, Result};
 use crate::types::{CallResult, ContractTarget, TransactionParams};
+use casper_rust_wasm_sdk::SDK;
+use casper_rust_wasm_sdk::SSE::{CESEvent, CESParseResult, CESParser, EventName, RawEvent};
 use casper_rust_wasm_sdk::types::cl::bytes::Bytes;
 use casper_rust_wasm_sdk::types::hash::addressable_entity_hash::AddressableEntityHash;
 use casper_rust_wasm_sdk::types::hash::package_hash::PackageHash;
@@ -22,8 +25,6 @@ use casper_rust_wasm_sdk::types::transaction::Transaction;
 use casper_rust_wasm_sdk::types::transaction_params::transaction_builder_params::TransactionBuilderParams;
 use casper_rust_wasm_sdk::types::transaction_params::transaction_str_params::TransactionStrParams;
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
-use casper_rust_wasm_sdk::SDK;
-use casper_rust_wasm_sdk::SSE::{CESEvent, CESParseResult, CESParser, EventName, RawEvent};
 use serde_json::Value;
 
 /// Default NCTL RPC endpoint.
@@ -371,16 +372,15 @@ impl CEPClient {
                 Some(self.rpc_url.clone()),
             )
             .await
+            && let Ok(v) = serde_json::to_value(&get_tx.result)
         {
-            if let Ok(v) = serde_json::to_value(&get_tx.result) {
-                json = Some(v);
-            }
+            json = Some(v);
         }
         #[cfg(not(target_arch = "wasm32"))]
-        if json.as_ref().is_none_or(|j| !json_has_execution(j)) {
-            if let Ok(v) = fetch_transaction_json_raw(&self.rpc_url, transaction_hash).await {
-                json = Some(v);
-            }
+        if json.as_ref().is_none_or(|j| !json_has_execution(j))
+            && let Ok(v) = fetch_transaction_json_raw(&self.rpc_url, transaction_hash).await
+        {
+            json = Some(v);
         }
         let json = json.ok_or_else(|| {
             CEPError::Other(format!(
@@ -512,19 +512,17 @@ impl CEPClient {
                     Some(self.rpc_url.clone()),
                 )
                 .await
+                && let Ok(json) = serde_json::to_value(&get_tx.result)
             {
-                if let Ok(json) = serde_json::to_value(&get_tx.result) {
-                    last_json = Some(json);
-                }
+                last_json = Some(json);
             }
 
             #[cfg(not(target_arch = "wasm32"))]
-            if last_json.as_ref().is_none_or(|j| !json_has_execution(j)) {
-                if let Ok(json) =
+            if last_json.as_ref().is_none_or(|j| !json_has_execution(j))
+                && let Ok(json) =
                     fetch_transaction_json_raw(&self.rpc_url, &result.transaction_hash).await
-                {
-                    last_json = Some(json);
-                }
+            {
+                last_json = Some(json);
             }
 
             if let Some(json) = &last_json {
@@ -650,10 +648,10 @@ fn extract_execution_error(json: &Value) -> Option<String> {
         json.pointer("/execution_result/failure/error_message"),
     ];
     for c in candidates.into_iter().flatten() {
-        if let Some(s) = c.as_str() {
-            if !s.is_empty() {
-                return Some(s.to_string());
-            }
+        if let Some(s) = c.as_str()
+            && !s.is_empty()
+        {
+            return Some(s.to_string());
         }
     }
     let text = json.to_string();

@@ -3,7 +3,7 @@
 #[cfg(test)]
 mod tests {
     use crate::helpers::{
-        nctl_available, user1_account_hash, user1_public_key_hex, user1_secret_pem, CALL_PAYMENT,
+        CALL_PAYMENT, nctl_available, user1_account_hash, user1_public_key_hex, user1_secret_pem,
     };
     use ceps_client::cep78::{InstallArgs, TokenIdentifier};
     use ceps_client::{CEP78Client, EventsMode78, TransactionParams, Verbosity};

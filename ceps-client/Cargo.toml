@@ -7,7 +7,6 @@ description = "Native CEP-18 / CEP-78 / CEP-85 / CEP-95 client library for Caspe
 readme.workspace = true
 homepage.workspace = true
 license-file.workspace = true
-metadata.workspace = true
 
 [lib]
 name = "ceps_client"
@@ -16,20 +15,30 @@ path = "src/lib.rs"
 [features]
 default = ["client"]
 # Full RPC / install / call client (pulls casper-rust-wasm-sdk).
-client = ["schema", "dep:casper-rust-wasm-sdk", "dep:reqwest"]
+client = [
+    "schema",
+    "dep:base64",
+    "dep:blake2",
+    "dep:casper-rust-wasm-sdk",
+    "dep:casper-types",
+    "dep:hex",
+    "dep:reqwest",
+    "dep:thiserror",
+    "dep:url",
+]
 # Declarative install + entrypoint arg schema only (no SDK / RPC).
 schema = []
 
 [dependencies]
 casper-rust-wasm-sdk = { workspace = true, optional = true }
-casper-types = { version = "7.1.1", default-features = false }
-thiserror.workspace = true
+casper-types = { version = "7.1.1", default-features = false, optional = true }
+thiserror = { workspace = true, optional = true }
 serde.workspace = true
 serde_json.workspace = true
-url.workspace = true
-hex.workspace = true
-base64.workspace = true
-blake2.workspace = true
+url = { workspace = true, optional = true }
+hex = { workspace = true, optional = true }
+base64 = { workspace = true, optional = true }
+blake2 = { workspace = true, optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 reqwest = { version = "0.13", default-features = false, features = [
@@ -40,6 +49,7 @@ reqwest = { version = "0.13", default-features = false, features = [
 [dev-dependencies]
 tokio.workspace = true
 casper-rust-wasm-sdk.workspace = true
+casper-types = { version = "7.1.1", default-features = false }
 
 [[example]]
 name = "cep18_install"

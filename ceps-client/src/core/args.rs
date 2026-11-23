@@ -1,7 +1,7 @@
 //! Helpers for building `session_args_json` payloads.
 
 use serde::Serialize;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// One runtime argument in casper-client JSON args form.
 ///

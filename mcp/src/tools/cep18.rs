@@ -2,8 +2,8 @@
 
 use crate::format;
 use crate::tools::params;
-use ceps_client::cep18::ChangeSecurityArgs;
 use ceps_client::EventsMode;
+use ceps_client::cep18::ChangeSecurityArgs;
 use rmcp::model::CallToolResult;
 
 pub const TOOL_NAMES: &[&str] = &[

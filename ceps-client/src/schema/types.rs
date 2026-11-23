@@ -1,7 +1,7 @@
 //! Schema field and CEP schema value types.
 
-use serde::ser::{SerializeStruct, Serializer};
 use serde::Serialize;
+use serde::ser::{SerializeStruct, Serializer};
 use serde_json::Value;
 use std::collections::BTreeMap;
 

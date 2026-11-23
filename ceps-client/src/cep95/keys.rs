@@ -2,15 +2,15 @@
 
 use super::entity::prefixed_key;
 use crate::error::{CEPError, Result};
-use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
+use base64::engine::general_purpose::STANDARD as BASE64;
 use blake2::{Blake2b256, Digest};
 use casper_rust_wasm_sdk::helpers::{
     get_base64_key_from_account_hash, get_base64_key_from_key_hash, make_dictionary_item_key,
 };
 use casper_rust_wasm_sdk::types::key::Key;
-use casper_types::bytesrepr::ToBytes;
 use casper_types::U256;
+use casper_types::bytesrepr::ToBytes;
 use std::str::FromStr;
 
 /// Balance dictionary item key: Base64(Key.to_bytes()) under dict `balances`.
