@@ -26,10 +26,10 @@ fn nctl_available() -> bool {
 }
 
 fn user1_secret_pem() -> Option<String> {
-    if let Ok(pem) = env::var("SECRET_KEY_USER_1") {
-        if !pem.trim().is_empty() {
-            return Some(pem);
-        }
+    if let Ok(pem) = env::var("SECRET_KEY_USER_1")
+        && !pem.trim().is_empty()
+    {
+        return Some(pem);
     }
     let path = env::var("SECRET_KEY_NCTL_PATH").unwrap_or_else(|_| {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -46,11 +46,6 @@ fn user1_secret_pem() -> Option<String> {
         }
     };
     fs::read_to_string(file).ok()
-}
-
-fn ensure_wasm_root() {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../tests/wasm");
-    env::set_var("CEPS_WASM_ROOT", root);
 }
 
 fn tool_text(out: CallToolResult) -> String {
@@ -90,7 +85,6 @@ async fn live_ceps18_install_query() {
         panic!("NCTL RPC not reachable on 127.0.0.1:11101");
     }
     let secret = user1_secret_pem().expect("SECRET_KEY_USER_1 or NCTL user-1 pem");
-    ensure_wasm_root();
     let nonce = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
@@ -152,7 +146,6 @@ async fn live_ceps78_install_query() {
         panic!("NCTL RPC not reachable on 127.0.0.1:11101");
     }
     let secret = user1_secret_pem().expect("SECRET_KEY_USER_1 or NCTL user-1 pem");
-    ensure_wasm_root();
     let nonce = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
@@ -210,7 +203,6 @@ async fn live_ceps85_install_query() {
         panic!("NCTL RPC not reachable on 127.0.0.1:11101");
     }
     let secret = user1_secret_pem().expect("SECRET_KEY_USER_1 or NCTL user-1 pem");
-    ensure_wasm_root();
     let nonce = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
@@ -274,7 +266,6 @@ async fn live_ceps95_install_query() {
         panic!("NCTL RPC not reachable on 127.0.0.1:11101");
     }
     let secret = user1_secret_pem().expect("SECRET_KEY_USER_1 or NCTL user-1 pem");
-    ensure_wasm_root();
     let nonce = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
