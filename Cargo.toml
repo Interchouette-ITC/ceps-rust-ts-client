@@ -47,7 +47,7 @@ axum = { version = "0.8", default-features = false, features = [
   "tokio",
   "json",
 ] }
-rmcp = { version = "3.7.0", default-features = false }
+rmcp = { version = "3.11.0", default-features = false }
 schemars = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
