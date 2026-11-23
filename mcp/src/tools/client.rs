@@ -13,10 +13,10 @@ pub async fn put_transaction(a: crate::tool_args::CepsPutTransactionArgs) -> Cal
         Ok(c) => c,
         Err(e) => return format::err(e),
     };
-    if let Some(h) = a.contract_hash.filter(|s| !s.trim().is_empty()) {
-        if let Err(e) = client.set_contract_hash(h, a.package_hash.as_deref()) {
-            return format::err(e);
-        }
+    if let Some(h) = a.contract_hash.filter(|s| !s.trim().is_empty())
+        && let Err(e) = client.set_contract_hash(h, a.package_hash.as_deref())
+    {
+        return format::err(e);
     }
     let tx: serde_json::Value = match serde_json::from_str(&a.transaction_json) {
         Ok(v) => v,

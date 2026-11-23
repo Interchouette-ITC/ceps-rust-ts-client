@@ -1,6 +1,6 @@
 //! CEP-95 install and mutate arg fields.
 
-use super::types::{ty, ArgField};
+use super::types::{ArgField, ty};
 
 /// Installer session args (Odra cfg + collection).
 pub const INSTALL: &[ArgField] = &[

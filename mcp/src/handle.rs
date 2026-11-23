@@ -2,8 +2,8 @@
 
 use std::sync::{Mutex, OnceLock};
 
-use ceps_client::core::{DEFAULT_CHAIN_NAME, DEFAULT_RPC_URL, DEFAULT_SSE_URL};
 use ceps_client::Verbosity;
+use ceps_client::core::{DEFAULT_CHAIN_NAME, DEFAULT_RPC_URL, DEFAULT_SSE_URL};
 
 /// Env: JSON-RPC endpoint.
 pub const ENV_RPC_URL: &str = "CEPS_RPC_URL";

@@ -30,3 +30,5 @@ make mcp-test-live     # ignored; needs NCTL + SECRET_KEY_USER_1
 ```
 
 Unit tests run in `ci-local` / `ci-test`. Live smokes (`#[ignore]`) run in `ci-test` and `nightly-test` when NCTL is up.
+`make mcp-test-live` sets `CEPS_WASM_ROOT` to the workspace `tests/wasm` directory.
+When running these tests directly with Cargo, set `CEPS_WASM_ROOT` to that directory.

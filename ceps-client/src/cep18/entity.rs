@@ -22,11 +22,12 @@ pub fn prefixed_key(input: &str) -> Result<String> {
         return Ok(trimmed.to_string());
     }
     // Public keys include an algo tag byte (typically 66 hex chars).
-    if trimmed.len() != 64 && trimmed.len() >= 66 && trimmed.chars().all(|c| c.is_ascii_hexdigit())
+    if trimmed.len() != 64
+        && trimmed.len() >= 66
+        && trimmed.chars().all(|c| c.is_ascii_hexdigit())
+        && let Ok(account) = account_hash_from_public_key_hex(trimmed)
     {
-        if let Ok(account) = account_hash_from_public_key_hex(trimmed) {
-            return Ok(account);
-        }
+        return Ok(account);
     }
     let hex = strip_hash_prefix(trimmed);
     if hex.len() == 64 && hex.chars().all(|c| c.is_ascii_hexdigit()) {

@@ -1,8 +1,8 @@
 //! Feature-gated schema bindgen (no CEP clients / RPC).
 
 use ceps_client::schema::{
-    cep18_schema_json, cep78_schema_json, cep85_schema_json, cep95_schema_json, schema_json,
-    supported_ceps, CepId,
+    CepId, cep18_schema_json, cep78_schema_json, cep85_schema_json, cep95_schema_json, schema_json,
+    supported_ceps,
 };
 use gloo_utils::format::JsValueSerdeExt;
 use wasm_bindgen::prelude::*;

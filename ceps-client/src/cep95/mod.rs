@@ -8,8 +8,8 @@ mod types;
 pub use error::CEP95Error;
 pub use types::InstallArgs;
 
-use crate::core::json_args;
 use crate::core::CEPClient;
+use crate::core::json_args;
 use crate::error::{CEPError, CEPKind, Result};
 use crate::schema::arg;
 use crate::schema::cep95_fields as sch;
@@ -20,7 +20,7 @@ use keys::{
     balance_dictionary_key, operator_dictionary_key, ownable_owner_state_key,
     token_id_dictionary_key,
 };
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// Client for CEP-95 NFT contracts (Odra OwnedCEP95 tip and compatible ABIs).
 pub struct CEP95Client {
@@ -576,8 +576,8 @@ fn decode_odra_option_address_cl(value: Value) -> Result<String> {
             )));
         }
     };
-    use casper_types::bytesrepr::FromBytes;
     use casper_types::Key;
+    use casper_types::bytesrepr::FromBytes;
     let (opt, _) = Option::<Key>::from_bytes(&bytes)
         .map_err(|e| CEPError::Decode(format!("Option<Key> from Odra state: {e:?}")))?;
     opt.map(|k| k.to_formatted_string())
@@ -601,12 +601,11 @@ fn decode_string_map_cl(value: Value) -> Result<Vec<(String, String)>> {
         }
         Value::Array(items) => {
             for item in items {
-                if let Some(arr) = item.as_array() {
-                    if arr.len() >= 2 {
-                        if let (Some(k), Some(v)) = (arr[0].as_str(), arr[1].as_str()) {
-                            out.push((k.to_string(), v.to_string()));
-                        }
-                    }
+                if let Some(arr) = item.as_array()
+                    && arr.len() >= 2
+                    && let (Some(k), Some(v)) = (arr[0].as_str(), arr[1].as_str())
+                {
+                    out.push((k.to_string(), v.to_string()));
                 }
             }
         }

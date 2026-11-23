@@ -299,7 +299,7 @@ mcp-test:
 	$(CARGO) test -p $(MCP_CRATE) --lib
 
 mcp-test-live:
-	$(CARGO) test -p $(MCP_CRATE) --lib -- --ignored --test-threads=1 --nocapture
+	CEPS_WASM_ROOT="$(WASM_DIR)" $(CARGO) test -p $(MCP_CRATE) --lib -- --ignored --test-threads=1 --nocapture
 
 mcp-http:
 	CEPS_MCP_IMAGE="$(CEPS_MCP_IMAGE)" docker compose -f "$(COMPOSE_MCP)" up -d

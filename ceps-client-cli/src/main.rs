@@ -1,6 +1,6 @@
 //! `ceps-client-cli` - clap wrapper over `ceps-client`.
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use ceps_client::cep18::InstallArgs as CEP18InstallArgs;
 use ceps_client::cep78::{InstallArgs as CEP78InstallArgs, TokenIdentifier};
@@ -10,7 +10,7 @@ use ceps_client::{
     CEP18Client, CEP78Client, CEP85Client, CEP95Client, CEPClient, EventsMode, EventsMode78,
     TransactionParams,
 };
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Args, Parser, Subcommand, ValueEnum};
 use serde_json::Value;
 use std::fs;
 use std::io::Read;
@@ -136,31 +136,7 @@ enum CEP18Commands {
     /// Print client endpoint configuration.
     Info,
     /// Install CEP-18 WASM (`--wasm`, `--secret-key` or `--make-only`).
-    Install {
-        #[arg(long)]
-        name: String,
-        #[arg(long)]
-        symbol: String,
-        #[arg(long, default_value_t = 9)]
-        decimals: u8,
-        #[arg(long)]
-        total_supply: String,
-        #[arg(long)]
-        wasm: PathBuf,
-        #[arg(long)]
-        secret_key: Option<PathBuf>,
-        #[arg(long, default_value = "400000000000")]
-        payment: String,
-        #[arg(long, default_value_t = false)]
-        make_only: bool,
-        #[arg(long)]
-        initiator_addr: Option<String>,
-        /// Events mode u8 (0=NoEvents, 1=CES, …).
-        #[arg(long)]
-        events_mode: Option<u8>,
-        #[arg(long, default_value_t = false)]
-        enable_mint_and_burn: bool,
-    },
+    Install(CEP18InstallCommand),
     /// Transfer tokens.
     Transfer {
         #[arg(long)]
@@ -283,6 +259,33 @@ enum CEP18Commands {
         #[arg(long)]
         account: String,
     },
+}
+
+#[derive(Debug, Args)]
+struct CEP18InstallCommand {
+    #[arg(long)]
+    name: String,
+    #[arg(long)]
+    symbol: String,
+    #[arg(long, default_value_t = 9)]
+    decimals: u8,
+    #[arg(long)]
+    total_supply: String,
+    #[arg(long)]
+    wasm: PathBuf,
+    #[arg(long)]
+    secret_key: Option<PathBuf>,
+    #[arg(long, default_value = "400000000000")]
+    payment: String,
+    #[arg(long, default_value_t = false)]
+    make_only: bool,
+    #[arg(long)]
+    initiator_addr: Option<String>,
+    /// Events mode u8 (0=NoEvents, 1=CES, …).
+    #[arg(long)]
+    events_mode: Option<u8>,
+    #[arg(long, default_value_t = false)]
+    enable_mint_and_burn: bool,
 }
 
 #[derive(Debug, Subcommand)]
@@ -458,53 +461,9 @@ enum CEP85Commands {
     /// Print client endpoint configuration.
     Info,
     /// Install CEP-85 WASM (`--wasm`, `--secret-key` or `--make-only`).
-    Install {
-        #[arg(long)]
-        name: String,
-        #[arg(long)]
-        uri: String,
-        #[arg(long)]
-        wasm: PathBuf,
-        #[arg(long)]
-        secret_key: Option<PathBuf>,
-        #[arg(long, default_value = "550000000000")]
-        payment: String,
-        #[arg(long, default_value_t = false)]
-        make_only: bool,
-        #[arg(long)]
-        initiator_addr: Option<String>,
-        #[arg(long)]
-        events_mode: Option<u8>,
-        #[arg(long, default_value_t = false)]
-        enable_burn: bool,
-        #[arg(long)]
-        transfer_filter_contract: Option<String>,
-        #[arg(long)]
-        transfer_filter_method: Option<String>,
-    },
+    Install(CEP85InstallCommand),
     /// Mint one token id.
-    Mint {
-        #[arg(long)]
-        contract_hash: String,
-        #[arg(long)]
-        package_hash: Option<String>,
-        #[arg(long)]
-        recipient: String,
-        #[arg(long)]
-        id: String,
-        #[arg(long)]
-        amount: String,
-        #[arg(long)]
-        uri: Option<String>,
-        #[arg(long)]
-        secret_key: Option<PathBuf>,
-        #[arg(long, default_value = "5000000000")]
-        payment: String,
-        #[arg(long, default_value_t = false)]
-        make_only: bool,
-        #[arg(long)]
-        initiator_addr: Option<String>,
-    },
+    Mint(CEP85MintCommand),
     /// Burn one token id.
     Burn {
         #[arg(long)]
@@ -527,31 +486,7 @@ enum CEP85Commands {
         initiator_addr: Option<String>,
     },
     /// Transfer (`transfer_from` on-chain).
-    Transfer {
-        #[arg(long)]
-        contract_hash: String,
-        #[arg(long)]
-        package_hash: Option<String>,
-        #[arg(long)]
-        from: String,
-        #[arg(long)]
-        to: String,
-        #[arg(long)]
-        id: String,
-        #[arg(long)]
-        amount: String,
-        /// Optional transfer data as hex (optional `0x` prefix).
-        #[arg(long)]
-        data_hex: Option<String>,
-        #[arg(long)]
-        secret_key: Option<PathBuf>,
-        #[arg(long, default_value = "5000000000")]
-        payment: String,
-        #[arg(long, default_value_t = false)]
-        make_only: bool,
-        #[arg(long)]
-        initiator_addr: Option<String>,
-    },
+    Transfer(CEP85TransferCommand),
     /// Set approval for all.
     SetApprovalForAll {
         #[arg(long)]
@@ -673,50 +608,91 @@ enum CEP85Commands {
     },
 }
 
+#[derive(Debug, Args)]
+struct CEP85InstallCommand {
+    #[arg(long)]
+    name: String,
+    #[arg(long)]
+    uri: String,
+    #[arg(long)]
+    wasm: PathBuf,
+    #[arg(long)]
+    secret_key: Option<PathBuf>,
+    #[arg(long, default_value = "550000000000")]
+    payment: String,
+    #[arg(long, default_value_t = false)]
+    make_only: bool,
+    #[arg(long)]
+    initiator_addr: Option<String>,
+    #[arg(long)]
+    events_mode: Option<u8>,
+    #[arg(long, default_value_t = false)]
+    enable_burn: bool,
+    #[arg(long)]
+    transfer_filter_contract: Option<String>,
+    #[arg(long)]
+    transfer_filter_method: Option<String>,
+}
+
+#[derive(Debug, Args)]
+struct CEP85MintCommand {
+    #[arg(long)]
+    contract_hash: String,
+    #[arg(long)]
+    package_hash: Option<String>,
+    #[arg(long)]
+    recipient: String,
+    #[arg(long)]
+    id: String,
+    #[arg(long)]
+    amount: String,
+    #[arg(long)]
+    uri: Option<String>,
+    #[arg(long)]
+    secret_key: Option<PathBuf>,
+    #[arg(long, default_value = "5000000000")]
+    payment: String,
+    #[arg(long, default_value_t = false)]
+    make_only: bool,
+    #[arg(long)]
+    initiator_addr: Option<String>,
+}
+
+#[derive(Debug, Args)]
+struct CEP85TransferCommand {
+    #[arg(long)]
+    contract_hash: String,
+    #[arg(long)]
+    package_hash: Option<String>,
+    #[arg(long)]
+    from: String,
+    #[arg(long)]
+    to: String,
+    #[arg(long)]
+    id: String,
+    #[arg(long)]
+    amount: String,
+    /// Optional transfer data as hex (optional `0x` prefix).
+    #[arg(long)]
+    data_hex: Option<String>,
+    #[arg(long)]
+    secret_key: Option<PathBuf>,
+    #[arg(long, default_value = "5000000000")]
+    payment: String,
+    #[arg(long, default_value_t = false)]
+    make_only: bool,
+    #[arg(long)]
+    initiator_addr: Option<String>,
+}
+
 #[derive(Debug, Subcommand)]
 enum CEP95Commands {
     /// Print client endpoint configuration.
     Info,
     /// Install Odra OwnedCEP95 WASM (`--wasm`, `--secret-key` or `--make-only`).
-    Install {
-        #[arg(long)]
-        name: String,
-        #[arg(long)]
-        symbol: String,
-        #[arg(long)]
-        package_key_name: String,
-        #[arg(long)]
-        wasm: PathBuf,
-        #[arg(long)]
-        secret_key: Option<PathBuf>,
-        #[arg(long, default_value = "600000000000")]
-        payment: String,
-        /// Build Transaction JSON only (no put).
-        #[arg(long, default_value_t = false)]
-        make_only: bool,
-        /// Public key hex required for unsigned `--make-only`.
-        #[arg(long)]
-        initiator_addr: Option<String>,
-    },
+    Install(CEP95InstallCommand),
     /// Mint a token (owner-gated on tip).
-    Mint {
-        #[arg(long)]
-        contract_hash: String,
-        #[arg(long)]
-        package_hash: Option<String>,
-        #[arg(long)]
-        to: String,
-        #[arg(long)]
-        token_id: String,
-        #[arg(long)]
-        secret_key: Option<PathBuf>,
-        #[arg(long, default_value = "5000000000")]
-        payment: String,
-        #[arg(long, default_value_t = false)]
-        make_only: bool,
-        #[arg(long)]
-        initiator_addr: Option<String>,
-    },
+    Mint(CEP95MintCommand),
     /// Burn a token.
     Burn {
         #[arg(long)]
@@ -735,45 +711,9 @@ enum CEP95Commands {
         initiator_addr: Option<String>,
     },
     /// `transfer_from`.
-    TransferFrom {
-        #[arg(long)]
-        contract_hash: String,
-        #[arg(long)]
-        package_hash: Option<String>,
-        #[arg(long)]
-        from: String,
-        #[arg(long)]
-        to: String,
-        #[arg(long)]
-        token_id: String,
-        #[arg(long)]
-        secret_key: Option<PathBuf>,
-        #[arg(long, default_value = "5000000000")]
-        payment: String,
-        #[arg(long, default_value_t = false)]
-        make_only: bool,
-        #[arg(long)]
-        initiator_addr: Option<String>,
-    },
+    TransferFrom(CEP95TransferFromCommand),
     /// Approve a spender for one token.
-    Approve {
-        #[arg(long)]
-        contract_hash: String,
-        #[arg(long)]
-        package_hash: Option<String>,
-        #[arg(long)]
-        spender: String,
-        #[arg(long)]
-        token_id: String,
-        #[arg(long)]
-        secret_key: Option<PathBuf>,
-        #[arg(long, default_value = "5000000000")]
-        payment: String,
-        #[arg(long, default_value_t = false)]
-        make_only: bool,
-        #[arg(long)]
-        initiator_addr: Option<String>,
-    },
+    Approve(CEP95ApproveCommand),
     /// Revoke single-token approval.
     RevokeApproval {
         #[arg(long)]
@@ -792,22 +732,7 @@ enum CEP95Commands {
         initiator_addr: Option<String>,
     },
     /// Approve operator for all tokens.
-    ApproveForAll {
-        #[arg(long)]
-        contract_hash: String,
-        #[arg(long)]
-        package_hash: Option<String>,
-        #[arg(long)]
-        operator: String,
-        #[arg(long)]
-        secret_key: Option<PathBuf>,
-        #[arg(long, default_value = "5000000000")]
-        payment: String,
-        #[arg(long, default_value_t = false)]
-        make_only: bool,
-        #[arg(long)]
-        initiator_addr: Option<String>,
-    },
+    ApproveForAll(CEP95ApproveForAllCommand),
     /// Revoke operator for all tokens.
     RevokeApprovalForAll {
         #[arg(long)]
@@ -901,6 +826,108 @@ enum CEP95Commands {
         #[arg(long)]
         initiator_addr: Option<String>,
     },
+}
+
+#[derive(Debug, Args)]
+struct CEP95InstallCommand {
+    #[arg(long)]
+    name: String,
+    #[arg(long)]
+    symbol: String,
+    #[arg(long)]
+    package_key_name: String,
+    #[arg(long)]
+    wasm: PathBuf,
+    #[arg(long)]
+    secret_key: Option<PathBuf>,
+    #[arg(long, default_value = "600000000000")]
+    payment: String,
+    /// Build Transaction JSON only (no put).
+    #[arg(long, default_value_t = false)]
+    make_only: bool,
+    /// Public key hex required for unsigned `--make-only`.
+    #[arg(long)]
+    initiator_addr: Option<String>,
+}
+
+#[derive(Debug, Args)]
+struct CEP95MintCommand {
+    #[arg(long)]
+    contract_hash: String,
+    #[arg(long)]
+    package_hash: Option<String>,
+    #[arg(long)]
+    to: String,
+    #[arg(long)]
+    token_id: String,
+    #[arg(long)]
+    secret_key: Option<PathBuf>,
+    #[arg(long, default_value = "5000000000")]
+    payment: String,
+    #[arg(long, default_value_t = false)]
+    make_only: bool,
+    #[arg(long)]
+    initiator_addr: Option<String>,
+}
+
+#[derive(Debug, Args)]
+struct CEP95ApproveCommand {
+    #[arg(long)]
+    contract_hash: String,
+    #[arg(long)]
+    package_hash: Option<String>,
+    #[arg(long)]
+    spender: String,
+    #[arg(long)]
+    token_id: String,
+    #[arg(long)]
+    secret_key: Option<PathBuf>,
+    #[arg(long, default_value = "5000000000")]
+    payment: String,
+    #[arg(long, default_value_t = false)]
+    make_only: bool,
+    #[arg(long)]
+    initiator_addr: Option<String>,
+}
+
+#[derive(Debug, Args)]
+struct CEP95TransferFromCommand {
+    #[arg(long)]
+    contract_hash: String,
+    #[arg(long)]
+    package_hash: Option<String>,
+    #[arg(long)]
+    from: String,
+    #[arg(long)]
+    to: String,
+    #[arg(long)]
+    token_id: String,
+    #[arg(long)]
+    secret_key: Option<PathBuf>,
+    #[arg(long, default_value = "5000000000")]
+    payment: String,
+    #[arg(long, default_value_t = false)]
+    make_only: bool,
+    #[arg(long)]
+    initiator_addr: Option<String>,
+}
+
+#[derive(Debug, Args)]
+struct CEP95ApproveForAllCommand {
+    #[arg(long)]
+    contract_hash: String,
+    #[arg(long)]
+    package_hash: Option<String>,
+    #[arg(long)]
+    operator: String,
+    #[arg(long)]
+    secret_key: Option<PathBuf>,
+    #[arg(long, default_value = "5000000000")]
+    payment: String,
+    #[arg(long, default_value_t = false)]
+    make_only: bool,
+    #[arg(long)]
+    initiator_addr: Option<String>,
 }
 
 fn read_secret(path: &PathBuf) -> Result<String> {
@@ -1174,7 +1201,7 @@ async fn run_cep18(
                 json,
             )?;
         }
-        CEP18Commands::Install {
+        CEP18Commands::Install(CEP18InstallCommand {
             name,
             symbol,
             decimals,
@@ -1186,7 +1213,7 @@ async fn run_cep18(
             initiator_addr,
             events_mode,
             enable_mint_and_burn,
-        } => {
+        }) => {
             let bytes = fs::read(&wasm).with_context(|| format!("read wasm {}", wasm.display()))?;
             let client =
                 CEP18Client::new(rpc_url, sse, chain, verbosity).context("create CEP-18 client")?;
@@ -1626,7 +1653,7 @@ async fn run_cep85(
                 json,
             )?;
         }
-        CEP85Commands::Install {
+        CEP85Commands::Install(CEP85InstallCommand {
             name,
             uri,
             wasm,
@@ -1638,7 +1665,7 @@ async fn run_cep85(
             enable_burn,
             transfer_filter_contract,
             transfer_filter_method,
-        } => {
+        }) => {
             let bytes = fs::read(&wasm).with_context(|| format!("read wasm {}", wasm.display()))?;
             let client =
                 CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
@@ -1679,7 +1706,7 @@ async fn run_cep85(
                 print_install_put(&put, &contract, &package, json)?;
             }
         }
-        CEP85Commands::Mint {
+        CEP85Commands::Mint(CEP85MintCommand {
             contract_hash,
             package_hash,
             recipient,
@@ -1690,7 +1717,7 @@ async fn run_cep85(
             payment,
             make_only,
             initiator_addr,
-        } => {
+        }) => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
                 CEP85Client::new(rpc_url, sse, chain, verbosity).context("create CEP-85 client")?;
@@ -1726,7 +1753,7 @@ async fn run_cep85(
                 .context("burn")?;
             print_call_result(&put, json)?;
         }
-        CEP85Commands::Transfer {
+        CEP85Commands::Transfer(CEP85TransferCommand {
             contract_hash,
             package_hash,
             from,
@@ -1738,7 +1765,7 @@ async fn run_cep85(
             payment,
             make_only,
             initiator_addr,
-        } => {
+        }) => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let data = decode_optional_hex(data_hex.as_deref())?;
             let mut client =
@@ -2060,7 +2087,7 @@ async fn run_cep95(
                 json,
             )?;
         }
-        CEP95Commands::Install {
+        CEP95Commands::Install(CEP95InstallCommand {
             name,
             symbol,
             package_key_name,
@@ -2069,7 +2096,7 @@ async fn run_cep95(
             make_only,
             initiator_addr,
             payment,
-        } => {
+        }) => {
             let bytes = fs::read(&wasm).with_context(|| format!("read wasm {}", wasm.display()))?;
             let mut client =
                 CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
@@ -2093,7 +2120,7 @@ async fn run_cep95(
                 print_install_put(&put, &contract, &package, json)?;
             }
         }
-        CEP95Commands::Mint {
+        CEP95Commands::Mint(CEP95MintCommand {
             contract_hash,
             package_hash,
             to,
@@ -2102,7 +2129,7 @@ async fn run_cep95(
             make_only,
             initiator_addr,
             payment,
-        } => {
+        }) => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
                 CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
@@ -2133,7 +2160,7 @@ async fn run_cep95(
             let put = client.burn(&token_id, &tx).await.context("burn")?;
             print_call_result(&put, json)?;
         }
-        CEP95Commands::TransferFrom {
+        CEP95Commands::TransferFrom(CEP95TransferFromCommand {
             contract_hash,
             package_hash,
             from,
@@ -2143,7 +2170,7 @@ async fn run_cep95(
             make_only,
             initiator_addr,
             payment,
-        } => {
+        }) => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
                 CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
@@ -2156,7 +2183,7 @@ async fn run_cep95(
                 .context("transfer_from")?;
             print_call_result(&put, json)?;
         }
-        CEP95Commands::Approve {
+        CEP95Commands::Approve(CEP95ApproveCommand {
             contract_hash,
             package_hash,
             spender,
@@ -2165,7 +2192,7 @@ async fn run_cep95(
             make_only,
             initiator_addr,
             payment,
-        } => {
+        }) => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
                 CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
@@ -2199,7 +2226,7 @@ async fn run_cep95(
                 .context("revoke_approval")?;
             print_call_result(&put, json)?;
         }
-        CEP95Commands::ApproveForAll {
+        CEP95Commands::ApproveForAll(CEP95ApproveForAllCommand {
             contract_hash,
             package_hash,
             operator,
@@ -2207,7 +2234,7 @@ async fn run_cep95(
             make_only,
             initiator_addr,
             payment,
-        } => {
+        }) => {
             let tx = build_tx_params(&secret_key, &payment, make_only, &initiator_addr)?;
             let mut client =
                 CEP95Client::new(rpc_url, sse, chain, verbosity).context("create CEP-95 client")?;
@@ -2475,6 +2502,145 @@ mod tests {
     }
 
     #[test]
+    fn parses_install_commands_with_defaults() {
+        let cep18 = Cli::try_parse_from([
+            "ceps",
+            "cep18",
+            "install",
+            "--name",
+            "Token",
+            "--symbol",
+            "TOK",
+            "--total-supply",
+            "100",
+            "--wasm",
+            "token.wasm",
+        ])
+        .unwrap();
+        assert!(matches!(
+            cep18.command,
+            Commands::CEP18 {
+                command: CEP18Commands::Install(CEP18InstallCommand {
+                    decimals: 9,
+                    make_only: false,
+                    ..
+                })
+            }
+        ));
+
+        let cep85 = Cli::try_parse_from([
+            "ceps",
+            "cep85",
+            "install",
+            "--name",
+            "Token",
+            "--uri",
+            "uri",
+            "--wasm",
+            "token.wasm",
+        ])
+        .unwrap();
+        assert!(matches!(
+            cep85.command,
+            Commands::CEP85 {
+                command: CEP85Commands::Install(CEP85InstallCommand {
+                    enable_burn: false,
+                    make_only: false,
+                    ..
+                })
+            }
+        ));
+
+        let cep95 = Cli::try_parse_from([
+            "ceps",
+            "cep95",
+            "install",
+            "--name",
+            "Token",
+            "--symbol",
+            "TOK",
+            "--package-key-name",
+            "token",
+            "--wasm",
+            "token.wasm",
+        ])
+        .unwrap();
+        assert!(matches!(
+            cep95.command,
+            Commands::CEP95 {
+                command: CEP95Commands::Install(CEP95InstallCommand {
+                    make_only: false,
+                    ..
+                })
+            }
+        ));
+
+        for cep in ["cep18", "cep85", "cep95"] {
+            let err = Cli::try_parse_from(["ceps", cep, "install"]).unwrap_err();
+            assert_eq!(err.kind(), clap::error::ErrorKind::MissingRequiredArgument);
+        }
+    }
+
+    #[test]
+    fn parses_extracted_transfer_commands() {
+        let cep85 = Cli::try_parse_from([
+            "ceps",
+            "cep85",
+            "transfer",
+            "--contract-hash",
+            "hash",
+            "--from",
+            "a",
+            "--to",
+            "b",
+            "--id",
+            "1",
+            "--amount",
+            "2",
+            "--data-hex",
+            "ff",
+            "--make-only",
+        ])
+        .unwrap();
+        assert!(matches!(
+            cep85.command,
+            Commands::CEP85 {
+                command: CEP85Commands::Transfer(CEP85TransferCommand {
+                    data_hex: Some(data),
+                    make_only: true,
+                    ..
+                })
+            } if data == "ff"
+        ));
+
+        let cep95 = Cli::try_parse_from([
+            "ceps",
+            "cep95",
+            "transfer-from",
+            "--contract-hash",
+            "hash",
+            "--from",
+            "a",
+            "--to",
+            "b",
+            "--token-id",
+            "1",
+            "--make-only",
+        ])
+        .unwrap();
+        assert!(matches!(
+            cep95.command,
+            Commands::CEP95 {
+                command: CEP95Commands::TransferFrom(CEP95TransferFromCommand {
+                    token_id,
+                    make_only: true,
+                    ..
+                })
+            } if token_id == "1"
+        ));
+    }
+
+    #[test]
     fn parses_put_and_wait_transaction() {
         let cli = Cli::try_parse_from([
             "ceps",
@@ -2654,7 +2820,7 @@ mod tests {
         .expect("parse");
         match cli.command {
             Commands::CEP85 {
-                command: CEP85Commands::Mint { make_only, id, .. },
+                command: CEP85Commands::Mint(CEP85MintCommand { make_only, id, .. }),
             } => {
                 assert!(make_only);
                 assert_eq!(id, "1");

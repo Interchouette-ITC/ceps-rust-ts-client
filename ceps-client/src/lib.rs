@@ -27,11 +27,11 @@ pub mod types;
 pub mod wasm;
 
 #[cfg(feature = "client")]
-pub use casper_rust_wasm_sdk::types::verbosity::Verbosity;
-#[cfg(feature = "client")]
 pub use casper_rust_wasm_sdk::SSE::{
     CESEvent, CESParseResult, CESParser, EventName, RawEvent, SSEClient,
 };
+#[cfg(feature = "client")]
+pub use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 #[cfg(feature = "client")]
 pub use cep18::CEP18Client;
 #[cfg(feature = "client")]

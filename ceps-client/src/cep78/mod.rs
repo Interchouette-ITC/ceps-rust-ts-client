@@ -14,13 +14,13 @@ pub use modes::{
 pub use types::{InstallArgs, SetVariablesArgs, TokenIdentifier, UpgradeArgs};
 
 use crate::core::CEPClient;
-use crate::core::{json_args, key_arg, string_arg, JsonArg};
+use crate::core::{JsonArg, json_args, key_arg, string_arg};
 use crate::error::{CEPError, CEPKind, Result};
 use crate::schema::arg;
 use crate::schema::cep78_fields as sch;
 use crate::types::{CallResult, EventsMode78, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// Client for CEP-78 enhanced NFT contracts.
 pub struct CEP78Client {

@@ -1,6 +1,6 @@
 //! CEP-18 install and mutate arg fields.
 
-use super::types::{ty, ArgField};
+use super::types::{ArgField, ty};
 
 /// Installer session args.
 pub const INSTALL: &[ArgField] = &[

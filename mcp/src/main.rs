@@ -1,7 +1,7 @@
 //! `ceps-rust-ts-client-mcp` - MCP server (stdio by default, optional Streamable HTTP).
 
 use anyhow::Result;
-use ceps_rust_ts_client_mcp::server::{run, run_http, DEFAULT_HTTP_LISTEN};
+use ceps_rust_ts_client_mcp::server::{DEFAULT_HTTP_LISTEN, run, run_http};
 use clap::Parser;
 
 #[derive(Debug, Parser)]

@@ -9,7 +9,7 @@ pub use error::CEP18Error;
 pub use types::{ChangeSecurityArgs, InstallArgs, SecurityBadge18, UpgradeArgs};
 
 use crate::core::CEPClient;
-use crate::core::{json_args, JsonArg};
+use crate::core::{JsonArg, json_args};
 use crate::error::{CEPError, CEPKind, Result};
 use crate::schema::arg;
 use crate::schema::cep18_fields as sch;
@@ -17,7 +17,7 @@ use crate::types::{CallResult, EventsMode, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use entity::prefixed_key;
 use keys::{allowance_dictionary_key, balance_dictionary_key};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// Client for CEP-18 fungible token contracts.
 pub struct CEP18Client {

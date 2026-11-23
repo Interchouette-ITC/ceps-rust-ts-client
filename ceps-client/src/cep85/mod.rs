@@ -10,7 +10,7 @@ pub use error::CEP85Error;
 pub use types::{ChangeSecurityArgs, InstallArgs, SecurityBadge85, UpgradeArgs};
 
 use crate::core::CEPClient;
-use crate::core::{json_args, JsonArg};
+use crate::core::{JsonArg, json_args};
 use crate::error::{CEPError, CEPKind, Result};
 use crate::schema::arg;
 use crate::schema::cep85_fields as sch;
@@ -18,7 +18,7 @@ use crate::types::{CallResult, EventsMode, TransactionParams};
 use casper_rust_wasm_sdk::types::verbosity::Verbosity;
 use casper_types::U256;
 use keys::{balance_dictionary_key, operator_dictionary_key, security_badge_dictionary_key};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::str::FromStr;
 
 /// Client for CEP-85 multi-token contracts.
